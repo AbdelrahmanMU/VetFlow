@@ -7,8 +7,18 @@
 
 ## Current sprint
 
-Sprint 2 — Final Architecture Governance (engineering constitution before
-implementation). Sprint 1 (shared docs + Catalog) items remain open below.
+**Sprint 2 — Final Architecture Governance: COMPLETE. THE ENGINEERING
+FOUNDATION IS FROZEN (owner, 2026-07-13).**
+
+> **No new governance artifact — ADR, standard, playbook or document — may be
+> introduced unless a real implementation problem proves the current governance
+> insufficient.** Evidence first, governance second. Engineering effort now goes
+> into building the product. Recorded in `principles.md` § *The Foundation is
+> frozen*.
+
+**Next: Sprint 3 — Implementation.** Definition of Ready (ADR-0017 §5) gates it:
+Catalog needs `ui.md` written and all Catalog docs flipped Draft → Approved
+before any code is written.
 
 **2026-07-13 — Governance structure APPROVED by the owner (in principle).
 The governance documents themselves do NOT exist yet: writing them is the
@@ -149,11 +159,17 @@ no implementation may start until they exist.**
    `InfrastructureException` as a SEPARATE root per owner ruling; codes only,
    no text; Error Catalog VTF-<MOD>-NNN; `Result<T>` rejected with reasons).
    ADR-0019 PostgreSQL (final; Domain/Application never depend on it).
-3. **Wave 3 — the 4 standards docs. PLAN APPROVED-PENDING (owner ruling
-   2026-07-13): standards are EXECUTABLE ENGINEERING CONTRACTS, not prose.**
-   Files: `csharp-coding-standards.md`, `backend-standards.md`,
-   `frontend-standards.md`, `api-standards.md` (in
-   `docs/architecture/standards/`). Unblocked — database is decided.
+3. **Wave 3 — the 4 standards docs: WRITTEN 2026-07-13 (Draft), quality gate
+   passed.** `docs/architecture/standards/` — `csharp-coding-standards.md` (33
+   standards), `backend-standards.md` (47), `frontend-standards.md` (35),
+   `api-standards.md` (22). **137 standards total.** Quality gate: zero
+   duplicate IDs, zero dangling `Depends On` references, no unenforceable
+   Mandatory rule (craft rules are correctly Recommended/Manual), no rationale
+   duplicated from the ADRs. Each doc carries an Exception Register (empty) and
+   a Tombstones section (empty). Format as approved: one row per standard,
+   defaults declared once.
+
+   Standards are EXECUTABLE ENGINEERING CONTRACTS, not prose:
 
    **Every standard is a row with a fixed shape. No prose paragraphs, no
    rationale (rationale lives in the ADR; the standard links to it).**

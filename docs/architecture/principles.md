@@ -224,3 +224,22 @@ This constitution governs its own amendment:
 7. **Governance grows only by subtraction pressure.** A new governance document
    must justify its existence against merging into an existing one. If it does
    not permanently reduce engineering ambiguity, it is not created.
+
+## The Foundation is frozen
+
+**Frozen by the owner on 2026-07-13.** The Engineering Foundation — this
+constitution, ADR-0001 … ADR-0019, the standards, and the playbooks — is
+complete.
+
+**From this point forward, no new governance artifact (ADR, standard, playbook,
+or document) may be introduced unless a real implementation problem demonstrates
+that the current governance is insufficient.** Evidence first, governance second
+— the same rule the Simplicity Budget applies to technology (principle 14).
+
+Engineering effort now goes into **building the product**, not into expanding
+the governance. A governance change is a response to a demonstrated failure, not
+an improvement project.
+
+Amending frozen governance follows the evolution rules above: an ADR supersedes
+an ADR; a standard changes by owner-approved change citing the implementation
+problem that forced it.
