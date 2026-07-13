@@ -7,3 +7,16 @@
 |---|---|---|---|
 | [ADR-0001](ADR-0001-repository-structure.md) | Repository structure | Accepted | 2026-07-12 |
 | [ADR-0002](ADR-0002-documentation-language.md) | Documentation language (hybrid) | Accepted | 2026-07-12 |
+| [ADR-0003](ADR-0003-backend-platform.md) | Backend platform — ASP.NET Core (latest LTS) | Proposed | 2026-07-13 |
+| [ADR-0004](ADR-0004-orm-strategy.md) | ORM strategy — EF Core only | Proposed | 2026-07-13 |
+| [ADR-0005](ADR-0005-frontend-platform.md) | Frontend platform — Angular (latest stable) | Proposed | 2026-07-13 |
+| [ADR-0006](ADR-0006-product-api.md) | Backend API is a product API | Proposed | 2026-07-13 |
+| [ADR-0007](ADR-0007-localization-architecture.md) | Localization-ready architecture, Arabic-first MVP | Proposed | 2026-07-13 |
+| [ADR-0008](ADR-0008-docker.md) | Docker from the beginning | Proposed | 2026-07-13 |
+| [ADR-0009](ADR-0009-design-system-adaptive-ui.md) | Own design system + adaptive UI (scope expanded in review) | Proposed | 2026-07-13 |
+| [ADR-0010](ADR-0010-authentication-abstraction.md) | Provider-independent authentication architecture | Proposed | 2026-07-13 |
+| [ADR-0011](ADR-0011-caching-architecture.md) | Caching is an Infrastructure-only concern | Proposed | 2026-07-13 |
+| [ADR-0012](ADR-0012-ui-kit-library-independence.md) | VetFlow UI Kit — UI library independence | Proposed | 2026-07-13 |
+| [ADR-0013](ADR-0013-angular-feature-architecture.md) | Angular feature-based architecture | Proposed | 2026-07-13 |
+
+Related studies (not decisions): [Database platform study — PostgreSQL vs SQL Server](../database-platform-study.md) (Draft; decision open).
