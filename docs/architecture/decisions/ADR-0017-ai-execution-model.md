@@ -101,8 +101,15 @@ Repository clean · no untracked files · no merge conflicts · no broken
 references · no traceability gaps · no documentation drift · no architecture
 drift · no ADR violations · no circular dependencies · no duplicated ownership ·
 no unapproved public API break · no security regression · no performance
-regression (against ADR-0014 budgets) · no standards violation · no playbook
-violation · no business-rule inconsistency.
+regression (against ADR-0014 budgets) · **no Error-severity standards
+violation** · no playbook violation · no business-rule inconsistency.
+
+**Severity policy** (repository policy, not implementation policy): only
+**Error** blocks CI. **Warning never blocks CI**; it blocks push only when the
+active playbook explicitly requires it, and is otherwise a review item.
+**Info** never blocks. Compiler and analyzer warnings are a separate matter:
+they are configured as errors (warnings-as-errors), which makes them
+Error-severity by construction — the commit gate's "zero warnings" is unchanged.
 
 ### 7. Repository integrity gate — before every push
 

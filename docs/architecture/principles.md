@@ -26,7 +26,7 @@ The engineering foundation prioritizes, in this order:
 **Development speed is important, but never more important than long-term
 maintainability.**
 
-## The thirteen principles
+## The fourteen principles
 
 ### 1. Business first
 
@@ -137,6 +137,22 @@ something demonstrably beats it on VetFlow's own problem.
 The corollary is the version policy already in force: stable LTS and stable
 releases only, never previews (ADR-0003, ADR-0005). A system that lives for
 years is built from things that have already survived a few.
+
+### 14. Measurable engineering
+
+Engineering decisions are validated by **objective evidence** whenever
+practical. Benchmarks, architecture tests, profiling, CI validation, and
+production measurements take precedence over intuition.
+
+**Personal preference is never sufficient to justify architectural
+complexity.** "It feels cleaner" is not an argument; "the profile shows this
+path costs 400 ms and this change removes 380 of them" is.
+
+Where measurement is impractical, say so plainly and decide with stated
+reasoning — but do not disguise a preference as a finding. This principle is the
+evidentiary half of the Simplicity Budget (ADR-0014) and of principle 13: the
+budget asks *does it reduce complexity*, principle 13 asks *is it better than
+what we have*, and this principle asks *how do you know*.
 
 ## The authority hierarchy
 

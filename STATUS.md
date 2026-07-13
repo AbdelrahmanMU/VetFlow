@@ -104,9 +104,9 @@ no implementation may start until they exist.**
 
 1. **Wave 1 — Constitution: DONE, owner-approved, committed 2026-07-13; amended
    2026-07-13 with principle 13 (*stability over novelty*).**
-   `docs/architecture/principles.md` (**13 principles** incl. *repository is the
-   source of truth* and *stability over novelty*; authority hierarchy; Repository
-   Evolution), `docs/architecture/overview.md` (system map + Engineering
+   `docs/architecture/principles.md` (**14 principles** incl. *repository is the
+   source of truth*, *stability over novelty*, *measurable engineering*;
+   authority hierarchy; Repository Evolution), `docs/architecture/overview.md` (system map + Engineering
    Decision Matrix), `.claude/rules/ai-governance.md` (always-loaded policy +
    pointers, 70 lines, incl. contradiction policy). Supporting edits:
    `CLAUDE.md`, `docs/PROJECT_CONTEXT.md` (stale tech-stack drift fixed).
@@ -161,12 +161,34 @@ no implementation may start until they exist.**
    | Field | Meaning |
    |---|---|
    | **ID** | `STD-<AREA>-NNN`, stable, never renumbered (tombstone if annulled) |
-   | **Rule** | One testable statement — if it cannot fail a check, it is not a standard |
+   | **Rule** | One testable statement |
    | **Class** | **Mandatory** / **Recommended** / **Informational** |
-   | **Severity** | **Error** (blocks commit) / **Warning** (blocks push, reviewable) / **Info** |
-   | **Enforced by** | Analyzer · ESLint rule · architecture test · CI script · review checkpoint |
+   | **Severity** | **Error** / **Warning** / **Info** — see severity policy |
+   | **Automation** | **Automatic** / **Semi-Automatic** / **Manual** — *how much* is automated |
+   | **Enforced By** | *Which* mechanism: architecture test · Roslyn analyzer · ESLint rule · CI script · unit test · engineering review |
    | **Source** | The ADR or principle it implements (link only — no restatement) |
    | **Exception** | How to obtain one — see below |
+
+   **Automation vs Enforced By are different questions** and both are mandatory.
+   *Automation* = how much is mechanical (Automatic = fully mechanical;
+   Semi-Automatic = partly mechanical, rest verified in review; Manual = cannot
+   reasonably be automated, review only). *Enforced By* = which mechanism does
+   it. This keeps the repository honest about what CI actually catches.
+
+   **Severity policy — repository policy, not implementation policy:** only
+   **Error** blocks CI. **Warning NEVER blocks CI**; it blocks push only when the
+   active playbook explicitly requires it, otherwise it is a review item.
+   **Info** never blocks. (Compiler/analyzer warnings are configured as errors,
+   so they are Error-severity by construction — ADR-0017 §6.)
+
+   **Taste rules stay honest** (owner-approved): explicit naming · no hidden side
+   effects · readability · small methods · single responsibility →
+   **Class: Recommended · Automation: Manual · Enforced By: Engineering Review.**
+   No fake automation. Repository honesty outranks forcing every idea into CI.
+
+   **Rule of admission:** a candidate standard that cannot define **Enforcement**,
+   **Automation Level**, and **Exception Process** is either **promoted to an ADR**
+   (it is a decision, not a standard) or **rejected**. No wish-list standards.
 
    **Exception process (uniform):** Mandatory/Error → ADR + owner approval, no
    in-code suppression ever. Mandatory/Warning → documented exception in the
@@ -175,19 +197,27 @@ no implementation may start until they exist.**
    exception needed. **Architecture-test-enforced rules never weaken without an
    ADR** (constitutional).
 
-   **Rule of admission:** a candidate standard that cannot name its enforcement
-   mechanism is either promoted to an ADR (it is a decision, not a standard) or
-   dropped. Unenforceable "standards" are how repositories accumulate lies.
+   **Scalability constraint:** every standard must still work at 15+ modules,
+   hundreds of entities, thousands of files, multiple developers, and continuous
+   AI implementation — and survive five years without redesign. Practically:
+   standards are stated per-pattern, never per-file or per-entity; enforcement is
+   mechanical wherever possible (a rule that requires a human to check every
+   occurrence does not scale and must be Automatic or Recommended, never
+   Mandatory/Manual); no standard may require a registry that must be hand-edited
+   on every new module.
 
    **Approved Technology Baseline** — owner-approved 2026-07-13; recorded inside
-   the standards docs (**no new document**). Each library gets four columns:
-   **Purpose · Allowed scope · Forbidden usage · Rejected alternatives.**
+   the standards docs (**no new document**). Each library gets five columns:
+   **Purpose · Allowed scope · Forbidden usage · Rejected alternatives ·
+   Lifecycle** (Approved / Deprecated / Experimental / Forbidden — so the table
+   evolves without changing shape). Forbidden entries are recorded, not deleted:
+   MediatR, AutoMapper, FluentAssertions (with their reasons).
    *Backend:* ASP.NET Core · EF Core · FluentValidation · Serilog ·
    OpenTelemetry · Npgsql · xUnit · Testcontainers · NetArchTest · Shouldly.
    *Frontend:* Angular · PrimeNG · Angular CDK · RxJS.
    **Adding a foundational library requires an ADR or explicit owner approval**,
-   and must pass the Simplicity Budget (ADR-0014 §12) and principle 13
-   (*stability over novelty*).
+   and must pass the Simplicity Budget (ADR-0014 §12), principle 13 (*stability
+   over novelty*) and principle 14 (*measurable engineering*).
    Scope notes already ruled: Serilog is a **sink behind
    `Microsoft.Extensions.Logging` abstractions**, Infrastructure only (ADR-0011);
    Serilog + OpenTelemetry implement the TraceId/CorrelationId flow (ADR-0015);
