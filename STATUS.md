@@ -160,14 +160,26 @@ no implementation may start until they exist.**
 
    | Field | Meaning |
    |---|---|
-   | **ID** | `STD-<AREA>-NNN`, stable, never renumbered (tombstone if annulled) |
+   | **ID** | `STD-<AREA>-NNN` — **immutable**: never renumbered, never reused; a removed standard is **tombstoned** with its ID reserved, so every reference stays valid forever. Same lifecycle as BR / REQ / AC / WF / DEC / ADR |
    | **Rule** | One testable statement |
+   | **Scope** | Backend · Frontend · API · Infrastructure · Database · Testing · AI Workflow · Repository · Cross-Cutting — lets a session filter standards without loading whole documents |
    | **Class** | **Mandatory** / **Recommended** / **Informational** |
    | **Severity** | **Error** / **Warning** / **Info** — see severity policy |
+   | **Stability** | **Stable** / **Experimental** / **Deprecated** — the *standard's* own maturity (distinct from a library's Lifecycle) |
    | **Automation** | **Automatic** / **Semi-Automatic** / **Manual** — *how much* is automated |
    | **Enforced By** | *Which* mechanism: architecture test · Roslyn analyzer · ESLint rule · CI script · unit test · engineering review |
-   | **Source** | The ADR or principle it implements (link only — no restatement) |
-   | **Exception** | How to obtain one — see below |
+   | **Cost** | Where enforcement is paid: compilation · runtime · CI · architecture test · review (feeds the CI budget, ADR-0016 §5) |
+   | **Depends On** | Other `STD-*` IDs this rule builds on — **declared explicitly; hidden dependencies are prohibited** |
+   | **Source** | The ADR or principle it implements (link only — **no restated rationale**) |
+   | **Exception** | Pointer to the document's Exception Register (below) |
+
+   **Format decision (to keep 12 fields readable and cheap):** standards are
+   written as **one row per standard in a table**, not a block per standard —
+   `ID · Rule · Scope · Class · Severity · Stability · Automation · Enforced By ·
+   Cost · Depends On · Source`. Defaults are stated once at the top of each
+   document (e.g. *Stability: Stable unless stated*; *Depends On: none unless
+   stated*), so a typical row stays one line. Exceptions live only in the
+   register, never inline.
 
    **Automation vs Enforced By are different questions** and both are mandatory.
    *Automation* = how much is mechanical (Automatic = fully mechanical;
@@ -190,12 +202,31 @@ no implementation may start until they exist.**
    **Automation Level**, and **Exception Process** is either **promoted to an ADR**
    (it is a decision, not a standard) or **rejected**. No wish-list standards.
 
+   **Standard writing rules — every rule must be all six:** *Atomic* (one rule,
+   one obligation) · *Testable* · *Unambiguous* (two competent readers implement
+   it identically — the determinism requirement, ADR-0017 §3) · *Repository-wide*
+   (not a one-off) · *Future-proof* · *Independent* (or its dependency is declared
+   in **Depends On**). A rule failing any of the six is **split or rejected**.
+
+   **Standards preserve architecture; they do not teach.** Rationale lives in the
+   ADR. A standards document contains enforceable rules and nothing else — no
+   background, no tutorials, no restated reasoning.
+
    **Exception process (uniform):** Mandatory/Error → ADR + owner approval, no
-   in-code suppression ever. Mandatory/Warning → documented exception in the
-   standard's exception log with an owner-approved reason. Recommended →
-   deviation allowed, must be stated in the PR/session. Informational → no
-   exception needed. **Architecture-test-enforced rules never weaken without an
-   ADR** (constitutional).
+   in-code suppression ever. Mandatory/Warning → owner-approved entry in the
+   register. Recommended → deviation allowed, stated in the session/PR.
+   Informational → none needed. **Architecture-test-enforced rules never weaken
+   without an ADR** (constitutional).
+
+   **Exception Register:** each standards document owns **exactly one** Exception
+   Register section. Every approved exception is logged there once — with the
+   `STD-*` ID, the scope of the exception, the owner approval, and the date.
+   **No inline, undocumented exceptions anywhere. No suppression comments.**
+
+   **Documentation quality gate — run before any standard is accepted, and a
+   review report is produced at the end of Wave 3:** no duplicated rule · no
+   conflicting rule · no circular dependency · no hidden dependency · no
+   unenforceable Mandatory rule · no obsolete reference.
 
    **Scalability constraint:** every standard must still work at 15+ modules,
    hundreds of entities, thousands of files, multiple developers, and continuous

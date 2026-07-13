@@ -89,7 +89,31 @@ to the business rule it defends. Checked by the commit gate (ADR-0017).
 confidence. Traceability asks the question that matters: *is every rule the
 owner approved actually enforced, and proven?*
 
-### 5. Mutation testing — allowed later, never a replacement
+### 5. CI performance budget — enforcement must stay fast
+
+Architecture quality must never destroy developer productivity. A gate that
+takes too long stops being run honestly and starts being worked around.
+
+| CI stage | Budget (proposed — owner approval pending) |
+|---|---|
+| Build + analyzers | < 2 min |
+| Architecture tests | **< 30 s** |
+| Unit tests (domain) | < 1 min |
+| Integration tests (containers) | < 5 min |
+| **Full pipeline, commit to green** | **< 10 min** |
+
+- Every **Mandatory** standard declares its enforcement **Cost** (compilation ·
+  runtime · CI · architecture test · review). A rule whose enforcement is
+  expensive must earn it.
+- **A rule that significantly slows CI requires owner approval** before it is
+  added.
+- Budget breaches are investigated like any other performance regression
+  (principle 14): measure first, then fix the stage the measurement names.
+- Architecture tests are reflection-based and run without I/O; if they ever
+  approach their budget, the fix is to make the tests cheaper — **never** to run
+  them less often.
+
+### 6. Mutation testing — allowed later, never a replacement
 
 Mutation testing may be introduced later, when there is a reason to ask whether
 the existing tests actually assert anything. It is a **quality check on tests**,
@@ -98,7 +122,7 @@ not a source of confidence in the system.
 **It never replaces architecture tests, and it never replaces integration
 tests.** Nothing may be traded away for it.
 
-### 6. Test naming and organization
+### 7. Test naming and organization
 
 - Test projects mirror the source layers; test folders mirror the modules.
 - Test names are sentences describing behavior, ending in the `BR-*` ID where

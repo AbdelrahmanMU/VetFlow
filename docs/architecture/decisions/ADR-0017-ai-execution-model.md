@@ -55,7 +55,23 @@ placeholder, not as a "reasonable assumption", not as a TODO. An invented
 decision that looks plausible is worse than no decision at all, because it will
 be trusted.
 
-### 3. Contradiction policy
+### 3. AI determinism
+
+**The same prompt, against the same repository, should produce substantially the
+same result.** Determinism is an engineering property of the *repository*, not
+of the model: it is achieved by removing ambiguity from the documents the AI
+reads.
+
+Therefore every standard, playbook, and rule must answer **"what should the AI
+do?"** — not merely **"what is preferred?"** A document that states a preference
+without stating the decision has not governed anything; it has invited
+improvisation, and improvisation is where drift begins.
+
+Practically: a rule that two competent readers could implement two different ways
+is a defective rule. It is split, sharpened, or rejected (ADR-0016's admission
+discipline; the standards' writing rules).
+
+### 4. Contradiction policy
 
 - The contradiction affects **the current wave or the current task** → **STOP.**
   Explain it. Write nothing until the owner rules.
@@ -64,7 +80,7 @@ be trusted.
 - Never resolve a contradiction by inventing an alternative. Never overwrite a
   newer repository decision with an older one.
 
-### 4. Definition of Ready — no implementation starts without it
+### 5. Definition of Ready — no implementation starts without it
 
 - The module's `business-rules`, `requirements`, `acceptance`, `workflow`,
   `decisions`, and `ui` documents exist **and are Approved**.
@@ -74,7 +90,7 @@ be trusted.
 - Anything missing → **stop and ask the owner.** Never fill the gap by
   inventing.
 
-### 5. Commit gate — all must pass, in order
+### 6. Commit gate — all must pass, in order
 
 **Automated:**
 
@@ -95,7 +111,7 @@ naming its ID, ADR-0016) · UI Kit compliance (ADR-0012) · `STATUS.md` current.
 
 Only then may a commit proceed.
 
-### 6. Push gate — stricter than commit
+### 7. Push gate — stricter than commit
 
 Repository clean · no untracked files · no merge conflicts · no broken
 references · no traceability gaps · no documentation drift · no architecture
@@ -111,7 +127,7 @@ active playbook explicitly requires it, and is otherwise a review item.
 they are configured as errors (warnings-as-errors), which makes them
 Error-severity by construction — the commit gate's "zero warnings" is unchanged.
 
-### 7. Repository integrity gate — before every push
+### 8. Repository integrity gate — before every push
 
 - Every decision has exactly one owner. Every rule has exactly one source.
 - Every document has exactly one responsibility.
@@ -119,7 +135,7 @@ Error-severity by construction — the commit gate's "zero warnings" is unchange
   traces back to a business or architectural decision.
 - No duplicated architectural responsibility. No conflicting governance.
 
-### 8. When a gate fails
+### 9. When a gate fails
 
 **STOP.** Explain the failure. Recommend the **minimum** correction.
 
@@ -127,14 +143,14 @@ Never weaken the gate, disable a test, suppress an analyzer, remove a
 validation, or proceed past a failure. **Repository integrity always outranks
 completing the task** (constitutional).
 
-### 9. Playbooks
+### 10. Playbooks
 
 Execution is standardized in `.claude/playbooks/`. Every playbook has the same
 header: **Inputs → Context Budget (Mandatory / Optional / Forbidden-by-default
 / budget / escalation rule) → Steps → Validation → Stop conditions → Review
 gate.**
 
-### 10. Review checkpoints — the AI stops for the owner at
+### 11. Review checkpoints — the AI stops for the owner at
 
 A new ADR · a new library · a module boundary change · any deviation from a
 standard · a governance wave · completion of a feature slice.
