@@ -102,9 +102,10 @@ no implementation may start until they exist.**
 
 ### Sprint 2 waves — Wave 1 DONE (Draft, awaiting owner review)
 
-1. **Wave 1 — Constitution: DONE, owner-approved with 4 amendments, committed
-   2026-07-13.** `docs/architecture/principles.md` (12 principles incl.
-   *repository is the source of truth*; authority hierarchy; Repository
+1. **Wave 1 — Constitution: DONE, owner-approved, committed 2026-07-13; amended
+   2026-07-13 with principle 13 (*stability over novelty*).**
+   `docs/architecture/principles.md` (**13 principles** incl. *repository is the
+   source of truth* and *stability over novelty*; authority hierarchy; Repository
    Evolution), `docs/architecture/overview.md` (system map + Engineering
    Decision Matrix), `.claude/rules/ai-governance.md` (always-loaded policy +
    pointers, 70 lines, incl. contradiction policy). Supporting edits:
@@ -148,21 +149,50 @@ no implementation may start until they exist.**
    `InfrastructureException` as a SEPARATE root per owner ruling; codes only,
    no text; Error Catalog VTF-<MOD>-NNN; `Result<T>` rejected with reasons).
    ADR-0019 PostgreSQL (final; Domain/Application never depend on it).
-3. Wave 3 — the 4 standards docs (`csharp-coding-standards.md` incl. the owner's
-   mandatory rule list, `backend-standards.md`, `frontend-standards.md`,
-   `api-standards.md`). Unblocked now that the database is decided.
+3. **Wave 3 — the 4 standards docs. PLAN APPROVED-PENDING (owner ruling
+   2026-07-13): standards are EXECUTABLE ENGINEERING CONTRACTS, not prose.**
+   Files: `csharp-coding-standards.md`, `backend-standards.md`,
+   `frontend-standards.md`, `api-standards.md` (in
+   `docs/architecture/standards/`). Unblocked — database is decided.
 
-   **Approved Technology Baseline — owner-approved 2026-07-13; Wave 3 records
-   it in the standards docs (no new document).**
-   *Backend:* ASP.NET Core · Entity Framework Core · FluentValidation · Serilog
-   · OpenTelemetry · Npgsql · xUnit · Testcontainers · NetArchTest · Shouldly.
+   **Every standard is a row with a fixed shape. No prose paragraphs, no
+   rationale (rationale lives in the ADR; the standard links to it).**
+
+   | Field | Meaning |
+   |---|---|
+   | **ID** | `STD-<AREA>-NNN`, stable, never renumbered (tombstone if annulled) |
+   | **Rule** | One testable statement — if it cannot fail a check, it is not a standard |
+   | **Class** | **Mandatory** / **Recommended** / **Informational** |
+   | **Severity** | **Error** (blocks commit) / **Warning** (blocks push, reviewable) / **Info** |
+   | **Enforced by** | Analyzer · ESLint rule · architecture test · CI script · review checkpoint |
+   | **Source** | The ADR or principle it implements (link only — no restatement) |
+   | **Exception** | How to obtain one — see below |
+
+   **Exception process (uniform):** Mandatory/Error → ADR + owner approval, no
+   in-code suppression ever. Mandatory/Warning → documented exception in the
+   standard's exception log with an owner-approved reason. Recommended →
+   deviation allowed, must be stated in the PR/session. Informational → no
+   exception needed. **Architecture-test-enforced rules never weaken without an
+   ADR** (constitutional).
+
+   **Rule of admission:** a candidate standard that cannot name its enforcement
+   mechanism is either promoted to an ADR (it is a decision, not a standard) or
+   dropped. Unenforceable "standards" are how repositories accumulate lies.
+
+   **Approved Technology Baseline** — owner-approved 2026-07-13; recorded inside
+   the standards docs (**no new document**). Each library gets four columns:
+   **Purpose · Allowed scope · Forbidden usage · Rejected alternatives.**
+   *Backend:* ASP.NET Core · EF Core · FluentValidation · Serilog ·
+   OpenTelemetry · Npgsql · xUnit · Testcontainers · NetArchTest · Shouldly.
    *Frontend:* Angular · PrimeNG · Angular CDK · RxJS.
-   **Adding a foundational library requires an ADR or explicit owner approval**
-   — and must pass the Simplicity Budget (ADR-0014 §12).
-   Notes for Wave 3: Serilog is a **sink behind `Microsoft.Extensions.Logging`
-   abstractions**, wired in Infrastructure only (ADR-0011 layering); Serilog +
-   OpenTelemetry are what implement the TraceId/CorrelationId flow required by
-   ADR-0015 §7; PrimeNG stays internal to the UI Kit (ADR-0012).
+   **Adding a foundational library requires an ADR or explicit owner approval**,
+   and must pass the Simplicity Budget (ADR-0014 §12) and principle 13
+   (*stability over novelty*).
+   Scope notes already ruled: Serilog is a **sink behind
+   `Microsoft.Extensions.Logging` abstractions**, Infrastructure only (ADR-0011);
+   Serilog + OpenTelemetry implement the TraceId/CorrelationId flow (ADR-0015);
+   PrimeNG is forbidden outside the UI Kit (ADR-0012); EF Core/Npgsql are
+   forbidden outside Infrastructure (ADR-0019).
 4. Wave 4 — playbooks (+ `coding.md` → pointer table).
 
 *(Wave 1's open item — the `InfrastructureException` hierarchy — was ruled by

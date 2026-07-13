@@ -26,7 +26,7 @@ The engineering foundation prioritizes, in this order:
 **Development speed is important, but never more important than long-term
 maintainability.**
 
-## The twelve principles
+## The thirteen principles
 
 ### 1. Business first
 
@@ -121,7 +121,22 @@ chat and not written down did not happen. Every future session — human or AI �
 relies exclusively on repository documentation, never on what a previous
 conversation remembers.
 
-This is the principle that makes the other eleven durable.
+This is the principle that makes the others durable.
+
+### 13. Stability over novelty
+
+**No technology is adopted because it is new.** A technology is adopted only
+when it solves a **measured** problem better than the current solution — and
+only when it passes the Simplicity Budget (ADR-0014): it must address a verified
+current problem *and* reduce overall system complexity.
+
+Novelty is not evidence. Popularity is not evidence. A benchmark on someone
+else's workload is not evidence. The current solution holds its ground until
+something demonstrably beats it on VetFlow's own problem.
+
+The corollary is the version policy already in force: stable LTS and stable
+releases only, never previews (ADR-0003, ADR-0005). A system that lives for
+years is built from things that have already survived a few.
 
 ## The authority hierarchy
 
