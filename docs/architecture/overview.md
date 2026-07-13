@@ -56,12 +56,12 @@ status in the repository is the authority, not this table.
 | Caching | Infrastructure-only; invisible to Domain/Application | ADR-0011 |
 | UI library | VetFlow UI Kit is the public architecture; PrimeNG is an internal detail | ADR-0012 |
 | Frontend structure | Feature-based (`/core`, `/shared`, `/features/*`) | ADR-0013 |
-| Database | **PostgreSQL** — Infrastructure-only knowledge; replaceable | ADR-0019 *(planned, Wave 2)* |
-
-Planned in Wave 2: ADR-0014 backend architecture · ADR-0015 API contract ·
-ADR-0016 testing & architecture enforcement · ADR-0017 AI execution model ·
-ADR-0018 business failure strategy (business exceptions + error catalog;
-`Result<T>` rejected) · ADR-0019 database platform.
+| Database | **PostgreSQL** — Infrastructure-only knowledge; replaceable | ADR-0019 |
+| Backend architecture | Clean Architecture, modular monolith, CQRS-lite, no MediatR/AutoMapper; performance budget | ADR-0014 |
+| API contract | `/api/v1`, RFC 9457, offset pagination, resource naming | ADR-0015 |
+| Testing & enforcement | Integration-first; architecture tests mandatory in CI | ADR-0016 |
+| AI execution | Gates, context budgets, playbooks | ADR-0017 |
+| Business failures | Business exceptions + Error Catalog (`Result<T>` rejected) | ADR-0018 |
 
 ## Engineering Decision Matrix
 

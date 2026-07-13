@@ -18,5 +18,11 @@
 | [ADR-0011](ADR-0011-caching-architecture.md) | Caching is an Infrastructure-only concern | Proposed | 2026-07-13 |
 | [ADR-0012](ADR-0012-ui-kit-library-independence.md) | VetFlow UI Kit — UI library independence | Proposed | 2026-07-13 |
 | [ADR-0013](ADR-0013-angular-feature-architecture.md) | Angular feature-based architecture | Proposed | 2026-07-13 |
+| [ADR-0014](ADR-0014-backend-architecture.md) | Backend architecture (Clean Architecture, modular monolith, CQRS-lite, performance budget) | Proposed | 2026-07-13 |
+| [ADR-0015](ADR-0015-api-contract.md) | API contract standards (versioning, RFC 9457, pagination, naming) | Proposed | 2026-07-13 |
+| [ADR-0016](ADR-0016-testing-and-architecture-enforcement.md) | Testing strategy and architecture enforcement | Proposed | 2026-07-13 |
+| [ADR-0017](ADR-0017-ai-execution-model.md) | AI execution model — gates, context, playbooks | Proposed | 2026-07-13 |
+| [ADR-0018](ADR-0018-business-failure-strategy.md) | Business failure strategy — exceptions + error catalog | Proposed | 2026-07-13 |
+| [ADR-0019](ADR-0019-database-platform.md) | Database platform — PostgreSQL | Proposed | 2026-07-13 |
 
-Related studies (not decisions): [Database platform study — PostgreSQL vs SQL Server](../database-platform-study.md) (Draft; decision open).
+Related studies (not decisions): [Database platform study — PostgreSQL vs SQL Server](../database-platform-study.md) (Draft; ruled by ADR-0019).

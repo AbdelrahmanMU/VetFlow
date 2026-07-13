@@ -110,12 +110,59 @@ no implementation may start until they exist.**
    pointers, 70 lines, incl. contradiction policy). Supporting edits:
    `CLAUDE.md`, `docs/PROJECT_CONTEXT.md` (stale tech-stack drift fixed).
    All Draft — the owner flips statuses when the foundation freezes.
-2. Wave 2 — ADRs 0014 (backend architecture + performance budget), 0015 (API
-   contract), 0016 (testing & architecture enforcement), 0017 (AI execution
-   model), 0018 (business failure strategy), 0019 (PostgreSQL).
+2. **Wave 2 — ADRs: WRITTEN + owner-hardened, committed 2026-07-13. All
+   Proposed** (statuses flip when the foundation freezes). Hardening applied:
+   aggregate-only repositories (no `IRepository<T>`/`GenericRepository<T>`,
+   contract owned by its module); domain events are notifications, never
+   commands (no cross-aggregate writes from an event — Application orchestrates);
+   strict CQRS boundary (commands never return read DTOs; queries never mutate
+   or side-effect); **Simplicity Budget** (ADR-0014 §12: solves a verified
+   problem AND reduces complexity — else no Kafka/Redis/Elasticsearch/
+   MassTransit/microservices/event bus); idempotency-key support must remain
+   possible (checkout, receiving, cash-session close — not implemented in MVP);
+   TraceId + CorrelationId flow through logs/audit/ProblemDetails/tracing; UTC
+   timestamps, localization only at presentation; mutation testing may come
+   later but never replaces architecture/integration tests; full
+   BR→REQ→AC→TS→implementation→test traceability chain; Minimal Change +
+   No Speculation principles; Domain knows only ErrorCode + metadata (never
+   HTTP/RFC9457/localization/logging/UI); one rule → one code → many messages;
+   SQL and migrations exclusively in Infrastructure, provider-independent.
+   **Contradiction found and fixed during hardening:** ADR-0014 had query
+   handlers using EF Core in Application, which the owner's SQL-in-Infrastructure
+   rule forbids. Resolution: Application owns the query *contract* (query type,
+   result DTO, `IQueryHandler<,>`); Infrastructure owns the *implementation*.
+   Application now holds **no EF Core reference at all**.
+
+   Original content: ADR-0014 backend architecture (4 layers + dependency
+   rule, modular monolith with `Contracts` namespaces, rich domain, in-process
+   domain events, CQRS-lite, no MediatR/AutoMapper, one command = one
+   transaction, no generic repositories, composition root, **performance
+   budget**). ADR-0015 API contract (`/api/v1`, RFC 9457 everywhere, offset
+   pagination envelope, resource naming — no RPC paths). ADR-0016 testing &
+   architecture enforcement (architecture tests mandatory + Rule template +
+   never-weaken rule; integration-first with Testcontainers; BR-ID
+   traceability, no coverage gates; xUnit + NetArchTest + Shouldly).
+   ADR-0017 AI execution model (**authoritative** DoR + commit/push/integrity
+   gates + context model + contradiction policy; the always-loaded rules file
+   points here). ADR-0018 business failure strategy (exception hierarchy with
+   `InfrastructureException` as a SEPARATE root per owner ruling; codes only,
+   no text; Error Catalog VTF-<MOD>-NNN; `Result<T>` rejected with reasons).
+   ADR-0019 PostgreSQL (final; Domain/Application never depend on it).
 3. Wave 3 — the 4 standards docs (`csharp-coding-standards.md` incl. the owner's
    mandatory rule list, `backend-standards.md`, `frontend-standards.md`,
    `api-standards.md`). Unblocked now that the database is decided.
+
+   **Approved Technology Baseline — owner-approved 2026-07-13; Wave 3 records
+   it in the standards docs (no new document).**
+   *Backend:* ASP.NET Core · Entity Framework Core · FluentValidation · Serilog
+   · OpenTelemetry · Npgsql · xUnit · Testcontainers · NetArchTest · Shouldly.
+   *Frontend:* Angular · PrimeNG · Angular CDK · RxJS.
+   **Adding a foundational library requires an ADR or explicit owner approval**
+   — and must pass the Simplicity Budget (ADR-0014 §12).
+   Notes for Wave 3: Serilog is a **sink behind `Microsoft.Extensions.Logging`
+   abstractions**, wired in Infrastructure only (ADR-0011 layering); Serilog +
+   OpenTelemetry are what implement the TraceId/CorrelationId flow required by
+   ADR-0015 §7; PrimeNG stays internal to the UI Kit (ADR-0012).
 4. Wave 4 — playbooks (+ `coding.md` → pointer table).
 
 *(Wave 1's open item — the `InfrastructureException` hierarchy — was ruled by
