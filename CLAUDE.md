@@ -9,6 +9,7 @@ Users: a veterinary doctor (owner) and a cashier/assistant. This repository is
 @.claude/rules/workflow.md
 @.claude/rules/documentation.md
 @.claude/rules/naming.md
+@.claude/rules/ai-governance.md
 
 ## Non-negotiables
 
@@ -16,7 +17,9 @@ Users: a veterinary doctor (owner) and a cashier/assistant. This repository is
 2. No code before the relevant module documentation is Approved.
 3. Business decisions are final; record them, don't relitigate them.
 4. Update `STATUS.md` before ending a significant work session (`/close-session`).
-5. Keep this file under 80 lines — deep knowledge belongs in `docs/`.
+5. The repository is the only source of truth — conversation history never is.
+6. Never bypass a quality gate; repository integrity outranks finishing the task.
+7. Keep this file under 80 lines — deep knowledge belongs in `docs/`.
 
 ## Where knowledge lives
 
