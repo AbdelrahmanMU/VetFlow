@@ -1,3 +1,7 @@
+> **SUPERSEDED 2026-07-14 — do not use, do not load.**
+> Replaced by the **Review** mode in `.claude/playbooks/implementation.md`.
+> Kept for repository history only.
+
 # Playbook: Review
 
 Repeatable procedure for reviewing work (documentation or code).

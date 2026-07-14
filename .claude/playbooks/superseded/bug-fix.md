@@ -1,3 +1,7 @@
+> **SUPERSEDED 2026-07-14 — do not use, do not load.**
+> Replaced by the **Bug Fix** mode in `.claude/playbooks/implementation.md`.
+> Kept for repository history only.
+
 # Playbook: Bug Fix
 
 Repeatable procedure for fixing a defect.

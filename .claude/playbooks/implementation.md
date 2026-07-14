@@ -66,7 +66,7 @@ above is identical for all of them.
 | **Backend Change** | `backend-standards.md`, `csharp-coding-standards.md`; module docs | Full gate + architecture tests | Change alters a documented behavior with no `DEC`/ADR to justify it |
 | **Bug Fix** | Only the standards for the layer touched; the failing test | Full gate + a **regression test that failed before the fix** | Fix would change a business rule → that is not a bug, it is a decision: **STOP, ask the owner** |
 | **Refactor** | Standards for the layer touched | Full gate + **no behavior change**: the test suite passes untouched | A test must be modified to make the refactor pass → **STOP** (that is a behavior change) |
-| **Documentation** | The docs being changed | Traceability intact · IDs unchanged · statuses untouched | Would create a **new governance artifact** → **STOP** (the Foundation is frozen) |
+| **Documentation** | The docs being changed | Traceability intact · IDs unchanged · statuses untouched · **incremental edit only, never a rewrite** | Would create a **new governance artifact** without implementation evidence → **STOP** (Governance Change Policy) |
 | **Review** | The diff + the standards it touches | Findings reported; nothing fixed silently | — |
 | **Release** | `STATUS.md`, `CHANGELOG.md` | Push gate + all module docs Approved | Any Draft document that the released code depends on |
 
@@ -108,13 +108,34 @@ Run the full push gate (**ADR-0017 §7** — authoritative). Push only when:
 
 ## Standing rules for every mode
 
+**Optimization priority — in this order, always:**
+
+```
+1. Correctness  →  2. Business rules  →  3. Architecture  →  4. Maintainability
+     →  5. Readability  →  6. Performance  →  7. Token efficiency
+```
+
+**Never optimize for token usage at the expense of architecture or
+correctness.** Token efficiency is last for a reason: it is the cheapest thing
+to sacrifice and the most tempting thing to protect.
+
+- **Implementation outranks governance.** If implementation exposes a weakness in
+  the foundation: **record it in `STATUS.md`, continue if it is safe to do so,
+  and evaluate the governance change only after the feature is complete.** Never
+  interrupt feature work for speculative governance improvement. A governance
+  change requires evidence (Governance Change Policy, `principles.md`).
 - **Minimal change.** The smallest correct change. Never rewrite a large file to
   fix a small problem. Never grow the architectural surface without measurable
   value (ADR-0017 §2, principle 14).
+- **Documentation evolves incrementally.** Synchronize documentation with the
+  smallest edit that keeps it true. **Never rewrite a document wholesale** to
+  make a small change.
+- **Leave the repository healthier.** Every completed feature may remove
+  duplication, improve naming, improve tests, improve documentation — **within
+  its own scope**. Large unrelated refactors, unplanned architectural changes,
+  and speculative cleanup are **prohibited**.
 - **Determinism.** Same repository + same playbook + same prompt → substantially
   the same implementation. Ambiguity found in a document is a **defect to
   report**, not a gap to fill (ADR-0017 §3).
 - **Stay modular.** The repository is modular; the AI must be too. Load what the
   task needs and nothing more.
-- **The Foundation is frozen.** No new governance artifact unless a real
-  implementation problem proves the governance insufficient (`principles.md`).

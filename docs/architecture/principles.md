@@ -225,21 +225,31 @@ This constitution governs its own amendment:
    must justify its existence against merging into an existing one. If it does
    not permanently reduce engineering ambiguity, it is not created.
 
-## The Foundation is frozen
+## Governance stability
 
-**Frozen by the owner on 2026-07-13.** The Engineering Foundation — this
-constitution, ADR-0001 … ADR-0019, the standards, and the playbooks — is
-complete.
+The Engineering Foundation — this constitution, ADR-0001 … ADR-0019, the
+standards, and the implementation playbook — is **complete as of 2026-07-14**.
 
-**From this point forward, no new governance artifact (ADR, standard, playbook,
-or document) may be introduced unless a real implementation problem demonstrates
-that the current governance is insufficient.** Evidence first, governance second
-— the same rule the Simplicity Budget applies to technology (principle 14).
+**Stability is not prohibition. The repository must remain evolvable, and must
+never become rigid.** What changes is the *burden of proof*:
 
-Engineering effort now goes into **building the product**, not into expanding
-the governance. A governance change is a response to a demonstrated failure, not
-an improvement project.
+> **Governance changes require evidence from real implementation work.**
 
-Amending frozen governance follows the evolution rules above: an ADR supersedes
-an ADR; a standard changes by owner-approved change citing the implementation
-problem that forced it.
+### Governance Change Policy
+
+A governance change is allowed when **at least one** of these is true:
+
+1. **Repeated implementation friction** — the same obstacle has appeared more
+   than once in real work.
+2. **Architecture inconsistency** — the documents contradict each other or the
+   code, and the conflict is real, not theoretical.
+3. **Measurable engineering benefit** — the change is justified by evidence, not
+   by preference (principle 14).
+
+**Otherwise the change is rejected.** Speculative improvement of the governance
+is not work; it is avoidance of work.
+
+Engineering effort goes into **building the product**. A governance change is a
+*response to demonstrated need*, never an improvement project. Amendments follow
+the evolution rules above: an ADR supersedes an ADR; a standard changes by
+owner-approved change **citing the implementation evidence that forced it**.

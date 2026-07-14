@@ -1,3 +1,7 @@
+> **SUPERSEDED 2026-07-14 — do not use, do not load.**
+> Replaced by the **New Feature** mode in `.claude/playbooks/implementation.md`.
+> Kept for repository history only.
+
 # Playbook: New Feature
 
 Repeatable procedure for adding a feature. Documentation-First applies: no

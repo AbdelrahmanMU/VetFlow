@@ -1,3 +1,7 @@
+> **SUPERSEDED 2026-07-14 — do not use, do not load.**
+> Replaced by the **Refactor** mode in `.claude/playbooks/implementation.md`.
+> Kept for repository history only.
+
 # Playbook: Refactor
 
 Repeatable procedure for restructuring without changing behavior.
