@@ -270,7 +270,24 @@ no implementation may start until they exist.**
    Serilog + OpenTelemetry implement the TraceId/CorrelationId flow (ADR-0015);
    PrimeNG is forbidden outside the UI Kit (ADR-0012); EF Core/Npgsql are
    forbidden outside Infrastructure (ADR-0019).
-4. Wave 4 — playbooks (+ `coding.md` → pointer table).
+4. **Wave 4 — Execution layer: DONE 2026-07-14 (Draft).**
+   `.claude/playbooks/implementation.md` — **the ONE implementation playbook**
+   (120 lines). Replaces the old per-task playbooks with **execution modes**
+   (New Module · New Feature · API Only · Frontend Page · Backend Change ·
+   Bug Fix · Refactor · Documentation · Review · Release), each defining only
+   *required context · validation · stop conditions*. Contains a 5-stage
+   deterministic context loader, mandatory token budgets (Small ≤25k · Medium
+   ≤60k · Large ≤120k · >120k = STOP and split), the 9-question AI self review,
+   and pointers to the authoritative gates (ADR-0017 §6–§8 — never restated).
+   Measured typical context: backend slice ~30k · frontend page ~27k · bug fix
+   ~10k — all inside budget.
+
+   **Pending owner approval: retire 5 superseded playbooks** —
+   `new-feature.md`, `bug-fix.md`, `refactor.md`, `review.md`, `release.md`
+   (all now modes inside `implementation.md`). **Keep `discovery.md`** — business
+   discovery workshops are not implementation and are still required.
+   `.claude/rules/coding.md` stays as-is (an empty placeholder pointing at the
+   standards); it is not worth a change.
 
 *(Wave 1's open item — the `InfrastructureException` hierarchy — was ruled by
 the owner and is recorded above; no open items block Wave 2.)*

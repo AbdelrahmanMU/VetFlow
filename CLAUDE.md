@@ -35,7 +35,9 @@ Users: a veterinary doctor (owner) and a cashier/assistant. This repository is
 | Release scope & direction | `docs/shared/roadmap/` |
 | Canonical EN↔AR vocabulary | `docs/shared/GLOSSARY.md` |
 | External reference material | `docs/shared/reference/` |
-| How to run a kind of work (feature, review, bug, refactor, release) | `.claude/playbooks/` |
+| **How to implement anything** (all modes: module, feature, API, page, bug, refactor, review, release) | `.claude/playbooks/implementation.md` — the only implementation playbook |
+| How to run a business discovery workshop | `.claude/playbooks/discovery.md` |
+| Engineering constitution · decisions · code standards | `docs/architecture/principles.md` · `decisions/` · `standards/` |
 
 ## Session start
 
