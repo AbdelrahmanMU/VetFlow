@@ -20,14 +20,45 @@ changes require evidence (Governance Change Policy — `docs/architecture/princi
 
 | # | Condition | State |
 |---|---|---|
-| 1 | `docs/modules/catalog/ui.md` written | ❌ **missing — the only file of the standard set not written** |
-| 2 | Catalog documentation approved by the owner | ❌ pending |
-| 3 | Catalog docs flipped Draft → Approved | ❌ pending |
-| 4 | Repository status synchronized | ✅ done (this file) |
-| 5 | Architecture baseline approved | ✅ **Sprint 2 complete** — ADR-0001…0019 Proposed, statuses flip on the owner's word |
+| 1 | `docs/modules/catalog/ui.md` written | ✅ **written 2026-07-14 (Draft)** — Catalog doc set now 8/8 |
+| 2 | System-wide Design Language exists | ✅ **`docs/ui/design-language.md` written 2026-07-14 (Draft)** — owner required it before Catalog UI could be approved |
+| 3 | Catalog documentation approved by the owner | ❌ **pending — the gate** |
+| 4 | Catalog docs flipped Draft → Approved | ❌ pending |
+| 5 | Repository status synchronized | ✅ done (this file) |
+| 6 | Architecture baseline approved | ✅ Sprint 2 complete — ADR-0001…0019 Proposed, statuses flip on the owner's word |
 
-**Next action:** write `catalog/ui.md` (owner go-ahead needed), then the owner
-approves Catalog and flips its statuses. Code begins after that, not before.
+**Next action (owner):** review `docs/ui/design-language.md`, then re-read
+`catalog/ui.md` **against the mandatory design review checklist** in
+design-language §16 (it is now the gate every module UI document must pass),
+then approve Catalog and flip its docs Draft → Approved. **Code begins after
+that, not before.**
+
+## Just completed (2026-07-14)
+
+- **`docs/modules/catalog/ui.md` — written (Arabic, Draft).** UI architecture
+  only: 7 screens (S1 product list · S2 detail · S3 editor · S3-م editor embedded
+  in the purchase invoice · S4 unit profile · S5 prices · S6 managed lookups),
+  search-first navigation, premium table language, sectioned forms with
+  progressive disclosure, unified dialog patterns, adaptive desktop→mobile
+  (mobile redesigned as a lookup tool, not a shrunken table), accessibility,
+  Arabic microcopy. **Traceability verified mechanically:** all 45 active REQs
+  covered or explicitly declared as having no Catalog UI surface; REQ-CAT-026
+  correctly absent (annulled); zero dangling REQ/WF/BR/DEC references.
+- **`docs/ui/design-language.md` — written (Arabic, Draft).** The product's
+  **visual constitution**, ordered by the owner before Catalog UI could be
+  approved (rationale: without one, every future module drifts visually even if
+  each screen is individually good). 17 sections: personality · principles ·
+  hierarchy & attention · layout (RTL shell — **sidebar on the right**) · one
+  table language · one form language · navigation · feedback (**undo preferred
+  over confirmation**; a dialog that prevents no error is deleted) · typography ·
+  color (**neutral base carries 90%; primary used sparingly; no color-only
+  meaning; no zebra striping**) · icons · motion · accessibility · 13 golden
+  rules · **the mandatory design review checklist (§16)** · module relationship.
+  **Anti-drift clause (§17): modules may extend, never redefine — and a gap in
+  the language is raised as an extension request, never patched locally.**
+- No new business decision was made this session — both documents derive
+  entirely from already-approved Catalog docs and ADR-0007/0009/0012. Nothing
+  required a new `DEC-*`, `BD-*`, or ADR entry.
 
 ## Sprint 2 — Engineering Foundation (COMPLETE, 2026-07-14)
 
@@ -54,24 +85,31 @@ load). `discovery.md` remains **active** for business discovery workshops.
 
 ## Sprint 1 — Documentation (carried forward)
 
-- **Catalog module:** 7 of 8 documents written (Arabic, Draft, owner
+- **Catalog module: 8 of 8 documents written** (Arabic, Draft, owner
   content-reviewed) — 51 business rules, 46 requirements, 46 acceptance
-  criteria, 11 workflows, 37 test scenarios, 24 decisions. `ui.md` outstanding.
+  criteria, 11 workflows, 37 test scenarios, 24 decisions, and `ui.md`
+  (2026-07-14). **The set is complete and awaits owner approval.**
 - **Shared docs (Draft):** `VISION.md`, `GLOSSARY.md`, `personas.md`,
   `domain-overview.md` (TODOs 2–6 unanswered), `PROJECT_CONTEXT.md`.
 - **`DECISION_LOG.md`:** 31 `BD-*` decisions, all Draft.
 
 ## Open items for the owner
 
-1. Go-ahead to write `catalog/ui.md`.
-2. Approve Catalog + flip Draft → Approved (**gates all implementation**).
-3. Approve the Sprint 1 shared docs and the `BD-*` registry.
-4. Answer `domain-overview.md` TODOs 2–6 (credit sales/purchases, official
+1. **Review `docs/ui/design-language.md`** (the visual constitution).
+2. **Re-read `catalog/ui.md` against the design review checklist**
+   (design-language §16) — that checklist is now the gate for every module UI doc.
+3. **Approve Catalog + flip Draft → Approved — this gates ALL implementation.**
+4. Approve the Sprint 1 shared docs and the `BD-*` registry.
+5. Answer `domain-overview.md` TODOs 2–6 (credit sales/purchases, official
    invoicing & tax, unit-splitting, volumes).
-5. Flip ADR-0003…0019 Proposed → Accepted when ready.
-6. Confirm the CI performance budget numbers (ADR-0016 §5).
-7. Confirm the Catalog `overview.md` question: keep or remove the negative
-   boundary statements about purchase cost (DEC-CAT-024).
+6. Flip ADR-0003…0019 Proposed → Accepted when ready.
+7. Confirm the CI performance budget numbers (ADR-0016 §5).
+8. Confirm the Catalog `overview.md` question: keep or remove the negative
+   boundary statements about purchase cost (DEC-CAT-024). **Still unanswered
+   since Sprint 1 — worth settling before Catalog is frozen as Approved.**
+9. Decide whether `docs/ui/components.md` and `docs/ui/navigation.md` (still
+   placeholders) get written now, or wait until the UI/UX Architecture discovery
+   the owner requested in Topic 3.
 
 ## Cross-module debt (do not lose)
 
