@@ -1,6 +1,6 @@
 # Catalog — Test Scenarios
 
-> Status: Draft — بانتظار مراجعة المالك واعتماده. لا تنفيذ من هذا الملف.
+> Status: Approved — معتمد من المالك بتاريخ 2026-07-14. مرجع ملزم للتنفيذ.
 > المصادر: ورشة الاكتشاف، `overview.md`، `business-rules.md`،
 > `requirements.md`، `workflow.md`، `acceptance.md` — المعتمدة حصرًا.
 > سيناريوهات تحقق تجارية — ليست حالات اختبار آلية ولا تصفًا لواجهات.
