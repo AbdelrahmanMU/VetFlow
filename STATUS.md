@@ -18,9 +18,10 @@ changes require evidence (Governance Change Policy — `docs/architecture/princi
 
 ## Just completed (2026-07-15) — Slice 1: Catalog → Product List (S1)
 
-**The first vertical slice is implemented, tested, and verified in the browser.
-NOT committed — awaiting owner review** (mission stop-rule; commit gate itself
-is green: build 0 warnings, `dotnet format` clean, 102/102 tests passing).
+**The first vertical slice is implemented, tested, verified in the browser, and
+committed** (`db0a671`, owner-reviewed 2026-07-15). Commit gate re-verified green
+at commit time: build 0 warnings, 105/105 tests passing (backend 87 — Domain 28,
+Architecture 30, Integration 29; frontend 18).
 
 - **Scope per DEC-CAT-025** (owner rulings 2026-07-15): read-only list — search
   (Arabic/English/barcode, write-time Arabic normalization + pg_trgm), the 8
