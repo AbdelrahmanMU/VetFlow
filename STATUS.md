@@ -18,9 +18,21 @@ changes require evidence (Governance Change Policy — `docs/architecture/princi
 
 ## Just completed (2026-07-15) — Slice 2: Catalog → Create Product + View Details (S2/S3)
 
-**Implemented, tested, and live-verified; awaiting owner review (uncommitted).** Scope
-per DEC-CAT-029: Create Product + read-only View Details only; Edit, image storage,
-dangerous-op confirmation, and audit events remain deferred (DEC-CAT-028/029).
+**Implemented, tested, live-verified, owner-reviewed, and COMMITTED** (`ea107cc`,
+2026-07-15). Scope per DEC-CAT-029: Create Product + read-only View Details only; Edit,
+image storage, dangerous-op confirmation, and audit events remain deferred (DEC-CAT-028/029).
+
+**Owner review rulings (2026-07-15, approving the slice):**
+- **DEC-CAT-030** — open-expiration granularity is **days only** for MVP (no hours selector);
+  value stored as `TimeSpan` as implemented; sub-day precision is an approved future extension.
+- **Field-length caps** (name 300, short-text 100, notes 2000) accepted as **engineering
+  constraints, not business rules** — no change (ledger TD-006).
+- **RFC 9457 `about:blank` 404** accepted as-is this slice; follow-up recorded (ledger TD-103):
+  "Every business failure should eventually resolve to a VTF error code; infrastructure failures
+  may remain generic."
+- **Command pipeline approved as the reusable write-side foundation** — every future write slice
+  **must reuse** `ICommand`/`ICommandHandler` + the Validating/Logging decorators + `CommandPipeline`
+  composition; **do not duplicate** it (ledger TD-104 covers the future transaction decorator).
 
 - **First write path in the system.** A command pipeline mirroring the query side:
   `ICommand<TResult>` + `ICommandHandler<,>` (STD-BE-020/021), a `ValidatingCommandHandler`
@@ -217,15 +229,17 @@ tech-debt ledger → start Slice 2 (Product Editor).
 
 ## In flight / next
 
-1. **Owner review of Slice 1** (this stop). Review complete — see findings above.
-   Recommendation: fix **R1** (docs-vs-code, arguably required by the
-   docs-synchronized gate), **R2**, and **R3** before the first commit; file
-   R4/R5 as follow-ups. On approval: commit (gates are green), then choose the
-   next slice — natural candidates: S3 product editor (unblocks the primary
-   action + creation CTAs) or the auth slice (rule the ADR-0010 open items first).
-2. Environment note: Node was upgraded 20 → 24 LTS via nvm (Angular tooling
-   requirement); host port 5434 chosen for the dev DB (5432/5433 occupied on
-   the dev machine).
+1. **Slices 1 and 2 are committed and owner-approved** (`db0a671`, `ea107cc`). No
+   implementation is in flight. **Do NOT begin the next slice in this session** —
+   the owner directed that the next implementation session start from a **clean
+   repository state** (fresh `implementation.md` session, budgeted context).
+2. **Next slice — Edit Product** (the deferred half of the editor). Blocked until the
+   owner defines the **audit-log record shape** (table/fields/retention) and confirms
+   the dangerous-op confirmation seam activation — both required before writing the
+   audited Edit paths (DEC-CAT-028/029, ledger Q2/Q3). Alternative candidates: the
+   managed-data / Categories slice (S6 — unblocks in-app category/manufacturer creation,
+   ledger TD-105) or the auth slice (ADR-0010 open items).
+3. Environment note: Node 24 LTS via nvm; host port 5434 for the dev DB; API on :5080.
 
 ## Open items for the owner
 

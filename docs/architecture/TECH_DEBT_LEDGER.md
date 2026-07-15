@@ -123,6 +123,45 @@ Design-boundary edges surfaced by implementation.
 
 ---
 
+## Slice 2 follow-ups (recorded 2026-07-15, owner review of Create + View Details)
+
+### TD-006 — Field-length caps are engineering constraints (Accepted, owner-ruled)
+- **Description:** the create validator applies max-length caps (Arabic/English name 300,
+  size/concentration/barcode 100, internal notes 2000). No documented business limit exists.
+- **Reason for deferral:** owner ruled these are **engineering constraints, not business
+  rules — approved as-is, no change required**.
+- **Estimated impact:** none (accepted). Adjustable if a documented limit ever appears.
+- **Recommended sprint:** none.
+
+### TD-103 — Every business failure should resolve to a VTF error code (owner-ruled follow-up)
+- **Description (owner wording):** "Every business failure should eventually resolve to a VTF
+  error code. Infrastructure failures may remain generic." Today the Product-details 404 returns
+  a bare `about:blank` problem+json (valid RFC 9457, no `VTF-` code).
+- **Reason for deferral:** owner accepted the current behavior for this slice; **do not modify the
+  implementation in this slice**.
+- **Estimated impact:** Low — consistency of the error surface, not correctness.
+- **Recommended sprint:** a future error-surface pass (candidate: alongside the Edit slice or an
+  API-standards hardening pass).
+
+### TD-104 — Transaction decorator for multi-step commands
+- **Description:** the command pipeline has no transaction decorator; the single-aggregate
+  `CreateProduct` is inherently one `SaveChanges` (STD-BE-024), so none is needed yet. The seam
+  is documented for the first command that spans multiple writes.
+- **Reason for deferral:** YAGNI — no multi-step command exists.
+- **Estimated impact:** Low until a multi-step write appears; then Medium (atomicity guarantee).
+- **Recommended sprint:** the first write slice that mutates more than one aggregate.
+
+### TD-105 — In-app managed-data screen (categories / manufacturers) + add-from-select
+- **Description:** creating a product requires a pre-existing category + manufacturer; there is no
+  in-app way to add them yet (seeded/DB-inserted for now). `ui.md` §5.2's "add a new value from
+  within the select" is deferred with this screen.
+- **Reason for deferral:** managed-data / Categories module is a separate slice (DEC-CAT-025); out
+  of the Create scope.
+- **Estimated impact:** Medium — on an empty catalog, Create cannot be exercised without seeding.
+- **Recommended sprint:** the Categories / managed-data slice (S6).
+
+---
+
 ## Future Optimizations
 
 Deliberately not built yet; no evidence they are needed.
@@ -146,16 +185,16 @@ Deliberately not built yet; no evidence they are needed.
 
 ---
 
-## Cross-reference: Slice-2 blocking questions (not debt — decisions owed)
+## Cross-reference: Slice-2 questions — all RESOLVED (owner rulings 2026-07-15)
 
-These are **not** deferred debt; they are undefined business behavior that blocks
-Slice 2 and cannot be invented (governance: never invent a business rule). Tracked
-here for visibility; full text in the Phase-5 questions to the owner.
+These were undefined business behavior that blocked Slice 2. The owner ruled them all;
+recorded here with their resolution.
 
-| Ref | Blocks | Undefined thing |
+| Ref | Was blocking | Resolution |
 |---|---|---|
-| Q1 | Create Product | Internal-code **format** (REQ-CAT-008 / BR-CAT-006 / DEC-CAT-016) |
-| Q2 | Edit (price change, dangerous unit edit) audit | Audit-log **infrastructure / record shape** (REQ-CAT-045; Audit Log module undocumented) |
-| Q3 | Dangerous-operation confirmation | Trigger owned by Inventory/Batch (nonexistent) — DEC-CAT-025 pattern? |
-| Q4 | Possible-duplicate detection | Similarity **strictness/threshold** (REQ-CAT-042 / BR-CAT-042) |
-| Q5 | Product image | Storage mechanism (TD-302) |
+| Q1 | Create Product | **DEC-CAT-026** — `PRD-` + ≥6-digit zero-padded sequence. **Done.** |
+| Q2 | Edit audit | **DEC-CAT-028** — deferred with the Edit slice (scope wins, final); audit record shape still owed before Edit. |
+| Q3 | Dangerous-operation confirmation | **DEC-CAT-029** — deferred with the Edit slice; seam designed inert (no stock source). |
+| Q4 | Possible-duplicate detection | **DEC-CAT-027** — fuzzy Arabic name + same manufacturer, pg_trgm ≥ 0.4. **Done.** |
+| Q5 | Product image | **TD-302** — storage undefined; deferred (DEC-CAT-029). |
+| — | Open-expiration granularity | **DEC-CAT-030** — days only (MVP); `TimeSpan` stored; sub-day is an approved extension point. **Done.** |
