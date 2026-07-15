@@ -109,6 +109,57 @@ lose). Fixes and gates:
 
 **R4/R5 are still open** — see the follow-up list below and friction F6.
 
+## Hardening verification + Slice 2 boundary (2026-07-15)
+
+Owner directive: hardening pass (R1–R3) → re-run every gate → retrospective →
+tech-debt ledger → start Slice 2 (Product Editor).
+
+- **Phase 1 (R1–R3) was already complete in `db0a671`** — verified in *source*,
+  not just docs (R1 `LayeringTests.cs:79`; R2 `MaxPage` in both validators; R3
+  `.ThenBy(row.Id)` at :163). The directive predated the fix; not redone.
+- **Phase 2 — all gates re-run green (not trusting prior results):** build 0/0
+  (Release), `dotnet format` clean, **105/105** (arch 30 · domain 28 · integration
+  29 · frontend 18), ESLint + Stylelint clean. **R1 proven to *bite*:** a probe
+  adding a present dependency turned the NetArchTest red; ESLint errors on an
+  `@ngrx` import. Working tree clean.
+- **Phase 3 — retrospective:** `docs/architecture/retrospectives/slice-1-product-list.md`.
+- **Phase 4 — tech-debt ledger:** `docs/architecture/TECH_DEBT_LEDGER.md`
+  (TD-004/005 accepted, TD-101/102 deferred, TD-201/202 governance, TD-301/302
+  architecture, TD-401/402 future).
+- **Phase 5 — Slice 2 sweep done; owner rulings received and recorded; build
+  deferred to a fresh implementation session (no code written).** The sweep of the
+  Product Editor capability list found undefined business behavior at the core
+  paths; the owner ruled and the rulings are recorded as **DEC-CAT-026…029**:
+  - **DEC-CAT-026 (Q1):** internal-code format = `PRD-` + ≥6-digit zero-padded
+    unique sequence (`PRD-000001`).
+  - **DEC-CAT-027 (Q4):** possible-duplicate = fuzzy Arabic name (pg_trgm) **AND**
+    same manufacturer; initial threshold **0.4** (delegated to engineering, tunable).
+  - **DEC-CAT-028 (Q2):** audit-log — the Q2-vs-scope contradiction is **resolved
+    FINAL by the owner (2026-07-15): scope wins**. Slice 2 = Create + View only;
+    **no audit implementation in this slice**; the audit model is designed when the
+    Edit slice begins.
+  - **DEC-CAT-029 (scope):** implement **Create Product + View Details only** now
+    (fully specified by DEC-CAT-026/027); **defer Edit's audited paths** (price
+    change, dangerous unit-profile edit + confirmation, Q3) and **product image**
+    (Q5 — storage undefined, ledger TD-302). Create introduces the **first write
+    path (Command) in the system**; dangerous-op confirmation seam designed inert
+    (no stock source yet — DEC-CAT-025 pattern).
+  - **Why the build is deferred, not started here:** this session's context already
+    carries Phases 1–4 + the full doc sweep + the Q&A + decision-authoring. Slice 2
+    bootstraps the entire write side (first Command pipeline) **and** the first form
+    UI-kit components — a Medium-plus, bootstrap-heavy slice (F2 occurrence #2). The
+    playbook mandates a clean, budgeted `implementation.md` session for exactly this;
+    starting it in a full window risks corner-cutting (owner forbade) or running dry
+    mid-slice. Deliverables are durable; nothing is lost. **DoR is satisfied**
+    (Catalog docs Approved; DEC-CAT-026/027/029 close the gaps; IDs named below).
+  - **Next session — cut vertically (owner verifies slices live in the browser):**
+    **Create-first** (POST + domain aggregate/factory + internal-code sequence +
+    duplicate-warning query + `PRD-` sequence + the form UI-kit it needs + tests),
+    then **View Details** (GET + details page). IDs: REQ-CAT-001/007/008/009/010/
+    011/013/014/015–025/042/043; BR-CAT-001/005/006/008/009/011/012/014/016/024/
+    025/042/043. **Before the Edit slice:** get the audit record shape and confirm
+    the DEC-CAT-028 reconciliation.
+
 ## In flight / next
 
 1. **Owner review of Slice 1** (this stop). Review complete — see findings above.
