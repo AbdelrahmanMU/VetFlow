@@ -67,6 +67,12 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(300)")
                         .HasColumnName("arabic_name");
 
+                    b.Property<string>("ArabicNameNormalized")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("arabic_name_normalized");
+
                     b.Property<Guid>("CategoryId")
                         .HasColumnType("uuid")
                         .HasColumnName("category_id");
@@ -96,6 +102,17 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                     b.Property<bool>("HasOpenExpiration")
                         .HasColumnType("boolean")
                         .HasColumnName("has_open_expiration");
+
+                    b.Property<string>("InternalCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("internal_code");
+
+                    b.Property<string>("InternalNotes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("internal_notes");
 
                     b.Property<bool>("IsRefrigerated")
                         .HasColumnType("boolean")
@@ -141,6 +158,12 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_products");
 
+                    b.HasIndex("ArabicNameNormalized")
+                        .HasDatabaseName("ix_products_arabic_name_normalized");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("ArabicNameNormalized"), "gin");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("ArabicNameNormalized"), new[] { "gin_trgm_ops" });
+
                     b.HasIndex("CategoryId")
                         .HasDatabaseName("ix_products_category_id");
 
@@ -149,6 +172,10 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("DefaultSaleUnitId")
                         .HasDatabaseName("ix_products_default_sale_unit_id");
+
+                    b.HasIndex("InternalCode")
+                        .IsUnique()
+                        .HasDatabaseName("ix_products_internal_code");
 
                     b.HasIndex("ManufacturerId")
                         .HasDatabaseName("ix_products_manufacturer_id");

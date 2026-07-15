@@ -66,6 +66,51 @@
   <data name="validation.status.unknown" xml:space="preserve">
     <value>Status must be active or disabled.</value>
   </data>
+  <data name="validation.arabicName.required" xml:space="preserve">
+    <value>The Arabic name is required.</value>
+  </data>
+  <data name="validation.category.required" xml:space="preserve">
+    <value>The category is required.</value>
+  </data>
+  <data name="validation.manufacturer.required" xml:space="preserve">
+    <value>The manufacturer is required.</value>
+  </data>
+  <data name="validation.nature.required" xml:space="preserve">
+    <value>The product nature is required.</value>
+  </data>
+  <data name="validation.units.required" xml:space="preserve">
+    <value>The unit profile is required: add at least one unit.</value>
+  </data>
+  <data name="validation.units.purchaseRequired" xml:space="preserve">
+    <value>At least one purchase unit is required.</value>
+  </data>
+  <data name="validation.units.saleRequired" xml:space="preserve">
+    <value>At least one sale unit is required.</value>
+  </data>
+  <data name="validation.storageUnit.required" xml:space="preserve">
+    <value>The stock-keeping unit is required.</value>
+  </data>
+  <data name="validation.saleUnit.defaultRequired" xml:space="preserve">
+    <value>The default sale unit is required.</value>
+  </data>
+  <data name="validation.purchaseUnit.defaultRequired" xml:space="preserve">
+    <value>The default purchase unit is required.</value>
+  </data>
+  <data name="validation.openExpiration.periodRequired" xml:space="preserve">
+    <value>Enabling "has open expiration" requires a positive open-expiration period.</value>
+  </data>
+  <data name="validation.conversionFactor.positive" xml:space="preserve">
+    <value>The conversion factor must be a positive number.</value>
+  </data>
+  <data name="validation.text.tooLong" xml:space="preserve">
+    <value>The value exceeds the allowed length.</value>
+  </data>
+  <data name="validation.duplicateCheck.arabicName.required" xml:space="preserve">
+    <value>The Arabic name is required for the duplicate check.</value>
+  </data>
+  <data name="validation.duplicateCheck.manufacturer.required" xml:space="preserve">
+    <value>The manufacturer is required for the duplicate check.</value>
+  </data>
   <data name="error.internal" xml:space="preserve">
     <value>An unexpected error occurred. Retry, and contact support if it persists.</value>
   </data>

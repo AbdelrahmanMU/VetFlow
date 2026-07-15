@@ -34,8 +34,11 @@ public static class ProductTestData
         Guid? categoryId = null,
         Guid? manufacturerId = null,
         Guid? natureId = null,
-        ProductCapabilities? capabilities = null) => new(
+        ProductCapabilities? capabilities = null,
+        string? internalCode = null,
+        string? internalNotes = null) => new(
         Guid.NewGuid(),
+        internalCode ?? $"PRD-TEST-{Guid.NewGuid():N}",
         arabicName,
         categoryId ?? Guid.NewGuid(),
         manufacturerId ?? Guid.NewGuid(),
@@ -44,5 +47,6 @@ public static class ProductTestData
         units ?? MultiLevelChain(),
         storageUnitId ?? PillUnitId,
         defaultSaleUnitId ?? StripUnitId,
-        defaultPurchaseUnitId ?? CartonUnitId);
+        defaultPurchaseUnitId ?? CartonUnitId,
+        internalNotes: internalNotes);
 }

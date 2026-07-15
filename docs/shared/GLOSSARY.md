@@ -22,6 +22,8 @@
 | English | العربية | Definition |
 |---|---|---|
 | Product | منتج | An item the clinic buys and sells. MVP sells products only — no medical services (DEC-CAT-002). |
+| Internal code | الكود الداخلي | System-generated `PRD-` + ascending zero-padded sequence (`PRD-000001`); a reporting/audit/support reference, never a search key (BR-CAT-006, DEC-CAT-016, DEC-CAT-026). |
+| Possible duplicate | تكرار محتمل | A warning at create time when the Arabic name is similar and the manufacturer matches; never blocks — the user decides (BR-CAT-042, DEC-CAT-018, DEC-CAT-027). |
 | Catalog | الكتالوج | The clinic's product catalog; includes pricing as a capability. |
 | Category | تصنيف | A grouping of products; flat single-level list in the first version (BR-CAT-013). |
 | Manufacturer | شركة مصنعة | Managed lookup, name only in the first version; mandatory for every product (BR-CAT-007). |

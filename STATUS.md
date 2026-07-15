@@ -16,6 +16,61 @@ changes require evidence (Governance Change Policy — `docs/architecture/princi
 
 **Every implementation session starts at `.claude/playbooks/implementation.md`.**
 
+## Just completed (2026-07-15) — Slice 2: Catalog → Create Product + View Details (S2/S3)
+
+**Implemented, tested, and live-verified; awaiting owner review (uncommitted).** Scope
+per DEC-CAT-029: Create Product + read-only View Details only; Edit, image storage,
+dangerous-op confirmation, and audit events remain deferred (DEC-CAT-028/029).
+
+- **First write path in the system.** A command pipeline mirroring the query side:
+  `ICommand<TResult>` + `ICommandHandler<,>` (STD-BE-020/021), a `ValidatingCommandHandler`
+  and `LoggingCommandHandler` decorator (`Application/Common/Behaviors`), composed
+  explicitly in `Api/Composition/CommandPipeline.cs` and registered like `QueryPipeline`.
+  One command = one `SaveChanges` (STD-BE-024). No MediatR/AutoMapper (arch-test banned).
+- **Domain:** `Product` gained `InternalCode` (required, held) + `InternalNotes` (optional);
+  creation invariants stay in the aggregate (BR-CAT-001/009/016/020/021/022/025/036).
+- **Internal code (DEC-CAT-026):** PostgreSQL sequence `product_internal_code_seq`, `nextval`
+  allocated at persist time → `PRD-000001` (`InternalProductCode`); unique index proves
+  uniqueness under concurrency. Never entered, not a search key (DEC-CAT-016).
+- **Possible-duplicate (DEC-CAT-027):** a separate **advisory read** — pg_trgm
+  `similarity() >= 0.4` (named tunable const) on a new normalized-Arabic-name column
+  (interceptor-maintained, own gin index) **AND** same manufacturer. Never blocks the write
+  (BR-CAT-042 / DEC-CAT-018); the UI surfaces the comparison dialog and the user decides.
+- **Endpoints:** `POST /api/v1/products` (201 + Location + `{id, internalCode}`),
+  `GET /api/v1/products/{id}` (404 → problem+json), `GET /api/v1/products/possible-duplicates`,
+  and a new `GET /api/v1/units` lookup for the unit-profile editor. Per-field VTF-VAL-001
+  validation (AC-CAT-043) + 15 new ar/en `validation.*` keys (localization test extended).
+- **Frontend (Angular 21, zoneless, OnPush, typed reactive forms):** new `Vf*` form-input
+  kit behind the PrimeNG seam — `VfTextInput`/`VfNumberInput`/`VfTextarea` (ControlValueAccessor),
+  `VfDialog`, and additive `error`/`required` on `VfSelect`; the Create page (identity ·
+  classification · capabilities · unit-profile editor · prices/notes) with the duplicate-warning
+  dialog; the read-only Details page with the four data-view states incl. not-found; «منتج جديد»
+  CTA wired on the list + empty state. Arabic-first RTL, logical CSS only, resource strings.
+- **Tests (+24):** Domain 28→32 (internal code, notes), Architecture 30→57 (command-handler
+  naming/location conventions + validation-key localization theory), Integration 29→38
+  (create round-trip, code format+uniqueness+ascending, per-field 400, open-expiration,
+  localization, 404, duplicate manufacturer-scoping, /units), frontend 18→26 (create form
+  validation/happy-path/duplicate-warning, details store ready/not-found/error, CVA input).
+- **Gates green — INDEPENDENTLY re-run by the orchestrator (not trusting the build agent):**
+  `dotnet build` 0/0 (Release), `dotnet format` clean, **127 backend** (Domain 32 · Architecture
+  57 · Integration 38 — Testcontainers), frontend prod build clean (493 kB), ESLint + Stylelint
+  clean, **26 frontend**. Total **153 tests** (Slice-1 105 → +48). The R1 forbidden-library
+  NetArchTest re-proven to bite.
+- **Live-verified (orchestrator, real stack):** compose db + API (:5080) + `ng serve` (:4200).
+  Own curl round-trips: create → 201 `PRD-000003`, second → `PRD-000004` (ascending — sequence
+  does not reset), GET details (unit storage/default flags, Money EGP), 404 `application/problem+json`,
+  per-field 400 `VTF-VAL-001`, en-localized messages, possible-duplicates endpoint 200.
+  **Browser (headless Chrome, correct routes `/catalog/products{,/new,/:id}`):** create form and
+  details page render correctly in RTL; **zero page-level horizontal overflow at 390 px** (CDP
+  `scrollWidth==innerWidth` on both); **zero console errors/warnings** on both. (Note: the build
+  agent's "routes serve 200" claim used `/products/new` — that path hits the `**` redirect to the
+  list; the real editor route is `/catalog/products/new`. App-internal navigation uses the correct
+  nested paths — verified.)
+- **Scope boundary noted (not a defect):** on an empty catalog there is no in-slice way to add
+  categories/manufacturers (managed-data / Categories module slice — DEC-CAT-025); the editor
+  consumes existing category/manufacturer/nature/unit lookups.
+- **Docs synced:** `_INDEX.md` Catalog row; GLOSSARY rows for «الكود الداخلي» / «تكرار محتمل».
+
 ## Just completed (2026-07-15) — Slice 1: Catalog → Product List (S1)
 
 **The first vertical slice is implemented, tested, verified in the browser, and

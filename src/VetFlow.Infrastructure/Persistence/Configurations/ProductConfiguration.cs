@@ -11,14 +11,20 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
     {
         builder.HasKey(product => product.Id);
 
+        builder.Property(product => product.InternalCode).HasMaxLength(50).IsRequired();
         builder.Property(product => product.ArabicName).HasMaxLength(300).IsRequired();
         builder.Property(product => product.EnglishName).HasMaxLength(300);
         builder.Property(product => product.Size).HasMaxLength(100);
         builder.Property(product => product.Concentration).HasMaxLength(100);
+        builder.Property(product => product.InternalNotes).HasMaxLength(2000);
         builder.Property(product => product.Status).HasConversion<string>().HasMaxLength(20).IsRequired();
 
         builder.Property<string>(SearchableText.PropertyName)
             .HasMaxLength(SearchableText.MaxLength)
+            .IsRequired();
+
+        builder.Property<string>(NormalizedArabicName.PropertyName)
+            .HasMaxLength(NormalizedArabicName.MaxLength)
             .IsRequired();
 
         builder.HasOne<Category>().WithMany().HasForeignKey(product => product.CategoryId).OnDelete(DeleteBehavior.Restrict);
@@ -36,6 +42,8 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Navigation(product => product.Units).UsePropertyAccessMode(PropertyAccessMode.Field);
 
         builder.HasIndex(SearchableText.PropertyName).HasMethod("gin").HasOperators("gin_trgm_ops");
+        builder.HasIndex(NormalizedArabicName.PropertyName).HasMethod("gin").HasOperators("gin_trgm_ops");
+        builder.HasIndex(product => product.InternalCode).IsUnique();
         builder.HasIndex(product => product.Status);
     }
 }

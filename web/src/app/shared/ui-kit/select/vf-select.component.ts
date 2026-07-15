@@ -19,7 +19,12 @@ export interface VfSelectOption<T> {
   imports: [ReactiveFormsModule, SelectModule],
   template: `
     <div class="select-label">
-      <span class="select-caption">{{ label() }}</span>
+      <span class="select-caption">
+        {{ label() }}
+        @if (required()) {
+          <span class="select-required" aria-hidden="true">*</span>
+        }
+      </span>
       <p-select
         [formControl]="control"
         [options]="mutableOptions()"
@@ -30,8 +35,12 @@ export interface VfSelectOption<T> {
         [placeholder]="placeholder()"
         appendTo="body"
         styleClass="vf-select"
+        [class.vf-select--invalid]="!!error()"
         [ariaLabel]="label()"
       />
+      @if (error(); as message) {
+        <span class="select-error" role="alert">{{ message }}</span>
+      }
     </div>
   `,
   styles: `
@@ -47,9 +56,23 @@ export interface VfSelectOption<T> {
       font-weight: 500;
     }
 
+    .select-required {
+      color: var(--vf-danger, #b42318);
+      margin-inline-start: 0.125rem;
+    }
+
+    .select-error {
+      font-size: var(--vf-text-caption);
+      color: var(--vf-danger, #b42318);
+    }
+
     ::ng-deep .vf-select {
       inline-size: 100%;
       font-family: var(--vf-font);
+    }
+
+    ::ng-deep .vf-select.vf-select--invalid {
+      border-color: var(--vf-danger, #b42318);
     }
   `,
 })
@@ -58,6 +81,8 @@ export class VfSelectComponent<T> {
   readonly placeholder = input('');
   readonly filterable = input(false);
   readonly clearable = input(true);
+  readonly required = input(false);
+  readonly error = input<string | null>(null);
   readonly optionList = input.required<readonly VfSelectOption<T>[]>();
   readonly value = model<T | null>(null);
 

@@ -32,8 +32,12 @@ public static class DependencyInjection
         });
 
         services.AddScoped<ProductListQueryHandler>();
+        services.AddScoped<ProductDetailsQueryHandler>();
+        services.AddScoped<PossibleDuplicatesQueryHandler>();
+        services.AddScoped<CreateProductCommandHandler>();
         services.AddScoped<ManufacturerOptionsQueryHandler>();
         services.AddScoped<ProductNatureOptionsQueryHandler>();
+        services.AddScoped<UnitOptionsQueryHandler>();
         services.AddScoped<CategoryOptionsQueryHandler>();
 
         return services;

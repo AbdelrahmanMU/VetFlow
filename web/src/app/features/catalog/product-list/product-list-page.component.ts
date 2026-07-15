@@ -1,6 +1,7 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
 import { map } from 'rxjs/operators';
 
 import { FormatService } from '../../../core/i18n/format.service';
@@ -46,6 +47,9 @@ import { ProductsApiService } from './products-api.service';
     <div class="page">
       <header class="page-header">
         <h1 class="page-title">{{ t.t('products.title') }}</h1>
+        <vf-button variant="primary" icon="pi-plus" (pressed)="goToCreate()">
+          {{ t.t('products.create') }}
+        </vf-button>
       </header>
 
       <div class="toolbar">
@@ -104,7 +108,11 @@ import { ProductsApiService } from './products-api.service';
                   icon="pi-box"
                   [title]="t.t('products.empty.new.title')"
                   [body]="t.t('products.empty.new.body')"
-                />
+                >
+                  <vf-button variant="primary" icon="pi-plus" (pressed)="goToCreate()">
+                    {{ t.t('products.empty.new.action') }}
+                  </vf-button>
+                </vf-empty-state>
               }
               @case ('search') {
                 <vf-empty-state
@@ -187,6 +195,13 @@ import { ProductsApiService } from './products-api.service';
       gap: var(--vf-space-4);
     }
 
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--vf-space-3);
+    }
+
     .page-title {
       margin: 0;
       font-size: var(--vf-text-page-title);
@@ -267,6 +282,7 @@ export class ProductListPageComponent {
   protected readonly store = inject(ProductListStore);
   protected readonly columnPreferences = inject(ProductColumnPreferences);
   private readonly breakpoints = inject(BreakpointObserver);
+  private readonly router = inject(Router);
 
   protected readonly pageSize = ProductListStore.PageSize;
   protected readonly hideableColumns = PRODUCT_COLUMNS.filter((column) => column.hideable);
@@ -300,4 +316,8 @@ export class ProductListPageComponent {
           total: this.format.integer(view.totalCount),
         });
   });
+
+  protected goToCreate(): void {
+    void this.router.navigate(['/catalog/products/new']);
+  }
 }

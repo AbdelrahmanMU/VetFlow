@@ -49,6 +49,9 @@ public static class CatalogSeeder
 
         var product = new Product(
             Guid.NewGuid(),
+            // Synthetic, non-numeric code: never collides with the PRD-000001 sequence
+            // codes that the create command generates (advisor guard).
+            $"PRD-SEED-{Guid.NewGuid():N}",
             arabicName,
             categoryId,
             manufacturerId,

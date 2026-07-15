@@ -55,6 +55,14 @@ public sealed class SearchTextInterceptor : SaveChangesInterceptor
             {
                 entry.Property(SearchableText.PropertyName).CurrentValue = searchText;
             }
+
+            // The Arabic-name-only column backs the possible-duplicate advisory
+            // (DEC-CAT-027), which matches on the Arabic name specifically.
+            if (entry.Entity is Product productEntity)
+            {
+                entry.Property(NormalizedArabicName.PropertyName).CurrentValue =
+                    ArabicSearchText.Normalize(productEntity.ArabicName);
+            }
         }
     }
 }

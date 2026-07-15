@@ -20,6 +20,7 @@ builder.Host.UseSerilog((context, configuration) =>
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure();
 builder.Services.AddQueryPipeline();
+builder.Services.AddCommandPipeline();
 
 var corsOptions = builder.Configuration.GetSection(CorsOptions.SectionName).Get<CorsOptions>() ?? new CorsOptions();
 builder.Services.AddCors(options => options.AddPolicy(CorsOptions.PolicyName, policy => policy
@@ -67,6 +68,7 @@ app.UseCors(CorsOptions.PolicyName);
 app.MapProductEndpoints();
 app.MapManufacturerEndpoints();
 app.MapProductNatureEndpoints();
+app.MapUnitEndpoints();
 app.MapCategoryEndpoints();
 
 await VetFlow.Infrastructure.DependencyInjection.ApplyMigrationsIfConfiguredAsync(app.Services);

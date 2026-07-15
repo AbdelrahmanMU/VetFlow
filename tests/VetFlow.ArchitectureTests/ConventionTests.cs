@@ -56,6 +56,37 @@ public sealed class ConventionTests
     }
 
     [Fact]
+    public void Command_handler_implementations_live_in_infrastructure_STD_BE_023()
+    {
+        var offenders = AllAssemblies
+            .SelectMany(assembly => assembly.GetTypes())
+            .Where(type => type is { IsClass: true, IsAbstract: false })
+            .Where(ImplementsCommandHandler)
+            .Where(type => !IsPipelineDecorator(type))
+            .Where(type => type.Assembly != InfrastructureAssembly)
+            .Select(type => type.FullName)
+            .ToList();
+
+        offenders.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void Command_handlers_are_named_CommandHandler_STD_BE_020()
+    {
+        var handlerTypes = AllAssemblies
+            .SelectMany(assembly => assembly.GetTypes())
+            .Where(type => type is { IsClass: true, IsAbstract: false })
+            .Where(ImplementsCommandHandler);
+
+        foreach (var handlerType in handlerTypes)
+        {
+            var backtickIndex = handlerType.Name.IndexOf('`', StringComparison.Ordinal);
+            var name = backtickIndex >= 0 ? handlerType.Name[..backtickIndex] : handlerType.Name;
+            name.ShouldEndWith("CommandHandler");
+        }
+    }
+
+    [Fact]
     public void No_generic_repository_exists_STD_BE_025()
     {
         var offenders = AllAssemblies
@@ -145,6 +176,10 @@ public sealed class ConventionTests
     private static bool ImplementsQueryHandler(Type type) =>
         type.GetInterfaces().Any(candidate =>
             candidate.IsGenericType && candidate.GetGenericTypeDefinition() == typeof(IQueryHandler<,>));
+
+    private static bool ImplementsCommandHandler(Type type) =>
+        type.GetInterfaces().Any(candidate =>
+            candidate.IsGenericType && candidate.GetGenericTypeDefinition() == typeof(ICommandHandler<,>));
 
     private static bool IsPipelineDecorator(Type type) =>
         type.Namespace == "VetFlow.Application.Common.Behaviors";

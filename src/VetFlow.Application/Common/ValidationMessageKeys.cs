@@ -17,4 +17,24 @@ public static class ValidationMessageKeys
     public const string UnknownSortField = "validation.sort.unknown";
     public const string UnknownSortDirection = "validation.dir.unknown";
     public const string UnknownStatus = "validation.status.unknown";
+
+    // Create product (WF-CAT-001 / REQ-CAT-043 / BR-CAT-009): one key per missing
+    // minimum field, so the response names exactly which field is missing (AC-CAT-043).
+    public const string ArabicNameRequired = "validation.arabicName.required";
+    public const string CategoryRequired = "validation.category.required";
+    public const string ManufacturerRequired = "validation.manufacturer.required";
+    public const string NatureRequired = "validation.nature.required";
+    public const string UnitProfileRequired = "validation.units.required";
+    public const string PurchaseUnitRequired = "validation.units.purchaseRequired";
+    public const string SaleUnitRequired = "validation.units.saleRequired";
+    public const string StorageUnitRequired = "validation.storageUnit.required";
+    public const string DefaultSaleUnitRequired = "validation.saleUnit.defaultRequired";
+    public const string DefaultPurchaseUnitRequired = "validation.purchaseUnit.defaultRequired";
+    public const string OpenExpirationPeriodRequired = "validation.openExpiration.periodRequired";
+    public const string ConversionFactorPositive = "validation.conversionFactor.positive";
+    public const string TextTooLong = "validation.text.tooLong";
+
+    // Possible-duplicate advisory read (DEC-CAT-027 / REQ-CAT-042).
+    public const string DuplicateArabicNameRequired = "validation.duplicateCheck.arabicName.required";
+    public const string DuplicateManufacturerRequired = "validation.duplicateCheck.manufacturer.required";
 }

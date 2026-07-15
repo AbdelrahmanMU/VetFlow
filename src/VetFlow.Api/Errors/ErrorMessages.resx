@@ -66,6 +66,51 @@
   <data name="validation.status.unknown" xml:space="preserve">
     <value>قيمة الحالة يجب أن تكون active أو disabled.</value>
   </data>
+  <data name="validation.arabicName.required" xml:space="preserve">
+    <value>الاسم العربي إجباري.</value>
+  </data>
+  <data name="validation.category.required" xml:space="preserve">
+    <value>التصنيف إجباري.</value>
+  </data>
+  <data name="validation.manufacturer.required" xml:space="preserve">
+    <value>الشركة المصنعة إجبارية.</value>
+  </data>
+  <data name="validation.nature.required" xml:space="preserve">
+    <value>طبيعة المنتج إجبارية.</value>
+  </data>
+  <data name="validation.units.required" xml:space="preserve">
+    <value>ملف الوحدات إجباري: أضف وحدة واحدة على الأقل.</value>
+  </data>
+  <data name="validation.units.purchaseRequired" xml:space="preserve">
+    <value>يجب تحديد وحدة شراء واحدة على الأقل.</value>
+  </data>
+  <data name="validation.units.saleRequired" xml:space="preserve">
+    <value>يجب تحديد وحدة بيع واحدة على الأقل.</value>
+  </data>
+  <data name="validation.storageUnit.required" xml:space="preserve">
+    <value>وحدة المخزون إجبارية.</value>
+  </data>
+  <data name="validation.saleUnit.defaultRequired" xml:space="preserve">
+    <value>وحدة البيع الافتراضية إجبارية.</value>
+  </data>
+  <data name="validation.purchaseUnit.defaultRequired" xml:space="preserve">
+    <value>وحدة الشراء الافتراضية إجبارية.</value>
+  </data>
+  <data name="validation.openExpiration.periodRequired" xml:space="preserve">
+    <value>عند تفعيل «له صلاحية بعد الفتح» يجب إدخال مدة صلاحية موجبة.</value>
+  </data>
+  <data name="validation.conversionFactor.positive" xml:space="preserve">
+    <value>معامل التحويل يجب أن يكون رقمًا موجبًا.</value>
+  </data>
+  <data name="validation.text.tooLong" xml:space="preserve">
+    <value>القيمة أطول من الحد المسموح.</value>
+  </data>
+  <data name="validation.duplicateCheck.arabicName.required" xml:space="preserve">
+    <value>الاسم العربي مطلوب لفحص التكرار.</value>
+  </data>
+  <data name="validation.duplicateCheck.manufacturer.required" xml:space="preserve">
+    <value>الشركة المصنعة مطلوبة لفحص التكرار.</value>
+  </data>
   <data name="error.internal" xml:space="preserve">
     <value>حدث خطأ غير متوقع. أعد المحاولة، وإن تكرر تواصل مع الدعم الفني.</value>
   </data>

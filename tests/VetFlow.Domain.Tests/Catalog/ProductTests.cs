@@ -178,4 +178,29 @@ public sealed class ProductTests
         product.Size.ShouldBeNull();
         product.Concentration.ShouldBeNull();
     }
+
+    [Fact]
+    public void Product_carries_its_system_generated_internal_code_BR_CAT_006()
+    {
+        var product = ProductTestData.ValidProduct(internalCode: "PRD-000042");
+
+        product.InternalCode.ShouldBe("PRD-000042");
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Product_cannot_be_created_without_an_internal_code_BR_CAT_006(string internalCode)
+    {
+        // The code is system-generated (DEC-CAT-026); an absent one is a
+        // programmer error, surfaced as an argument exception, not a business failure.
+        Should.Throw<ArgumentException>(() => ProductTestData.ValidProduct(internalCode: internalCode));
+    }
+
+    [Fact]
+    public void Internal_notes_are_optional_and_trimmed_BR_CAT_050_and_BR_CAT_010()
+    {
+        ProductTestData.ValidProduct().InternalNotes.ShouldBeNull();
+        ProductTestData.ValidProduct(internalNotes: "  يُحفظ في الثلاجة  ").InternalNotes.ShouldBe("يُحفظ في الثلاجة");
+    }
 }

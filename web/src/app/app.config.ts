@@ -1,6 +1,6 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideHttpClient, withFetch } from '@angular/common/http';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withComponentInputBinding } from '@angular/router';
 
 import { routes } from './app.routes';
 import { provideVetFlowUiKit } from './shared/ui-kit/theme/provide-vetflow-ui-kit';
@@ -8,7 +8,7 @@ import { provideVetFlowUiKit } from './shared/ui-kit/theme/provide-vetflow-ui-ki
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes),
+    provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(withFetch()),
     provideVetFlowUiKit(),
   ],

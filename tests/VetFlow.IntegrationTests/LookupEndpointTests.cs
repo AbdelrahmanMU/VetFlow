@@ -21,6 +21,17 @@ public sealed class LookupEndpointTests(ApiFixture fixture)
     }
 
     [Fact]
+    public async Task Unit_options_expose_the_seeded_units_for_the_editor_REQ_CAT_016()
+    {
+        var options = await GetOptionsAsync("/api/v1/units");
+
+        foreach (var name in SeededCatalogIds.DefaultUnitNames)
+        {
+            options.ShouldContain(option => option.GetProperty("name").GetString() == name);
+        }
+    }
+
+    [Fact]
     public async Task The_initial_product_natures_are_available_AC_CAT_011()
     {
         var options = await GetOptionsAsync("/api/v1/product-natures");

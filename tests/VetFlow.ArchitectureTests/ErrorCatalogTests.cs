@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Reflection;
 using Shouldly;
 using VetFlow.Api.Errors;
+using VetFlow.Application.Common;
 using VetFlow.Domain.Catalog;
 using VetFlow.Domain.Common;
 
@@ -41,6 +42,27 @@ public sealed class ErrorCatalogTests
     {
         ErrorMessages.Get(code, Arabic).ShouldNotBe(code);
         ErrorMessages.Get(code, English).ShouldNotBe(code);
+    }
+
+    public static TheoryData<string> ValidationMessageKeys()
+    {
+        var data = new TheoryData<string>();
+        foreach (var key in CollectConstants(typeof(VetFlow.Application.Common.ValidationMessageKeys)))
+        {
+            data.Add(key);
+        }
+
+        return data;
+    }
+
+    [Theory]
+    [MemberData(nameof(ValidationMessageKeys))]
+    public void Every_validation_message_key_has_arabic_and_english_text_STD_BE_034(string key)
+    {
+        // ErrorCatalogTests guards VTF- codes; validation.* keys are the other half
+        // of the ar/en localization gate and must not silently fall back to the key.
+        ErrorMessages.Get(key, Arabic).ShouldNotBe(key);
+        ErrorMessages.Get(key, English).ShouldNotBe(key);
     }
 
     [Fact]

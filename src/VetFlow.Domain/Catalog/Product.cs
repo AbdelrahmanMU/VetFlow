@@ -19,6 +19,7 @@ public sealed class Product
 
     public Product(
         Guid id,
+        string internalCode,
         string arabicName,
         Guid categoryId,
         Guid manufacturerId,
@@ -30,9 +31,14 @@ public sealed class Product
         Guid defaultPurchaseUnitId,
         string? englishName = null,
         string? size = null,
-        string? concentration = null)
+        string? concentration = null,
+        string? internalNotes = null)
     {
         ArgumentOutOfRangeException.ThrowIfEqual(id, Guid.Empty);
+        // The internal code is system-generated at persist time (BR-CAT-006,
+        // DEC-CAT-026); an absent code here is a programmer error, not a business
+        // failure — the PRD- format itself is owned by Infrastructure.
+        ArgumentException.ThrowIfNullOrWhiteSpace(internalCode);
         ArgumentNullException.ThrowIfNull(capabilities);
         ArgumentNullException.ThrowIfNull(units);
 
@@ -96,8 +102,10 @@ public sealed class Product
         }
 
         Id = id;
+        InternalCode = internalCode;
         ArabicName = arabicName.Trim();
         EnglishName = string.IsNullOrWhiteSpace(englishName) ? null : englishName.Trim();
+        InternalNotes = string.IsNullOrWhiteSpace(internalNotes) ? null : internalNotes.Trim();
         Size = string.IsNullOrWhiteSpace(size) ? null : size.Trim();
         Concentration = string.IsNullOrWhiteSpace(concentration) ? null : concentration.Trim();
         CategoryId = categoryId;
@@ -117,10 +125,20 @@ public sealed class Product
 
     public Guid Id { get; }
 
+    /// <summary>
+    /// System-generated internal code (BR-CAT-006, DEC-CAT-026): a stable
+    /// reporting/audit/support reference, never a search key (DEC-CAT-016).
+    /// Assigned once at creation from a unique ascending sequence; never changes.
+    /// </summary>
+    public string InternalCode { get; private set; } = string.Empty;
+
     /// <summary>Mandatory; the product's displayed name everywhere (BR-CAT-005).</summary>
     public string ArabicName { get; private set; }
 
     public string? EnglishName { get; private set; }
+
+    /// <summary>Optional internal notes for the clinic team; never shown on invoices (BR-CAT-050).</summary>
+    public string? InternalNotes { get; private set; }
 
     /// <summary>Explicit optional identity field (BR-CAT-008).</summary>
     public string? Size { get; private set; }
