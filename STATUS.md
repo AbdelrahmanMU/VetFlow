@@ -3,7 +3,7 @@
 > The single mutable state file. Update it before ending any significant
 > session. Stable knowledge does NOT belong here — it goes in `docs/`.
 
-**Updated:** 2026-07-15
+**Updated:** 2026-07-16
 
 ## Current sprint
 
@@ -15,6 +15,102 @@ safe, and evaluate the change only after the feature is complete.** Governance
 changes require evidence (Governance Change Policy — `docs/architecture/principles.md`).
 
 **Every implementation session starts at `.claude/playbooks/implementation.md`.**
+
+## Just completed (2026-07-16) — Edit Product slice: COMPLETE (backend + frontend), owner-approved, COMMITTED
+
+**The Edit Product slice (DEC-CAT-031 — non-audited unified Create/Edit editor) is fully
+implemented, tested, live-verified, owner-reviewed, and COMMITTED: implementation `2e139ad`
+(`feat(catalog): Edit Product — unified non-audited editor`) + a separate docs-sync commit
+(this update). 173 tests green (backend 144 · frontend 29); all gates green. The owner ended
+the session with an explicit stop after the two commits (no push; no new slice).**
+
+### A) Product Editor UX Architecture doc — refined and owner-approved *in principle*
+`docs/ui/product-editor-ux-architecture.md` (header still `Status: Draft`, **uncommitted**).
+Two owner refinement passes applied (no redesign): per-section **Sources** traceability
+blocks + **Implementation Notes** (design-system concepts only, no Angular/PrimeNG);
+a **[تجربة] Defense Review** table (all 10 UX-only decisions defended, zero removed) +
+a **UX-Decision Lifecycle** policy; a new **§15 Future UX Seams** (Audit History
+DEC-CAT-028, Product Images DEC-CAT-029/TD-302) with a **Reserved-Seam-First** rule; and
+a final **Product Editor UX Acceptance Checklist**. §0 made uniform. Owner said the doc is
+**"approved / authoritative"** — but I was not asked to flip the header, so it still reads
+Draft (see open item 1).
+
+### B) Edit Product — re-scoped by DEC-CAT-031, backend built and green
+- **DoR gate outcome:** Edit's audited paths (price change, dangerous unit edit) were
+  BLOCKED by the pending audit-log record shape (DEC-CAT-028) + deferral (DEC-CAT-029).
+  Surfaced the contradiction; owner ruled **DEC-CAT-031** (recorded in
+  `docs/modules/catalog/decisions.md`): re-scope to a **non-audited unified Create/Edit
+  editor** — one implementation, differences by configuration. Excluded (inert seams,
+  untouched): selling-price editing, audit log/history, dangerous-op confirmation, images.
+- **Architecture review (owner-required gate) PASSED** — the Create stack generalizes
+  cleanly with no forced duplication (shared write contract + config, not a second path).
+- **Backend COMPLETE & GREEN (committed `2e139ad`):**
+  * Domain: `Product.Update()` sharing one invariant gate (`ValidateInvariants`) +
+    `ApplyDetails` with the constructor; new `ProductUnitDraft`. Prices preserved by
+    `UnitId` and never mutated; `InternalCode`/`Status` never touched; the dangerous-op
+    path is an **inert code seam** (TODO citing DEC-CAT-028/029/031) — no visible UI.
+  * Shared write contract: `IProductWriteCommand`/`IProductUnitWriteInput` + generic
+    `ProductWriteCommandValidator<T>`; **Create** command/validator refactored onto it
+    (validation not duplicated); new `UpdateProductCommand`/`Validator`/`Handler`
+    (`ICommand<Guid?>`, null ⇒ 404).
+  * `ProductDetailsDto` + handler gained `CategoryId/ManufacturerId/NatureId` (edit prefill).
+  * `PUT /api/v1/products/{id}` (204 / 404); handler registered in Infrastructure DI +
+    `CommandPipeline`; validator in Application DI.
+  * **EF fix (keep):** `ProductUnitConfiguration` Id `ValueGeneratedNever()` — required so
+    an edit that grows/replaces the unit profile INSERTs new rows instead of a spurious
+    UPDATE (root-caused via change-tracker states: new units were marked Modified).
+    `has-pending-model-changes` = none, **no migration needed**.
+  * **Gates green:** `dotnet build` 0/0 (Release), `dotnet format` clean, **144 backend
+    tests** (Domain 43 · Architecture 57 · Integration 44 — Testcontainers; Slice 2 was
+    127 → +17). New tests: 11 domain (`ProductUpdateTests`: scalar edit, price preserved
+    by unit / new unit null / role-change drops price, profile replace, re-enforced minimum,
+    reject-without-mutation) + 6 integration (`ProductUpdateEndpointTests`: round-trip,
+    price preservation, 404, per-field 400, **rename refreshes the search index**, edit-ids
+    exposed).
+- **FRONTEND COMPLETE & GREEN (committed `2e139ad`):** unified `product-editor-page.component`
+  (`mode` from route `data`, `id` from param via `withComponentInputBinding`) **replaced**
+  `product-create-page.component` (deleted); `buildProductForm()`/`unitRowFrom()` factories in
+  `product-editor.forms.ts`; `EditProduct`/`UpdateProductPayload` models; editor API `load`/
+  `update`; `ApiClient.put` (completes the ADR-0013 single access point); `unit-profile-editor`
+  gained `priceEditable`/`currency` (edit shows price **read-only**, never mutated); route
+  `products/:id/edit` (`data:{mode}`); «تعديل» button on the details page. **29 frontend tests**
+  (create both-mode logic + edit load/prefill/PUT-without-price/no-duplicate-check). Edit runs
+  **no** possible-duplicate advisory (create-only); internal code shown read-only; `InternalCode`/
+  `Status` never touched; dangerous-op confirmation remains an inert code seam.
+- **Live-verified (headless Chrome, real stack):** edit round-trip (prefill → rename → PUT →
+  Details shows the new name), multi-unit role-select prefill (storage/default-sale/default-purchase
+  all populated), read-only price in edit + editable price on create, RTL correct, **zero
+  page-level horizontal overflow at 1440 and 390 px**, **zero console errors/warnings**. `PUT`
+  preserves `internalCode` and `status`; the two dev-DB names touched during verify were reverted.
+
+
+
+**A design-only session** (owner-directed: no production code, no changes to any
+rule/requirement/ADR/standard/workflow/acceptance/playbook, no `ui.md` edit).
+Produced one new document; **uncommitted** and awaiting owner review.
+
+- **`docs/ui/product-editor-ux-architecture.md`** (Draft) — the definitive Product
+  Editor UX reference, framed as the frontend equivalent of ADR-0014. Extends
+  `design-language.md` + `ui.md` §5 **without redefining or modifying them**, and
+  **invents no business rule** — every behavior cites its `REQ/BR/DEC/WF` id; every
+  pure interaction choice is tagged **[تجربة]**. Written in Arabic per ADR-0002 +
+  the design-doc precedent (owner-chosen).
+- **Covers:** editor philosophy · screen anatomy (why each region exists) · the
+  create journey · section-by-section form design · a deep Unit-Profile treatment ·
+  recovery-oriented validation + duplicate comparison dialog · save experience ·
+  future Edit experience · read-mode Details page · three independent responsive
+  layouts (desktop rail / tablet chips / mobile stepper) · micro-interactions ·
+  accessibility · a premium critique (vs Stripe/Linear/Notion/Shopify) · an
+  implementation review (reusable patterns) · and the closing block (Executive
+  Summary · 13 numbered UX Decisions UXD-ED-001..013 · Risks · Future Extensions ·
+  Self-Critique · Readiness).
+- **Decisions recorded IN the document** (its proper home — a design-architecture
+  doc, like an ADR records its own): UXD-ED-001..013. These are **design proposals
+  pending owner approval (Draft)**, not business rulings — no `DEC-CAT`/`DECISION_LOG`/
+  ADR entry is owed (no business behavior was decided this session).
+- **Deliberately NOT designed** (left as defined placeholders, per prior rulings):
+  audit-log panel content (DEC-CAT-028), image-storage flow (TD-302 / DEC-CAT-029),
+  danger-dialog activation (owned by not-yet-built units).
 
 ## Just completed (2026-07-15) — Slice 2: Catalog → Create Product + View Details (S2/S3)
 
@@ -229,30 +325,53 @@ tech-debt ledger → start Slice 2 (Product Editor).
 
 ## In flight / next
 
-1. **Slices 1 and 2 are committed and owner-approved** (`db0a671`, `ea107cc`). No
-   implementation is in flight. **Do NOT begin the next slice in this session** —
-   the owner directed that the next implementation session start from a **clean
-   repository state** (fresh `implementation.md` session, budgeted context).
-2. **Next slice — Edit Product** (the deferred half of the editor). Blocked until the
-   owner defines the **audit-log record shape** (table/fields/retention) and confirms
-   the dangerous-op confirmation seam activation — both required before writing the
-   audited Edit paths (DEC-CAT-028/029, ledger Q2/Q3). Alternative candidates: the
-   managed-data / Categories slice (S6 — unblocks in-app category/manufacturer creation,
-   ledger TD-105) or the auth slice (ADR-0010 open items).
-3. Environment note: Node 24 LTS via nvm; host port 5434 for the dev DB; API on :5080.
+**The Edit Product slice is DONE and committed** (`2e139ad` feat + the docs-sync commit that
+carries this update). Nothing is in flight. **No slice is authorized to start** — the owner
+ended this session with an explicit stop (no Audit, no Images, no Categories).
+
+**Candidate next slices (owner picks — do not start unprompted):**
+- **Categories / managed-data (S6, ledger TD-105)** — the recommended next step: today a
+  product cannot be created on an empty catalog without DB-seeding categories/manufacturers,
+  and the editor's "add a value from the select" (ui.md §5.2) is deferred to this screen.
+  Fully additive; no blocked owner input.
+- **Audited Edit paths** — BLOCKED on the audit-log record shape (DEC-CAT-028, owner input)
+  + dangerous-op confirmation-seam activation; do not start until those are defined.
+- **Auth (ADR-0010 open items)** — mechanism undecided.
+- **Product images (TD-302)** — BLOCKED on a storage ruling.
+
+**Then (separate sessions):** raise the UX doc's 5 new design components to
+`docs/ui/components.md`; the audited Edit paths (price change, dangerous unit edit) remain
+blocked on the audit-log record shape (DEC-CAT-028) + confirmation-seam activation.
+
+Environment: Node 24 LTS via nvm; host port 5434 for the dev DB; API on :5080. Note: a
+leftover `VetFlow.Api` dev process can hold DLL locks — if a build fails with MSB3021/MSB3026,
+stop that process first.
 
 ## Open items for the owner
 
-1. **Review Slice 1 and rule on the friction proposals below** (especially F1).
-2. Internal-code (BR-CAT-006) **format** is undefined in the docs — needed
-   before the Create Product slice.
-3. CI platform is undecided (no remote, no pipeline). ADR-0016's CI enforcement
+1. **`docs/ui/product-editor-ux-architecture.md` — NOT promoted to Approved; deviation reported
+   (2026-07-16, post-implementation Task 2).** The promotion was conditional on the implementation
+   matching the doc. It does **not**: per the owner's binding guardrail this slice built the
+   *minimal* editor (existing create-page fidelity + mode config) and deliberately **none** of the
+   doc's architecture — no section rail, dirty-tracking, before→after diff dialog, stepper, or the
+   three independent responsive layouts; the doc itself labels Edit as «مستقبلي» (future). Flipping
+   it to Approved would assert an implemented design that mostly does not exist in code (docs-vs-code
+   contradiction — forbidden). **Left `Status: Draft` and uncommitted, pending an owner ruling:**
+   keep it as a forward-looking design reference (e.g. a "Design-approved, not yet implemented"
+   status), or re-scope it to what shipped. No `DEC`/ADR is owed.
+2. **Audited Edit paths (owed before they can be built):** define the audit-log **record
+   shape** (table/fields/retention — DEC-CAT-028) and confirm the dangerous-op confirmation
+   seam activation (DEC-CAT-029 / DEC-CAT-031 / ledger Q3). The *non-audited* Edit slice
+   (DEC-CAT-031) proceeds without them; price-editing + dangerous-unit edits stay deferred.
+3. Amend **ADR-0005** wording per friction F1 (Angular pinned to 21, not latest,
+   because PrimeNG lags one major) — owner ruling required.
+4. CI platform is undecided (no remote, no pipeline). ADR-0016's CI enforcement
    currently runs locally only — pick a platform so the gates become CI.
-4. Approve the Sprint 1 shared docs and the `BD-*` registry (carried over).
-5. Answer `domain-overview.md` TODOs 2–6 (carried over).
-6. Flip ADR-0003…0019 Proposed → Accepted when ready (carried over).
-7. Confirm the CI performance budget numbers (ADR-0016 §5) (carried over).
-8. Catalog `overview.md` purchase-cost negative-boundary statements
+5. Approve the Sprint 1 shared docs and the `BD-*` registry (carried over).
+6. Answer `domain-overview.md` TODOs 2–6 (carried over).
+7. Flip ADR-0003…0019 Proposed → Accepted when ready (carried over).
+8. Confirm the CI performance budget numbers (ADR-0016 §5) (carried over).
+9. Catalog `overview.md` purchase-cost negative-boundary statements
    (DEC-CAT-024 follow-up) — unanswered since Sprint 1 (carried over).
 
 ## Sprint 2 — Engineering Foundation (COMPLETE, 2026-07-14)

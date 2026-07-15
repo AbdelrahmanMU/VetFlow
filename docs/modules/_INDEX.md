@@ -6,7 +6,7 @@
 
 | Module | Folder | Status |
 |---|---|---|
-| Catalog (incl. Pricing) | `catalog/` | Approved (docs 8/8, 2026-07-14) — Product List + Create/View Details slices implemented |
+| Catalog (incl. Pricing) | `catalog/` | Approved (docs 8/8, 2026-07-14) — Product List + Create/View Details + Edit (non-audited unified editor, DEC-CAT-031) slices implemented |
 | Categories | `categories/` | Not documented |
 | Suppliers | `suppliers/` | Not documented |
 | Customers (minimal) | `customers/` | Not documented |
