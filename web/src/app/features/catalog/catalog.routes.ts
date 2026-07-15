@@ -8,8 +8,15 @@ export const CATALOG_ROUTES: Routes = [
   },
   {
     path: 'products/new',
+    data: { mode: 'create' },
     loadComponent: () =>
-      import('./product-editor/product-create-page.component').then((m) => m.ProductCreatePageComponent),
+      import('./product-editor/product-editor-page.component').then((m) => m.ProductEditorPageComponent),
+  },
+  {
+    path: 'products/:id/edit',
+    data: { mode: 'edit' },
+    loadComponent: () =>
+      import('./product-editor/product-editor-page.component').then((m) => m.ProductEditorPageComponent),
   },
   {
     path: 'products/:id',

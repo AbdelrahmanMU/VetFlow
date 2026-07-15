@@ -35,6 +35,7 @@ public static class DependencyInjection
         services.AddScoped<ProductDetailsQueryHandler>();
         services.AddScoped<PossibleDuplicatesQueryHandler>();
         services.AddScoped<CreateProductCommandHandler>();
+        services.AddScoped<UpdateProductCommandHandler>();
         services.AddScoped<ManufacturerOptionsQueryHandler>();
         services.AddScoped<ProductNatureOptionsQueryHandler>();
         services.AddScoped<UnitOptionsQueryHandler>();

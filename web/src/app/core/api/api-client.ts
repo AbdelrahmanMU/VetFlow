@@ -34,6 +34,12 @@ export class ApiClient {
       .post<T>(`${ApiClient.BaseUrl}${path}`, body)
       .pipe(catchError((error: unknown) => throwError(() => toApiError(error))));
   }
+
+  put<T>(path: string, body: unknown): Observable<T> {
+    return this.http
+      .put<T>(`${ApiClient.BaseUrl}${path}`, body)
+      .pipe(catchError((error: unknown) => throwError(() => toApiError(error))));
+  }
 }
 
 function toApiError(error: unknown): ApiError {

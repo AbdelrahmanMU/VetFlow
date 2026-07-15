@@ -23,6 +23,14 @@ public sealed record ProductDetailsDto
 
     public string? Concentration { get; init; }
 
+    /// <summary>Classification foreign keys — carried so the editor can prefill its
+    /// selects (edit mode, DEC-CAT-031); the read page shows the names below.</summary>
+    public required Guid CategoryId { get; init; }
+
+    public required Guid ManufacturerId { get; init; }
+
+    public required Guid NatureId { get; init; }
+
     public required string CategoryName { get; init; }
 
     public required string ManufacturerName { get; init; }

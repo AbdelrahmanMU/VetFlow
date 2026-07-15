@@ -12,6 +12,11 @@ public sealed class ProductUnitConfiguration : IEntityTypeConfiguration<ProductU
     {
         builder.HasKey(productUnit => productUnit.Id);
 
+        // The id is assigned by the domain (Guid), never by the store. Declaring this
+        // lets EF treat a unit added to an already-tracked product (an edit that grows
+        // or replaces the profile) as an insert, not a spurious update (DEC-CAT-031).
+        builder.Property(productUnit => productUnit.Id).ValueGeneratedNever();
+
         // Get-only properties are not discovered by convention — map them explicitly.
         builder.Property(productUnit => productUnit.Position);
         builder.Property(productUnit => productUnit.IsPurchaseUnit);

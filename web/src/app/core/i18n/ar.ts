@@ -76,8 +76,11 @@ export const AR = {
   'products.empty.new.action': 'أضف أول منتج',
   'products.details.open': 'فتح التفاصيل',
 
-  // Product editor (S3 — create) — catalog/ui.md §5, §13
+  // Product editor (S3 — create + edit) — catalog/ui.md §5, §13
   'editor.create.title': 'منتج جديد',
+  'editor.edit.title': 'تعديل المنتج',
+  'editor.internalCode': 'الكود الداخلي',
+  'editor.loading': 'جارٍ تحميل المنتج…',
   'editor.section.identity': 'الهوية',
   'editor.section.classification': 'التصنيف والطبيعة',
   'editor.section.capabilities': 'القدرات',
@@ -99,6 +102,7 @@ export const AR = {
   'editor.select.placeholder': 'اختر…',
   'editor.priceHint': 'يمكن الحفظ بلا سعر؛ لن يُباع المنتج حتى يُسجَّل له سعر بيع واحد على الأقل.',
   'editor.save': 'حفظ المنتج',
+  'editor.update': 'حفظ التعديلات',
   'editor.saving': 'جارٍ الحفظ…',
   'editor.cancel': 'إلغاء',
   'editor.error': 'تعذّر حفظ المنتج. راجع الحقول المميّزة ثم أعد المحاولة.',
@@ -114,6 +118,7 @@ export const AR = {
   'editor.units.isSale': 'بيع',
   'editor.units.barcode': 'الباركود (اختياري)',
   'editor.units.price': 'سعر البيع (اختياري)',
+  'editor.units.priceReadonly': 'سعر البيع',
   'editor.units.roles': 'الأدوار الافتراضية',
   'editor.units.storageUnit': 'وحدة المخزون',
   'editor.units.defaultSale': 'وحدة البيع الافتراضية',
@@ -138,6 +143,7 @@ export const AR = {
   'productDetails.notFound.title': 'المنتج غير موجود.',
   'productDetails.notFound.body': 'قد يكون الرابط غير صحيح.',
   'productDetails.back': 'العودة إلى المنتجات',
+  'productDetails.edit': 'تعديل',
   'productDetails.section.identity': 'الهوية',
   'productDetails.section.capabilities': 'القدرات',
   'productDetails.section.units': 'ملف الوحدات',

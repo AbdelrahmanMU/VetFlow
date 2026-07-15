@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
+import { FormatService } from '../../../../core/i18n/format.service';
 import { TranslationService } from '../../../../core/i18n/translation.service';
 import { inject } from '@angular/core';
 import { VfButtonComponent } from '../../../../shared/ui-kit/button/vf-button.component';
@@ -70,11 +71,18 @@ import { UnitRowForm } from '../product-editor.forms';
           <div class="row-extra">
             <vf-text-input [label]="t.t('editor.units.barcode')" [formControl]="barcodeControl(row)" />
             @if (saleControl(row).value) {
-              <vf-number-input
-                [label]="t.t('editor.units.price')"
-                [min]="0"
-                [formControl]="priceControl(row)"
-              />
+              @if (priceEditable()) {
+                <vf-number-input
+                  [label]="t.t('editor.units.price')"
+                  [min]="0"
+                  [formControl]="priceControl(row)"
+                />
+              } @else {
+                <div class="readonly-field">
+                  <span class="readonly-caption">{{ t.t('editor.units.priceReadonly') }}</span>
+                  <span class="readonly-value vf-num">{{ priceDisplay(row) }}</span>
+                </div>
+              }
             }
             <vf-button variant="quiet" icon="pi-trash" (pressed)="removeRow.emit(index)">
               {{ t.t('editor.units.remove') }}
@@ -128,6 +136,24 @@ import { UnitRowForm } from '../product-editor.forms';
       gap: var(--vf-space-3);
     }
 
+    .readonly-field {
+      display: flex;
+      flex-direction: column;
+      gap: var(--vf-space-1);
+      padding-block-end: 0.5rem;
+    }
+
+    .readonly-caption {
+      font-size: var(--vf-text-secondary-size);
+      color: var(--vf-text-secondary);
+      font-weight: 500;
+    }
+
+    .readonly-value {
+      color: var(--vf-text);
+      font-size: var(--vf-text-body);
+    }
+
     @media (max-width: 768px) {
       .row-main,
       .row-extra {
@@ -138,12 +164,22 @@ import { UnitRowForm } from '../product-editor.forms';
 })
 export class UnitProfileEditorComponent {
   protected readonly t = inject(TranslationService);
+  private readonly format = inject(FormatService);
 
   readonly rows = input.required<readonly UnitRowForm[]>();
   readonly unitOptions = input.required<readonly LookupOption[]>();
   readonly showErrors = input(false);
+  /** Edit mode shows the price read-only; it is never mutated (DEC-CAT-031). */
+  readonly priceEditable = input(true);
+  /** Currency for the read-only price; the persisted product's own currency. */
+  readonly currency = input('EGP');
   readonly addRow = output<void>();
   readonly removeRow = output<number>();
+
+  protected priceDisplay(row: UnitRowForm): string {
+    const amount = row.controls.sellingPrice.value;
+    return amount === null ? '—' : this.format.money(amount, this.currency());
+  }
 
   protected unitSelectOptions(): readonly VfSelectOption<string>[] {
     return this.unitOptions().map((option) => ({ label: option.name, value: option.id }));

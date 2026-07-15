@@ -67,9 +67,14 @@ import { ProductDetailsStore } from './product-details.store';
                   <vf-badge tone="warning" icon="pi-tag">{{ t.t('products.status.noPrice') }}</vf-badge>
                 }
               </div>
-              <vf-button variant="quiet" icon="pi-arrow-right" (pressed)="goToList()">
-                {{ t.t('productDetails.back') }}
-              </vf-button>
+              <div class="header-actions">
+                <vf-button variant="secondary" icon="pi-pencil" (pressed)="goToEdit()">
+                  {{ t.t('productDetails.edit') }}
+                </vf-button>
+                <vf-button variant="quiet" icon="pi-arrow-right" (pressed)="goToList()">
+                  {{ t.t('productDetails.back') }}
+                </vf-button>
+              </div>
             </header>
 
             <section class="card">
@@ -207,6 +212,12 @@ import { ProductDetailsStore } from './product-details.store';
       flex-wrap: wrap;
     }
 
+    .header-actions {
+      display: flex;
+      gap: var(--vf-space-2);
+      align-items: center;
+    }
+
     .card {
       background: var(--vf-surface);
       border: 1px solid var(--vf-border);
@@ -328,5 +339,9 @@ export class ProductDetailsPageComponent {
 
   protected goToList(): void {
     void this.router.navigate(['/catalog/products']);
+  }
+
+  protected goToEdit(): void {
+    void this.router.navigate(['/catalog/products', this.id(), 'edit']);
   }
 }

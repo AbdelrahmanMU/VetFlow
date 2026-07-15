@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using VetFlow.Application.Catalog.Commands.CreateProduct;
+using VetFlow.Application.Catalog.Commands.UpdateProduct;
 using VetFlow.Application.Catalog.Queries.ManufacturerOptions;
 using VetFlow.Application.Catalog.Queries.PossibleDuplicates;
 using VetFlow.Application.Catalog.Queries.ProductDetails;
@@ -28,6 +29,7 @@ public static class DependencyInjection
         services.AddSingleton<IValidator<ProductDetailsQuery>, ProductDetailsQueryValidator>();
         services.AddSingleton<IValidator<PossibleDuplicatesQuery>, PossibleDuplicatesQueryValidator>();
         services.AddSingleton<IValidator<CreateProductCommand>, CreateProductCommandValidator>();
+        services.AddSingleton<IValidator<UpdateProductCommand>, UpdateProductCommandValidator>();
         return services;
     }
 }

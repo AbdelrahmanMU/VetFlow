@@ -34,6 +34,9 @@ public sealed class ProductDetailsQueryHandler(VetFlowDbContext dbContext)
                 EnglishName = product.EnglishName,
                 Size = product.Size,
                 Concentration = product.Concentration,
+                CategoryId = product.CategoryId,
+                ManufacturerId = product.ManufacturerId,
+                NatureId = product.NatureId,
                 CategoryName = category.Name,
                 ManufacturerName = manufacturer.Name,
                 NatureName = nature.Name,
@@ -77,6 +80,9 @@ public sealed class ProductDetailsQueryHandler(VetFlowDbContext dbContext)
         EnglishName = row.EnglishName,
         Size = row.Size,
         Concentration = row.Concentration,
+        CategoryId = row.CategoryId,
+        ManufacturerId = row.ManufacturerId,
+        NatureId = row.NatureId,
         CategoryName = row.CategoryName,
         ManufacturerName = row.ManufacturerName,
         NatureName = row.NatureName,
@@ -122,6 +128,12 @@ public sealed class ProductDetailsQueryHandler(VetFlowDbContext dbContext)
         public string? Size { get; init; }
 
         public string? Concentration { get; init; }
+
+        public required Guid CategoryId { get; init; }
+
+        public required Guid ManufacturerId { get; init; }
+
+        public required Guid NatureId { get; init; }
 
         public required string CategoryName { get; init; }
 

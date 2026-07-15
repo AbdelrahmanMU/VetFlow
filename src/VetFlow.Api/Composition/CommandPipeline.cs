@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.Extensions.Logging;
 using VetFlow.Application.Catalog.Commands.CreateProduct;
+using VetFlow.Application.Catalog.Commands.UpdateProduct;
 using VetFlow.Application.Common;
 using VetFlow.Application.Common.Behaviors;
 using VetFlow.Infrastructure.Catalog;
@@ -18,6 +19,7 @@ public static class CommandPipeline
     public static IServiceCollection AddCommandPipeline(this IServiceCollection services)
     {
         services.AddCommandHandler<CreateProductCommand, CreateProductResult, CreateProductCommandHandler>();
+        services.AddCommandHandler<UpdateProductCommand, Guid?, UpdateProductCommandHandler>();
         return services;
     }
 

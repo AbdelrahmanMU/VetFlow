@@ -1,4 +1,5 @@
 using VetFlow.Application.Catalog.Commands.CreateProduct;
+using VetFlow.Application.Catalog.Commands.UpdateProduct;
 using VetFlow.Application.Catalog.Queries.PossibleDuplicates;
 using VetFlow.Application.Catalog.Queries.ProductDetails;
 using VetFlow.Application.Catalog.Queries.ProductList;
@@ -47,6 +48,21 @@ public static class ProductEndpoints
             {
                 var result = await handler.HandleAsync(request.ToCommand(), cancellationToken);
                 return Results.Created($"/api/v1/products/{result.Id}", result);
+            });
+
+        // Non-audited basic edit (REQ-CAT-038 first clause / BR-CAT-041, DEC-CAT-031).
+        // A missing product is a 404; price editing and the dangerous-op confirmation
+        // remain out of scope (deferred audited path).
+        app.MapPut(
+            "/api/v1/products/{id:guid}",
+            async (
+                Guid id,
+                UpdateProductRequest request,
+                ICommandHandler<UpdateProductCommand, Guid?> handler,
+                CancellationToken cancellationToken) =>
+            {
+                var updatedId = await handler.HandleAsync(request.ToCommand(id), cancellationToken);
+                return updatedId is null ? Results.NotFound() : Results.NoContent();
             });
     }
 }
