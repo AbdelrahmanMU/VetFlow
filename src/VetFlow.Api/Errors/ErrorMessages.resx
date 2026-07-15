@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="VTF-VAL-001" xml:space="preserve">
+    <value>الطلب غير صالح. راجع الحقول المذكورة.</value>
+  </data>
+  <data name="VTF-CAT-009" xml:space="preserve">
+    <value>لا يمكن حفظ المنتج قبل استيفاء الحد الأدنى الإجباري للبيانات.</value>
+  </data>
+  <data name="VTF-CAT-016" xml:space="preserve">
+    <value>ملف الوحدات غير سليم التكوين.</value>
+  </data>
+  <data name="VTF-CAT-020" xml:space="preserve">
+    <value>وحدة المخزون يجب أن تكون إحدى وحدات ملف الوحدات.</value>
+  </data>
+  <data name="VTF-CAT-021" xml:space="preserve">
+    <value>وحدة الشراء الافتراضية يجب أن تكون وحدة شراء من ملف الوحدات.</value>
+  </data>
+  <data name="VTF-CAT-022" xml:space="preserve">
+    <value>وحدة البيع الافتراضية يجب أن تكون وحدة بيع من ملف الوحدات.</value>
+  </data>
+  <data name="VTF-CAT-025" xml:space="preserve">
+    <value>سعر البيع يُسجَّل لوحدات البيع فقط.</value>
+  </data>
+  <data name="VTF-CAT-036" xml:space="preserve">
+    <value>عند تفعيل «له صلاحية بعد الفتح» يجب إدخال مدة الصلاحية بعد الفتح.</value>
+  </data>
+  <data name="validation.page.min" xml:space="preserve">
+    <value>رقم الصفحة يجب ألا يقل عن 1.</value>
+  </data>
+  <data name="validation.page.max" xml:space="preserve">
+    <value>رقم الصفحة أكبر من الحد المسموح.</value>
+  </data>
+  <data name="validation.pageSize.range" xml:space="preserve">
+    <value>حجم الصفحة يجب أن يكون بين 1 و100.</value>
+  </data>
+  <data name="validation.search.maxLength" xml:space="preserve">
+    <value>نص البحث أطول من الحد المسموح (200 حرف).</value>
+  </data>
+  <data name="validation.id.invalid" xml:space="preserve">
+    <value>المعرّف غير صالح.</value>
+  </data>
+  <data name="validation.boolean.invalid" xml:space="preserve">
+    <value>القيمة يجب أن تكون true أو false.</value>
+  </data>
+  <data name="validation.integer.invalid" xml:space="preserve">
+    <value>القيمة يجب أن تكون رقمًا صحيحًا.</value>
+  </data>
+  <data name="validation.sort.unknown" xml:space="preserve">
+    <value>حقل الترتيب غير معروف.</value>
+  </data>
+  <data name="validation.dir.unknown" xml:space="preserve">
+    <value>اتجاه الترتيب يجب أن يكون asc أو desc.</value>
+  </data>
+  <data name="validation.status.unknown" xml:space="preserve">
+    <value>قيمة الحالة يجب أن تكون active أو disabled.</value>
+  </data>
+  <data name="error.internal" xml:space="preserve">
+    <value>حدث خطأ غير متوقع. أعد المحاولة، وإن تكرر تواصل مع الدعم الفني.</value>
+  </data>
+  <data name="error.notFound" xml:space="preserve">
+    <value>المسار المطلوب غير موجود.</value>
+  </data>
+  <data name="error.methodNotAllowed" xml:space="preserve">
+    <value>الطريقة غير مسموح بها على هذا المسار.</value>
+  </data>
+</root>

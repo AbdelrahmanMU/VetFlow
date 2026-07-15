@@ -1,0 +1,36 @@
+# VetFlow development stack (ADR-0008: Docker from the beginning).
+# Credentials live in an untracked .env file — see .env.example (STD-CS-030).
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: vetflow
+      POSTGRES_USER: ${VETFLOW_DB_USER}
+      POSTGRES_PASSWORD: ${VETFLOW_DB_PASSWORD}
+    ports:
+      # 5434 on the host to avoid clashing with locally installed PostgreSQL instances.
+      - "5434:5432"
+    volumes:
+      - vetflow-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${VETFLOW_DB_USER} -d vetflow"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: src/VetFlow.Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      Database__ConnectionString: "Host=db;Database=vetflow;Username=${VETFLOW_DB_USER};Password=${VETFLOW_DB_PASSWORD}"
+      Database__ApplyMigrationsAtStartup: "true"
+    ports:
+      - "5080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  vetflow-db-data:

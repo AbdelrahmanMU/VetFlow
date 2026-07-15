@@ -21,9 +21,19 @@
 
 | English | العربية | Definition |
 |---|---|---|
-| Product | منتج | An item the clinic buys and sells. TODO: does MVP also sell services? (see domain-overview TODO). |
+| Product | منتج | An item the clinic buys and sells. MVP sells products only — no medical services (DEC-CAT-002). |
 | Catalog | الكتالوج | The clinic's product catalog; includes pricing as a capability. |
-| Category | تصنيف | A grouping of products. |
+| Category | تصنيف | A grouping of products; flat single-level list in the first version (BR-CAT-013). |
+| Manufacturer | شركة مصنعة | Managed lookup, name only in the first version; mandatory for every product (BR-CAT-007). |
+| Product nature | طبيعة المنتج | Mandatory extensible property that drives system behavior, independent of category (BR-CAT-014). |
+| Unit | وحدة | A user-managed measurement/packaging unit; a default common set ships with the system (BR-CAT-017). |
+| Unit profile | ملف الوحدات | A product's single source of truth for purchase/sale/stock calculations (BR-CAT-016). |
+| Stock-keeping unit | وحدة المخزون | The one user-chosen unit all quantity calculations are based on (BR-CAT-020). |
+| Conversion factor | معامل التحويل | User-entered fixed factor between units; never derived by the system (BR-CAT-018). |
+| Barcode | باركود | One optional barcode per unit — a unit-level property, not a product-level one (BR-CAT-024). |
+| Selling price | سعر البيع | Independent manual price per sale unit (BR-CAT-025). |
+| Splittable | قابل للتجزئة | Product-level capability: sellable in units smaller than the purchase unit (BR-CAT-031). |
+| Refrigerated product | منتج ثلاجة | Display/filter/report flag only (BR-CAT-045). |
 | Pricing | التسعير | Setting and changing product prices (Catalog capability, not a module). |
 | Inventory / Stock | المخزون | Quantities of products held by the clinic. |
 | Stock adjustment | تعديل المخزون | A recorded correction/change of stock. Exact rules TODO (Inventory module docs). |

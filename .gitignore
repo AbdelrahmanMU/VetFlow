@@ -10,11 +10,18 @@ Thumbs.db
 *.log
 .env
 .env.*
+!.env.example
 
-# Dependencies & build output (populated when stack is chosen)
+# .NET
+bin/
+obj/
+*.user
+
+# Dependencies & build output
 node_modules/
 dist/
 build/
+.angular/
 
 # Claude Code local settings
 .claude/settings.local.json

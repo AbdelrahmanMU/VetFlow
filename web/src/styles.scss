@@ -1,0 +1,115 @@
+/* VetFlow global styles — the design-language tokens (docs/ui/design-language.md).
+   One spacing scale, one type scale, semantic colors only. Layout uses logical
+   properties exclusively (STD-FE-041). */
+
+@use '@fontsource/ibm-plex-sans-arabic/300.css' as fontsource-300;
+@use '@fontsource/ibm-plex-sans-arabic/400.css' as fontsource-400;
+@use '@fontsource/ibm-plex-sans-arabic/500.css' as fontsource-500;
+@use '@fontsource/ibm-plex-sans-arabic/600.css' as fontsource-600;
+@use '@fontsource/ibm-plex-sans-arabic/700.css' as fontsource-700;
+@use 'primeicons/primeicons.css' as primeicons;
+
+:root {
+  /* Neutral base — warm gray carries 90% of the interface (§11) */
+  --vf-bg: #fafaf9;
+  --vf-surface: #fff;
+  --vf-border: #e7e5e4;
+  --vf-border-strong: #d6d3d1;
+  --vf-text: #1c1917;
+  --vf-text-secondary: #78716c;
+  --vf-text-faint: #a8a29e;
+
+  /* One primary, used sparingly (§11) */
+  --vf-primary: #0f766e;
+  --vf-primary-strong: #115e59;
+  --vf-primary-soft: #f0fdfa;
+
+  /* Semantic colors — one meaning each, never color alone (§11) */
+  --vf-success: #15803d;
+  --vf-success-soft: #f0fdf4;
+  --vf-warning: #b45309;
+  --vf-warning-soft: #fffbeb;
+  --vf-danger: #b91c1c;
+  --vf-danger-soft: #fef2f2;
+  --vf-info: #1d4ed8;
+  --vf-info-soft: #eff6ff;
+
+  /* One spacing scale (§5) */
+  --vf-space-1: 0.25rem;
+  --vf-space-2: 0.5rem;
+  --vf-space-3: 0.75rem;
+  --vf-space-4: 1rem;
+  --vf-space-5: 1.5rem;
+  --vf-space-6: 2rem;
+  --vf-space-7: 3rem;
+
+  /* One type scale — five levels are enough (§10) */
+  --vf-font: 'IBM Plex Sans Arabic', 'Segoe UI', system-ui, sans-serif;
+  --vf-text-page-title: 1.375rem;
+  --vf-text-section-title: 1.0625rem;
+  --vf-text-body: 0.9375rem;
+  --vf-text-secondary-size: 0.8125rem;
+  --vf-text-caption: 0.75rem;
+  --vf-radius: 8px;
+  --vf-radius-small: 6px;
+  --vf-shadow-panel: 0 1px 2px rgb(28 25 23 / 4%);
+  --vf-focus-ring: 0 0 0 3px rgb(15 118 110 / 25%);
+  --vf-content-max-width: 1440px;
+  --vf-sidebar-width: 232px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--vf-bg);
+  color: var(--vf-text);
+  font-family: var(--vf-font);
+  font-size: var(--vf-text-body);
+  line-height: 1.8; /* Arabic needs vertical breathing room (§10) */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Numbers align in every table, price, and amount (§10) */
+.vf-num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* The focus ring is never removed (§14) */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--vf-focus-ring);
+  border-radius: var(--vf-radius-small);
+}
+
+/* Explanatory motion only; honor reduced-motion (§13) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Screen-reader-only announcements (§14) */
+.vf-visually-hidden {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

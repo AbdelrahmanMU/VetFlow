@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="VTF-VAL-001" xml:space="preserve">
+    <value>The request is invalid. Review the listed fields.</value>
+  </data>
+  <data name="VTF-CAT-009" xml:space="preserve">
+    <value>The product cannot be saved before the mandatory minimum data is provided.</value>
+  </data>
+  <data name="VTF-CAT-016" xml:space="preserve">
+    <value>The unit profile composition is invalid.</value>
+  </data>
+  <data name="VTF-CAT-020" xml:space="preserve">
+    <value>The stock-keeping unit must be one of the profile units.</value>
+  </data>
+  <data name="VTF-CAT-021" xml:space="preserve">
+    <value>The default purchase unit must be a purchase unit from the profile.</value>
+  </data>
+  <data name="VTF-CAT-022" xml:space="preserve">
+    <value>The default sale unit must be a sale unit from the profile.</value>
+  </data>
+  <data name="VTF-CAT-025" xml:space="preserve">
+    <value>A selling price is recorded for sale units only.</value>
+  </data>
+  <data name="VTF-CAT-036" xml:space="preserve">
+    <value>Enabling "has open expiration" requires entering the open-expiration period.</value>
+  </data>
+  <data name="validation.page.min" xml:space="preserve">
+    <value>Page must be at least 1.</value>
+  </data>
+  <data name="validation.page.max" xml:space="preserve">
+    <value>Page exceeds the allowed maximum.</value>
+  </data>
+  <data name="validation.pageSize.range" xml:space="preserve">
+    <value>Page size must be between 1 and 100.</value>
+  </data>
+  <data name="validation.search.maxLength" xml:space="preserve">
+    <value>Search text exceeds the allowed length (200 characters).</value>
+  </data>
+  <data name="validation.id.invalid" xml:space="preserve">
+    <value>The identifier is invalid.</value>
+  </data>
+  <data name="validation.boolean.invalid" xml:space="preserve">
+    <value>The value must be true or false.</value>
+  </data>
+  <data name="validation.integer.invalid" xml:space="preserve">
+    <value>The value must be an integer.</value>
+  </data>
+  <data name="validation.sort.unknown" xml:space="preserve">
+    <value>Unknown sort field.</value>
+  </data>
+  <data name="validation.dir.unknown" xml:space="preserve">
+    <value>Sort direction must be asc or desc.</value>
+  </data>
+  <data name="validation.status.unknown" xml:space="preserve">
+    <value>Status must be active or disabled.</value>
+  </data>
+  <data name="error.internal" xml:space="preserve">
+    <value>An unexpected error occurred. Retry, and contact support if it persists.</value>
+  </data>
+  <data name="error.notFound" xml:space="preserve">
+    <value>The requested path does not exist.</value>
+  </data>
+  <data name="error.methodNotAllowed" xml:space="preserve">
+    <value>The method is not allowed on this path.</value>
+  </data>
+</root>

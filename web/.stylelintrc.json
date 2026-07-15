@@ -1,0 +1,21 @@
+{
+  "extends": "stylelint-config-standard-scss",
+  "rules": {
+    "property-disallowed-list": [
+      "/^(margin|padding)-(left|right)$/",
+      "/^border-(left|right)/",
+      "left",
+      "right"
+    ],
+    "declaration-property-value-disallowed-list": {
+      "text-align": ["left", "right"],
+      "float": ["left", "right"],
+      "clear": ["left", "right"]
+    },
+    "selector-pseudo-element-no-unknown": [
+      true,
+      { "ignorePseudoElements": ["ng-deep"] }
+    ],
+    "no-descending-specificity": null
+  }
+}

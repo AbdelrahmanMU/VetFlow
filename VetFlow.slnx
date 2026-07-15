@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/VetFlow.Api/VetFlow.Api.csproj" />
+    <Project Path="src/VetFlow.Application/VetFlow.Application.csproj" />
+    <Project Path="src/VetFlow.Domain/VetFlow.Domain.csproj" />
+    <Project Path="src/VetFlow.Infrastructure/VetFlow.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/VetFlow.ArchitectureTests/VetFlow.ArchitectureTests.csproj" />
+    <Project Path="tests/VetFlow.Domain.Tests/VetFlow.Domain.Tests.csproj" />
+    <Project Path="tests/VetFlow.IntegrationTests/VetFlow.IntegrationTests.csproj" />
+  </Folder>
+</Solution>
