@@ -1,5 +1,16 @@
 # Categories — UI
 
-> Status: Placeholder — pending documentation phase. Do not implement from this file.
+> Status: Approved (2026-07-16) — Managed Data slice (Sprint 3), owner-ruled.
+> هيكلي عمدًا: يعيد استخدام أنماط الكتالوج المعتمدة (ui.md §S6 «البيانات المُدارة») ولا يعيد
+> اشتقاق مكوّنات جديدة.
 
-Screens, flows, and Arabic copy will be documented here.
+## الشاشات
+
+- **قائمة التصنيفات** — جدول (`VfTable`) بأعمدة الاسم والحالة، أعلاه بحث (`VfSearchInput`)
+  وزر «تصنيف جديد»، وأسفله ترقيم (`VfPagination`). شارة الحالة نشط/غير نشط (`VfBadge`).
+  الحالات الأربع للعرض بنمط قائمة المنتجات المعتمد.
+- **نافذة إنشاء/تعديل** — حوار (`VfDialog`) بحقل اسم واحد (`VfTextInput`) وأزرار حفظ/إلغاء؛
+  يعرض أخطاء التحقق لكل حقل (RFC 9457 / VTF-VAL-001).
+- **إجراء الصف** — تنشيط/إلغاء تنشيط من الصف مباشرة؛ لا زر حذف.
+
+النسخ العربي النهائي للأزرار والرسائل يُستكمل مع بناء الشاشة (RTL، خصائص CSS منطقية).

@@ -1,5 +1,13 @@
 # Categories — Test Scenarios
 
-> Status: Placeholder — pending documentation phase. Do not implement from this file.
+> Status: Approved (2026-07-16) — Managed Data slice (Sprint 3), owner-ruled.
+> هيكلي: سيناريوهات موجزة تُغطّي معايير القبول.
 
-Test scenarios will be documented here.
+- **TS-CTG-001 (AC-CTG-002):** إنشاء تصنيف باسم صالح ← 201/يظهر في القائمة نشطًا.
+- **TS-CTG-002 (AC-CTG-002/BR-CTG-003):** إنشاء باسم مكرر بعد التطبيع ← رفض 400 لكل حقل.
+- **TS-CTG-003 (AC-CTG-002/BR-CTG-002):** إنشاء باسم فارغ ← رفض 400.
+- **TS-CTG-004 (AC-CTG-003):** إعادة تسمية إلى اسم صالح ← يُحفظ ويظهر بالاسم الجديد.
+- **TS-CTG-005 (AC-CTG-004):** إلغاء تنشيط ← الحالة «غير نشط»؛ إعادة تنشيط ← يعود.
+- **TS-CTG-006 (AC-CTG-005):** محرر منتج جديد يعرض التصنيفات النشطة فقط.
+- **TS-CTG-007 (AC-CTG-005):** تحرير منتج بتصنيف غير نشط ← يُعرض ويُحفظ دون إجبار على التغيير.
+- **TS-CTG-008 (REQ-CTG-001):** بحث/فرز/ترقيم القائمة يعمل بنمط قائمة المنتجات.
