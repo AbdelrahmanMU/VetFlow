@@ -16,6 +16,38 @@ changes require evidence (Governance Change Policy — `docs/architecture/princi
 
 **Every implementation session starts at `.claude/playbooks/implementation.md`.**
 
+## Just completed (2026-07-16) — Managed Data slice (Categories / Manufacturers): DOCS APPROVED, DoR READY (no code)
+
+Slice 4 (Managed Data) hit the `implementation.md` **Definition of Ready gate**: Categories docs
+were placeholders and manufacturer management was only "add + select" (REQ-CAT-013). Owner ran a
+**lightweight discovery**, then **finalized all business rulings (2026-07-16)** and directed
+promotion to Approved. Documentation-only; **no code written**.
+
+**Owner rulings (2026-07-16):**
+- **DEC-CTG-002 = option (B):** deactivation always allowed (even when referenced); existing
+  products keep their reference unchanged (no auto-modify, no delete); inactive values hidden from
+  **new** product selection; on editing a product that already references an inactive value it
+  stays visible/selected, but once changed it can't be re-selected unless reactivated.
+- **Category fields:** single **Arabic name only** (no English, no multilingual).
+- **Rename:** allowed, **no audit** in MVP; deferred audit decisions unchanged.
+- **Delete:** prohibited while referenced by any product; **deactivate** is the official operation.
+
+**Approved artifacts:**
+- **Categories module** (`docs/modules/categories/*`, 8/8 **Approved**): REQ-CTG-001..005,
+  BR-CTG-001..008, AC-CTG-001..005, DEC-CTG-001 (lifecycle) + DEC-CTG-002 (option B). New prefix **CTG**.
+- **Catalog extensions** (**Approved**): REQ-CAT-047/048, BR-CAT-052/053, AC-CAT-047/048,
+  **DEC-CAT-032**. BR-CAT-051 rule text unchanged, with an added cross-ref note time-scoping its
+  audit clause for MVP (BR-CAT-053/DEC-CAT-032) — the audited-rename conflict is resolved, not silent.
+- `_INDEX.md` Categories row → Approved.
+- Consistency review clean: full REQ↔BR↔AC traceability, no orphans, no duplication, no conflict
+  with existing Catalog decisions.
+
+**DoR status: READY.** The Managed Data slice can be implemented next from these IDs. Implementation
+was **not** started (owner stop). Suggested vertical cut: Categories-first (create · rename ·
+activate/deactivate · list) then Manufacturers (structurally identical → cheap second), reusing the
+command/query pipelines, pg_trgm Arabic-name normalization, and the Vf UI kit; editor options filter
+to active-only with inactive current values preserved (REQ-CTG-005 / DEC-CTG-002).
+
 ## Just completed (2026-07-16) — Edit Product slice: COMPLETE (backend + frontend), owner-approved, COMMITTED
 
 **The Edit Product slice (DEC-CAT-031 — non-audited unified Create/Edit editor) is fully
