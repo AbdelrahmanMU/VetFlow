@@ -16,6 +16,22 @@ changes require evidence (Governance Change Policy — `docs/architecture/princi
 
 **Every implementation session starts at `.claude/playbooks/implementation.md`.**
 
+## Session close (2026-07-16) — three outcomes, then implementation begun & interrupted
+
+This session produced, in order:
+1. **F1 money-integrity fix** — canonical Arabic-Indic digit normalization for numeric inputs
+   (`web/src/app/core/i18n/digits.ts` + `vf-number-input`). Committed **`f5c2443`** (frontend only;
+   50 tests green; **not pushed** — no remote configured). The pilot report
+   `docs/releases/pilot-p1-money-fix-report.md` is written but **uncommitted** (untracked).
+2. **Managed Data documentation** — discovery → owner rulings → Approved. Two commits **`e61a19c`**
+   (`docs(categories)`) and **`70542a4`** (`docs(catalog)`). Details below.
+3. **Managed Data implementation** — owner authorized "Categories first, then Manufacturers." Work
+   was set up (5 tasks; pattern-mapping step) but **interrupted before any code was written**.
+   **Zero implementation code exists; the working tree is clean.** Resume from DoR-READY.
+
+Nothing pushed this session (no git remote — owner item #4). Untracked and intentionally not
+committed: `docs/releases/` (money report) and `docs/ui/product-editor-ux-architecture.md` (prior).
+
 ## Just completed (2026-07-16) — Managed Data slice (Categories / Manufacturers): DOCS APPROVED, DoR READY (no code)
 
 Slice 4 (Managed Data) hit the `implementation.md` **Definition of Ready gate**: Categories docs
@@ -42,11 +58,30 @@ promotion to Approved. Documentation-only; **no code written**.
 - Consistency review clean: full REQ↔BR↔AC traceability, no orphans, no duplication, no conflict
   with existing Catalog decisions.
 
-**DoR status: READY.** The Managed Data slice can be implemented next from these IDs. Implementation
-was **not** started (owner stop). Suggested vertical cut: Categories-first (create · rename ·
-activate/deactivate · list) then Manufacturers (structurally identical → cheap second), reusing the
-command/query pipelines, pg_trgm Arabic-name normalization, and the Vf UI kit; editor options filter
-to active-only with inactive current values preserved (REQ-CTG-005 / DEC-CTG-002).
+**DoR status: READY.** Implementation was authorized this session and set up, but **interrupted with
+no code written** (see Session close). **Next session resumes here.** Suggested vertical cut:
+Categories-first (create · rename · activate/deactivate · list) then Manufacturers (structurally
+identical → cheap second), reusing the command/query pipelines, pg_trgm Arabic-name normalization,
+and the Vf UI kit; editor options filter to active-only with inactive current values preserved
+(REQ-CTG-005 / DEC-CTG-002).
+
+**Implementation plan carried into next session (tasks 1–5):**
+1. **Categories backend** — `Category` gains `IsActive` + `Rename`; Create/Update(rename)/SetActive
+   commands (reuse the command pipeline STD-BE-020/021, no duplication); `CategoryListQuery`
+   (search normalized-Arabic-name / pg_trgm, sort whitelist + `.ThenBy(Id)`, offset paging + page cap);
+   EF migration (`is_active` + normalized-name column & gin index + unique index); endpoints
+   (`/api/v1/categories` list/create; `{id}` rename; activate/deactivate); DI + `CommandPipeline`/
+   `QueryPipeline` registration; error-catalog + ar/en resx; domain + integration tests.
+2. **Categories frontend** — management screen reusing `VfTable`/`VfSearchInput`/`VfPagination`/
+   `VfBadge`/`VfDialog`/`VfTextInput`; store (4 states); create/edit dialog (single Arabic name);
+   row activate/deactivate; `ApiClient` calls; route + nav entry; vitest tests. RTL, logical CSS.
+3. **Editor integration** — `CategoryOptions`/`ManufacturerOptions` queries filter to **Active only**
+   for new products; edit mode preserves an inactive current value (REQ-CTG-005 / DEC-CTG-002).
+4. **Manufacturers** — mirror the Categories pattern in the Catalog module (REQ-CAT-047/048,
+   BR-CAT-052/053).
+5. **Verify** — build · all tests · architecture tests · ESLint · Stylelint · browser + responsive +
+   RTL + zero console errors; nine-question self-review; then stop for owner review (do not commit
+   until reviewed, per the slice's stated stop condition).
 
 ## Just completed (2026-07-16) — Edit Product slice: COMPLETE (backend + frontend), owner-approved, COMMITTED
 
