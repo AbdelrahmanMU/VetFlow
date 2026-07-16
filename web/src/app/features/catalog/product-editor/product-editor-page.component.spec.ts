@@ -5,7 +5,7 @@ import { Router, provideRouter } from '@angular/router';
 import { vi } from 'vitest';
 
 import { ProductEditorPageComponent, EditorMode } from './product-editor-page.component';
-import { EditProduct } from './product-editor.models';
+import { CategoryOption, EditProduct, ManufacturerOption } from './product-editor.models';
 
 describe('ProductEditorPageComponent', () => {
   let http: HttpTestingController;
@@ -54,7 +54,12 @@ describe('ProductEditorPageComponent', () => {
     ],
   };
 
-  function setup(mode: EditorMode, id?: string) {
+  function setup(
+    mode: EditorMode,
+    id?: string,
+    categories: readonly CategoryOption[] = [],
+    manufacturers: readonly ManufacturerOption[] = [],
+  ) {
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     });
@@ -65,7 +70,7 @@ describe('ProductEditorPageComponent', () => {
     if (id) {
       fixture.componentRef.setInput('id', id);
     }
-    flushLookups();
+    flushLookups(categories, manufacturers);
 
     if (mode === 'edit') {
       fixture.detectChanges(); // ngOnInit → load(id)
@@ -75,13 +80,20 @@ describe('ProductEditorPageComponent', () => {
     return fixture;
   }
 
-  function flushLookups(): void {
+  function flushLookups(
+    categories: readonly CategoryOption[] = [],
+    manufacturers: readonly ManufacturerOption[] = [],
+  ): void {
+    // Categories and manufacturers carry the active flag (REQ-CTG-005 / REQ-CAT-048);
+    // the other lookups are plain.
+    for (const request of http.match((request) => request.url.endsWith('/categories'))) {
+      request.flush({ items: categories, page: 1, pageSize: 100, totalCount: categories.length });
+    }
+    for (const request of http.match((request) => request.url.endsWith('/manufacturers'))) {
+      request.flush({ items: manufacturers, page: 1, pageSize: 100, totalCount: manufacturers.length });
+    }
     const lookups = http.match(
-      (request) =>
-        request.url.endsWith('/categories') ||
-        request.url.endsWith('/manufacturers') ||
-        request.url.endsWith('/product-natures') ||
-        request.url.endsWith('/units'),
+      (request) => request.url.endsWith('/product-natures') || request.url.endsWith('/units'),
     );
     for (const request of lookups) {
       request.flush({ items: [], page: 1, pageSize: 100, totalCount: 0 });
@@ -237,6 +249,130 @@ describe('ProductEditorPageComponent', () => {
       update.flush(null, { status: 204, statusText: 'No Content' });
 
       expect(navigate).toHaveBeenCalledWith(['/catalog/products', 'p-1']);
+    });
+  });
+
+  describe('category active-only integration (REQ-CTG-005 / DEC-CTG-002)', () => {
+    it('offers only active categories when creating a new product (TS-CTG-006)', () => {
+      const fixture = setup('create', undefined, [
+        { id: 'cat-active', name: 'مضادات حيوية', isActive: true },
+        { id: 'cat-inactive', name: 'تصنيف مُلغى', isActive: false },
+      ]);
+
+      const values = fixture.componentInstance.categorySelectOptions().map((option) => option.value);
+      expect(values).toEqual(['cat-active']);
+    });
+
+    it('shows an active current category selected and untagged in edit mode', () => {
+      const fixture = setup('edit', 'p-1', [
+        { id: 'cat-1', name: 'مضادات حيوية', isActive: true },
+        { id: 'cat-2', name: 'تصنيف نشط آخر', isActive: true },
+      ]);
+      const current = fixture.componentInstance.categorySelectOptions().find((option) => option.value === 'cat-1');
+
+      expect(current).toBeDefined();
+      expect(current!.label).toBe('مضادات حيوية');
+      expect(current!.label).not.toContain('غير نشط');
+    });
+
+    it('keeps a deactivated current category visible, marked inactive, and offers active ones too (TS-CTG-007)', () => {
+      const fixture = setup('edit', 'p-1', [
+        { id: 'cat-1', name: 'تصنيف مُلغى', isActive: false },
+        { id: 'cat-2', name: 'تصنيف نشط', isActive: true },
+      ]);
+      const options = fixture.componentInstance.categorySelectOptions();
+
+      const current = options.find((option) => option.value === 'cat-1');
+      expect(current).toBeDefined();
+      expect(current!.label).toContain('غير نشط');
+      expect(options.some((option) => option.value === 'cat-2')).toBe(true);
+    });
+
+    it('saves the unchanged inactive category on PUT without forcing a change (TS-CTG-007)', () => {
+      const fixture = setup('edit', 'p-1', [{ id: 'cat-1', name: 'تصنيف مُلغى', isActive: false }]);
+      const component = fixture.componentInstance;
+      vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+      component.submit();
+
+      const update = http.expectOne((request) => request.url === '/api/v1/products/p-1' && request.method === 'PUT');
+      expect(update.request.body.categoryId).toBe('cat-1');
+      update.flush(null, { status: 204, statusText: 'No Content' });
+    });
+
+    it('drops the inactive category once the user picks an active one', () => {
+      const fixture = setup('edit', 'p-1', [
+        { id: 'cat-1', name: 'تصنيف مُلغى', isActive: false },
+        { id: 'cat-2', name: 'تصنيف نشط', isActive: true },
+      ]);
+      const component = fixture.componentInstance;
+      expect(component.categorySelectOptions().some((option) => option.value === 'cat-1')).toBe(true);
+
+      component.form.controls.categoryId.setValue('cat-2');
+
+      expect(component.categorySelectOptions().some((option) => option.value === 'cat-1')).toBe(false);
+    });
+  });
+
+  describe('manufacturer active-only integration (REQ-CAT-048 / DEC-CAT-032)', () => {
+    it('offers only active manufacturers when creating a new product', () => {
+      const fixture = setup('create', undefined, [], [
+        { id: 'man-active', name: 'شركة نشطة', isActive: true },
+        { id: 'man-inactive', name: 'شركة مُلغاة', isActive: false },
+      ]);
+
+      const values = fixture.componentInstance.manufacturerSelectOptions().map((option) => option.value);
+      expect(values).toEqual(['man-active']);
+    });
+
+    it('shows an active current manufacturer selected and untagged in edit mode', () => {
+      const fixture = setup('edit', 'p-1', [], [
+        { id: 'man-1', name: 'شركة نشطة', isActive: true },
+        { id: 'man-2', name: 'شركة نشطة أخرى', isActive: true },
+      ]);
+      const current = fixture.componentInstance.manufacturerSelectOptions().find((option) => option.value === 'man-1');
+
+      expect(current).toBeDefined();
+      expect(current!.label).toBe('شركة نشطة');
+      expect(current!.label).not.toContain('غير نشط');
+    });
+
+    it('keeps a deactivated current manufacturer visible, marked inactive, and offers active ones too', () => {
+      const fixture = setup('edit', 'p-1', [], [
+        { id: 'man-1', name: 'شركة مُلغاة', isActive: false },
+        { id: 'man-2', name: 'شركة نشطة', isActive: true },
+      ]);
+      const options = fixture.componentInstance.manufacturerSelectOptions();
+
+      const current = options.find((option) => option.value === 'man-1');
+      expect(current).toBeDefined();
+      expect(current!.label).toContain('غير نشط');
+      expect(options.some((option) => option.value === 'man-2')).toBe(true);
+    });
+
+    it('saves the unchanged inactive manufacturer on PUT without forcing a change', () => {
+      const fixture = setup('edit', 'p-1', [], [{ id: 'man-1', name: 'شركة مُلغاة', isActive: false }]);
+      const component = fixture.componentInstance;
+      vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+      component.submit();
+
+      const update = http.expectOne((request) => request.url === '/api/v1/products/p-1' && request.method === 'PUT');
+      expect(update.request.body.manufacturerId).toBe('man-1');
+      update.flush(null, { status: 204, statusText: 'No Content' });
+    });
+
+    it('drops the inactive manufacturer once the user picks an active one', () => {
+      const fixture = setup('edit', 'p-1', [], [
+        { id: 'man-1', name: 'شركة مُلغاة', isActive: false },
+        { id: 'man-2', name: 'شركة نشطة', isActive: true },
+      ]);
+      const component = fixture.componentInstance;
+      expect(component.manufacturerSelectOptions().some((option) => option.value === 'man-1')).toBe(true);
+
+      component.form.controls.manufacturerId.setValue('man-2');
+
+      expect(component.manufacturerSelectOptions().some((option) => option.value === 'man-1')).toBe(false);
     });
   });
 });

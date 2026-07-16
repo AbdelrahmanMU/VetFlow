@@ -30,6 +30,10 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -50,6 +54,10 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
 
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("SearchText"), "gin");
                     NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("SearchText"), new[] { "gin_trgm_ops" });
+
+                    b.HasIndex(new[] { "SearchText" }, "ix_manufacturers_name_unique")
+                        .IsUnique()
+                        .HasDatabaseName("ix_manufacturers_name_unique");
 
                     b.ToTable("manufacturers");
                 });
@@ -264,7 +272,6 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("VetFlow.Domain.Catalog.ProductUnit", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -411,6 +418,10 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -431,6 +442,10 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
 
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("SearchText"), "gin");
                     NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("SearchText"), new[] { "gin_trgm_ops" });
+
+                    b.HasIndex(new[] { "SearchText" }, "ix_categories_name_unique")
+                        .IsUnique()
+                        .HasDatabaseName("ix_categories_name_unique");
 
                     b.ToTable("categories");
                 });

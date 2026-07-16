@@ -1,10 +1,17 @@
 using FluentValidation;
 using Microsoft.Extensions.Logging;
+using VetFlow.Application.Catalog.Commands.CreateManufacturer;
 using VetFlow.Application.Catalog.Commands.CreateProduct;
+using VetFlow.Application.Catalog.Commands.RenameManufacturer;
+using VetFlow.Application.Catalog.Commands.SetManufacturerActive;
 using VetFlow.Application.Catalog.Commands.UpdateProduct;
+using VetFlow.Application.Categories.Commands.CreateCategory;
+using VetFlow.Application.Categories.Commands.RenameCategory;
+using VetFlow.Application.Categories.Commands.SetCategoryActive;
 using VetFlow.Application.Common;
 using VetFlow.Application.Common.Behaviors;
 using VetFlow.Infrastructure.Catalog;
+using VetFlow.Infrastructure.Categories;
 
 namespace VetFlow.Api.Composition;
 
@@ -20,6 +27,12 @@ public static class CommandPipeline
     {
         services.AddCommandHandler<CreateProductCommand, CreateProductResult, CreateProductCommandHandler>();
         services.AddCommandHandler<UpdateProductCommand, Guid?, UpdateProductCommandHandler>();
+        services.AddCommandHandler<CreateCategoryCommand, Guid, CreateCategoryCommandHandler>();
+        services.AddCommandHandler<RenameCategoryCommand, Guid?, RenameCategoryCommandHandler>();
+        services.AddCommandHandler<SetCategoryActiveCommand, Guid?, SetCategoryActiveCommandHandler>();
+        services.AddCommandHandler<CreateManufacturerCommand, Guid, CreateManufacturerCommandHandler>();
+        services.AddCommandHandler<RenameManufacturerCommand, Guid?, RenameManufacturerCommandHandler>();
+        services.AddCommandHandler<SetManufacturerActiveCommand, Guid?, SetManufacturerActiveCommandHandler>();
         return services;
     }
 

@@ -36,10 +36,16 @@ public static class DependencyInjection
         services.AddScoped<PossibleDuplicatesQueryHandler>();
         services.AddScoped<CreateProductCommandHandler>();
         services.AddScoped<UpdateProductCommandHandler>();
-        services.AddScoped<ManufacturerOptionsQueryHandler>();
+        services.AddScoped<ManufacturerListQueryHandler>();
         services.AddScoped<ProductNatureOptionsQueryHandler>();
         services.AddScoped<UnitOptionsQueryHandler>();
-        services.AddScoped<CategoryOptionsQueryHandler>();
+        services.AddScoped<CategoryListQueryHandler>();
+        services.AddScoped<CreateCategoryCommandHandler>();
+        services.AddScoped<RenameCategoryCommandHandler>();
+        services.AddScoped<SetCategoryActiveCommandHandler>();
+        services.AddScoped<CreateManufacturerCommandHandler>();
+        services.AddScoped<RenameManufacturerCommandHandler>();
+        services.AddScoped<SetManufacturerActiveCommandHandler>();
 
         return services;
     }

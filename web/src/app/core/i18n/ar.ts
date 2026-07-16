@@ -8,6 +8,8 @@ export const AR = {
   'app.name': 'VetFlow',
   'nav.catalog': 'الكتالوج',
   'nav.products': 'المنتجات',
+  'nav.categories': 'التصنيفات',
+  'nav.manufacturers': 'الشركات المصنعة',
 
   'products.title': 'المنتجات',
   'products.search.placeholder': 'ابحث بالاسم أو الباركود…',
@@ -91,6 +93,8 @@ export const AR = {
   'editor.field.size': 'الحجم',
   'editor.field.concentration': 'التركيز',
   'editor.field.category': 'التصنيف',
+  'editor.category.inactiveSuffix': '(غير نشط)',
+  'editor.manufacturer.inactiveSuffix': '(غير نشط)',
   'editor.field.manufacturer': 'الشركة المصنعة',
   'editor.field.nature': 'طبيعة المنتج',
   'editor.field.splittable': 'قابل للتجزئة',
@@ -166,6 +170,81 @@ export const AR = {
   'productDetails.units.defaultSale': 'بيع افتراضي',
   'productDetails.units.defaultPurchase': 'شراء افتراضي',
   'productDetails.noNotes': 'لا توجد ملاحظات داخلية.',
+
+  // Categories (managed data) — categories/ui.md, REQ-CTG-001..004
+  'categories.title': 'التصنيفات',
+  'categories.create': 'تصنيف جديد',
+  'categories.search.placeholder': 'ابحث باسم التصنيف…',
+  'categories.search.clear': 'مسح البحث',
+  'categories.loading': 'جارٍ تحميل التصنيفات…',
+
+  'categories.table.label': 'قائمة التصنيفات',
+  'categories.column.name': 'الاسم',
+  'categories.column.status': 'الحالة',
+  'categories.column.actions': 'إجراءات',
+
+  'categories.status.active': 'نشط',
+  'categories.status.inactive': 'غير نشط',
+
+  'categories.action.rename': 'إعادة تسمية',
+  'categories.action.activate': 'تنشيط',
+  'categories.action.deactivate': 'إلغاء التنشيط',
+
+  'categories.empty.new.title': 'لم تُضف أي تصنيفات بعد.',
+  'categories.empty.new.body': 'أضف تصنيفًا لتبدأ بتنظيم منتجات العيادة.',
+  'categories.empty.new.action': 'أضف أول تصنيف',
+  'categories.empty.search.title': 'لا يوجد تصنيف مطابق لـ «{query}».',
+  'categories.empty.search.body': 'جرّب اسمًا آخر أو جزءًا من الاسم، أو امسح البحث.',
+  'categories.error.title': 'تعذّر تحميل التصنيفات.',
+  'categories.error.body': 'تحقق من الاتصال ثم أعد المحاولة.',
+  'categories.error.retry': 'إعادة المحاولة',
+
+  'categories.dialog.create.title': 'تصنيف جديد',
+  'categories.dialog.rename.title': 'إعادة تسمية التصنيف',
+  'categories.dialog.name': 'اسم التصنيف',
+  'categories.dialog.save': 'حفظ',
+  'categories.dialog.saving': 'جارٍ الحفظ…',
+  'categories.dialog.cancel': 'إلغاء',
+  'categories.error.required': 'اسم التصنيف مطلوب.',
+  'categories.error.duplicate': 'يوجد تصنيف بهذا الاسم بالفعل.',
+  'categories.error.saveFailed': 'تعذّر حفظ التصنيف. أعد المحاولة.',
+
+  'manufacturers.title': 'الشركات المصنعة',
+  'manufacturers.create': 'شركة جديدة',
+  'manufacturers.search.placeholder': 'ابحث باسم الشركة المصنعة…',
+  'manufacturers.search.clear': 'مسح البحث',
+  'manufacturers.loading': 'جارٍ تحميل الشركات المصنعة…',
+
+  'manufacturers.table.label': 'قائمة الشركات المصنعة',
+  'manufacturers.column.name': 'الاسم',
+  'manufacturers.column.status': 'الحالة',
+  'manufacturers.column.actions': 'إجراءات',
+
+  'manufacturers.status.active': 'نشط',
+  'manufacturers.status.inactive': 'غير نشط',
+
+  'manufacturers.action.rename': 'إعادة تسمية',
+  'manufacturers.action.activate': 'تنشيط',
+  'manufacturers.action.deactivate': 'إلغاء التنشيط',
+
+  'manufacturers.empty.new.title': 'لم تُضف أي شركات مصنعة بعد.',
+  'manufacturers.empty.new.body': 'أضف شركة مصنعة لتبدأ بإسنادها إلى منتجات العيادة.',
+  'manufacturers.empty.new.action': 'أضف أول شركة مصنعة',
+  'manufacturers.empty.search.title': 'لا توجد شركة مصنعة مطابقة لـ «{query}».',
+  'manufacturers.empty.search.body': 'جرّب اسمًا آخر أو جزءًا من الاسم، أو امسح البحث.',
+  'manufacturers.error.title': 'تعذّر تحميل الشركات المصنعة.',
+  'manufacturers.error.body': 'تحقق من الاتصال ثم أعد المحاولة.',
+  'manufacturers.error.retry': 'إعادة المحاولة',
+
+  'manufacturers.dialog.create.title': 'شركة مصنعة جديدة',
+  'manufacturers.dialog.rename.title': 'إعادة تسمية الشركة المصنعة',
+  'manufacturers.dialog.name': 'اسم الشركة المصنعة',
+  'manufacturers.dialog.save': 'حفظ',
+  'manufacturers.dialog.saving': 'جارٍ الحفظ…',
+  'manufacturers.dialog.cancel': 'إلغاء',
+  'manufacturers.error.required': 'اسم الشركة المصنعة مطلوب.',
+  'manufacturers.error.duplicate': 'توجد شركة مصنعة بهذا الاسم بالفعل.',
+  'manufacturers.error.saveFailed': 'تعذّر حفظ الشركة المصنعة. أعد المحاولة.',
 } as const;
 
 export type MessageKey = keyof typeof AR;

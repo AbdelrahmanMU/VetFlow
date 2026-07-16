@@ -1,12 +1,12 @@
 using FluentValidation;
 using Microsoft.Extensions.Logging;
-using VetFlow.Application.Catalog.Queries.ManufacturerOptions;
+using VetFlow.Application.Catalog.Queries.ManufacturerList;
 using VetFlow.Application.Catalog.Queries.PossibleDuplicates;
 using VetFlow.Application.Catalog.Queries.ProductDetails;
 using VetFlow.Application.Catalog.Queries.ProductList;
 using VetFlow.Application.Catalog.Queries.ProductNatureOptions;
 using VetFlow.Application.Catalog.Queries.UnitOptions;
-using VetFlow.Application.Categories.Queries.CategoryOptions;
+using VetFlow.Application.Categories.Queries.CategoryList;
 using VetFlow.Application.Common;
 using VetFlow.Application.Common.Behaviors;
 using VetFlow.Infrastructure.Catalog;
@@ -26,10 +26,10 @@ public static class QueryPipeline
         services.AddQueryHandler<ProductListQuery, PagedResult<ProductListItemDto>, ProductListQueryHandler>();
         services.AddQueryHandler<ProductDetailsQuery, ProductDetailsDto?, ProductDetailsQueryHandler>();
         services.AddQueryHandler<PossibleDuplicatesQuery, PagedResult<PossibleDuplicateDto>, PossibleDuplicatesQueryHandler>();
-        services.AddQueryHandler<ManufacturerOptionsQuery, PagedResult<LookupOptionDto>, ManufacturerOptionsQueryHandler>();
+        services.AddQueryHandler<ManufacturerListQuery, PagedResult<ManufacturerListItemDto>, ManufacturerListQueryHandler>();
         services.AddQueryHandler<ProductNatureOptionsQuery, PagedResult<LookupOptionDto>, ProductNatureOptionsQueryHandler>();
         services.AddQueryHandler<UnitOptionsQuery, PagedResult<LookupOptionDto>, UnitOptionsQueryHandler>();
-        services.AddQueryHandler<CategoryOptionsQuery, PagedResult<LookupOptionDto>, CategoryOptionsQueryHandler>();
+        services.AddQueryHandler<CategoryListQuery, PagedResult<CategoryListItemDto>, CategoryListQueryHandler>();
         return services;
     }
 

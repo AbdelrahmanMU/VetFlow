@@ -30,6 +30,28 @@ import { TranslationService } from '../i18n/translation.service';
               {{ t.t('nav.products') }}
             </a>
           </li>
+          <li>
+            <a
+              class="nav-link"
+              routerLink="/categories"
+              routerLinkActive="nav-link--active"
+              [routerLinkActiveOptions]="{ exact: false }"
+            >
+              <i class="pi pi-tags nav-icon" aria-hidden="true"></i>
+              {{ t.t('nav.categories') }}
+            </a>
+          </li>
+          <li>
+            <a
+              class="nav-link"
+              routerLink="/manufacturers"
+              routerLinkActive="nav-link--active"
+              [routerLinkActiveOptions]="{ exact: false }"
+            >
+              <i class="pi pi-building nav-icon" aria-hidden="true"></i>
+              {{ t.t('nav.manufacturers') }}
+            </a>
+          </li>
         </ul>
       </nav>
       <main class="content">

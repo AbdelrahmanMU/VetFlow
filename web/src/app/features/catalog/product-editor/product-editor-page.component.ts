@@ -11,9 +11,10 @@ import {
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { catchError, map, startWith } from 'rxjs/operators';
 
+import { PagedResult } from '../../../core/api/paged-result';
 import { ApiError } from '../../../core/api/problem-details';
 import { TranslationService } from '../../../core/i18n/translation.service';
 import { VfButtonComponent } from '../../../shared/ui-kit/button/vf-button.component';
@@ -125,7 +126,7 @@ type EditLoadState = 'loading' | 'ready' | 'notFound' | 'error';
                 [required]="true"
                 [placeholder]="t.t('editor.select.placeholder')"
                 [filterable]="true"
-                [optionList]="lookupOptions(categoryOptions())"
+                [optionList]="categorySelectOptions()"
                 [value]="form.controls.categoryId.value"
                 [error]="errorFor(form.controls.categoryId)"
                 (valueChange)="form.controls.categoryId.setValue($event)"
@@ -135,7 +136,7 @@ type EditLoadState = 'loading' | 'ready' | 'notFound' | 'error';
                 [required]="true"
                 [placeholder]="t.t('editor.select.placeholder')"
                 [filterable]="true"
-                [optionList]="lookupOptions(manufacturerOptions())"
+                [optionList]="manufacturerSelectOptions()"
                 [value]="form.controls.manufacturerId.value"
                 [error]="errorFor(form.controls.manufacturerId)"
                 (valueChange)="form.controls.manufacturerId.setValue($event)"
@@ -376,6 +377,71 @@ export class ProductEditorPageComponent implements OnInit {
     this.form.controls.units.valueChanges.pipe(startWith(this.form.controls.units.getRawValue())),
     { initialValue: this.form.controls.units.getRawValue() },
   );
+
+  private readonly categoryIdValue = toSignal(
+    this.form.controls.categoryId.valueChanges.pipe(startWith(this.form.controls.categoryId.value)),
+    { initialValue: this.form.controls.categoryId.value },
+  );
+
+  private readonly manufacturerIdValue = toSignal(
+    this.form.controls.manufacturerId.valueChanges.pipe(startWith(this.form.controls.manufacturerId.value)),
+    { initialValue: this.form.controls.manufacturerId.value },
+  );
+
+  /**
+   * Category select options (REQ-CTG-005 / DEC-CTG-002): active categories only, so
+   * a new product can never be assigned an inactive value. In edit mode a product may
+   * already reference a category that has since been deactivated — that current value
+   * stays visible and selectable, marked inactive, until the user picks another; once
+   * changed, the inactive value disappears and cannot be chosen again. The logic is
+   * mode-agnostic: a create form starts with no category, so it only ever sees active.
+   */
+  readonly categorySelectOptions = computed<readonly VfSelectOption<string>[]>(() => {
+    const all = this.categoryOptions();
+    const active = all.filter((category) => category.isActive);
+    const options: VfSelectOption<string>[] = active.map((category) => ({ label: category.name, value: category.id }));
+
+    const currentId = this.categoryIdValue();
+    if (currentId && !active.some((category) => category.id === currentId)) {
+      const current = all.find((category) => category.id === currentId);
+      if (current) {
+        options.unshift({ label: `${current.name} ${this.t.t('editor.category.inactiveSuffix')}`, value: current.id });
+      }
+    }
+
+    return options;
+  });
+
+  /**
+   * Manufacturer select options (REQ-CAT-048 / DEC-CAT-032): exactly the same
+   * active-only + preserve-current-inactive behavior as the category select above —
+   * a deliberate copy, not a shared abstraction (rule of three: two occurrences).
+   * Active manufacturers only, so a new product can never be assigned an inactive
+   * value; in edit mode a product may already reference a manufacturer since
+   * deactivated — that current value stays visible and selectable, marked inactive,
+   * until the user picks another; once changed it disappears and cannot be re-chosen.
+   */
+  readonly manufacturerSelectOptions = computed<readonly VfSelectOption<string>[]>(() => {
+    const all = this.manufacturerOptions();
+    const active = all.filter((manufacturer) => manufacturer.isActive);
+    const options: VfSelectOption<string>[] = active.map((manufacturer) => ({
+      label: manufacturer.name,
+      value: manufacturer.id,
+    }));
+
+    const currentId = this.manufacturerIdValue();
+    if (currentId && !active.some((manufacturer) => manufacturer.id === currentId)) {
+      const current = all.find((manufacturer) => manufacturer.id === currentId);
+      if (current) {
+        options.unshift({
+          label: `${current.name} ${this.t.t('editor.manufacturer.inactiveSuffix')}`,
+          value: current.id,
+        });
+      }
+    }
+
+    return options;
+  });
 
   /** The units already chosen in the profile — the pool for storage/default selects. */
   protected readonly profileUnitOptions = computed<readonly VfSelectOption<string>[]>(() => {
@@ -641,13 +707,13 @@ export class ProductEditorPageComponent implements OnInit {
     };
   }
 
-  private lookupSignal(load: () => ReturnType<ProductEditorApiService['categoryOptions']>) {
+  private lookupSignal<T extends LookupOption>(load: () => Observable<PagedResult<T>>) {
     return toSignal(
       load().pipe(
         map((result) => result.items),
-        catchError(() => of<readonly LookupOption[]>([])),
+        catchError(() => of<readonly T[]>([])),
       ),
-      { initialValue: [] as readonly LookupOption[] },
+      { initialValue: [] as readonly T[] },
     );
   }
 }

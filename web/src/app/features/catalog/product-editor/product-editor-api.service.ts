@@ -4,10 +4,12 @@ import { Observable } from 'rxjs';
 import { ApiClient } from '../../../core/api/api-client';
 import { PagedResult } from '../../../core/api/paged-result';
 import {
+  CategoryOption,
   CreateProductPayload,
   CreatedProduct,
   EditProduct,
   LookupOption,
+  ManufacturerOption,
   PossibleDuplicate,
   UpdateProductPayload,
 } from './product-editor.models';
@@ -40,14 +42,18 @@ export class ProductEditorApiService {
     });
   }
 
-  categoryOptions(): Observable<PagedResult<LookupOption>> {
-    return this.api.get<PagedResult<LookupOption>>('/categories', {
+  /** The management list already carries {id, name, isActive}, so the editor filters
+   *  active/inactive client-side (REQ-CTG-005) — no separate options endpoint needed. */
+  categoryOptions(): Observable<PagedResult<CategoryOption>> {
+    return this.api.get<PagedResult<CategoryOption>>('/categories', {
       pageSize: ProductEditorApiService.LookupPageSize,
     });
   }
 
-  manufacturerOptions(): Observable<PagedResult<LookupOption>> {
-    return this.api.get<PagedResult<LookupOption>>('/manufacturers', {
+  /** The management list already carries {id, name, isActive}, so the editor filters
+   *  active/inactive client-side (REQ-CAT-048) — no separate options endpoint needed. */
+  manufacturerOptions(): Observable<PagedResult<ManufacturerOption>> {
+    return this.api.get<PagedResult<ManufacturerOption>>('/manufacturers', {
       pageSize: ProductEditorApiService.LookupPageSize,
     });
   }

@@ -37,4 +37,15 @@ public static class ValidationMessageKeys
     // Possible-duplicate advisory read (DEC-CAT-027 / REQ-CAT-042).
     public const string DuplicateArabicNameRequired = "validation.duplicateCheck.arabicName.required";
     public const string DuplicateManufacturerRequired = "validation.duplicateCheck.manufacturer.required";
+
+    // Managed data — categories (REQ-CTG-002/003, BR-CTG-002/003). The duplicate
+    // key is raised by the handler (uniqueness needs the database), not a validator.
+    public const string CategoryNameRequired = "validation.category.name.required";
+    public const string CategoryNameDuplicate = "validation.category.name.duplicate";
+
+    // Managed data — manufacturers (REQ-CAT-013/047/048, BR-CAT-007/052). A deliberate
+    // copy of the category keys (Catalog owns manufacturers). The duplicate key is
+    // raised by the handler (uniqueness needs the database), not a validator.
+    public const string ManufacturerNameRequired = "validation.manufacturer.name.required";
+    public const string ManufacturerNameDuplicate = "validation.manufacturer.name.duplicate";
 }

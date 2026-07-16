@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using Shouldly;
 
 namespace VetFlow.IntegrationTests;
@@ -137,6 +138,42 @@ public sealed class ProductUpdateEndpointTests(ApiFixture fixture)
     }
 
     [Fact]
+    public async Task Edit_accepts_an_unchanged_reference_to_a_deactivated_category_REQ_CTG_005()
+    {
+        var (categoryId, manufacturerId, _) = await SeedLookupsAsync("تصنيف سيُعطَّل");
+        var id = await CreateAsync(categoryId, manufacturerId, "منتج بتصنيف مُعطَّل", boxPrice: 30m);
+
+        // The category is deactivated after the product already references it (DEC-CTG-002).
+        // The historical reference must stay editable — the edit is never forced to change it.
+        await DeactivateCategoryAsync(categoryId);
+
+        var body = MinimalEditBody(categoryId, manufacturerId, "منتج بتصنيف مُعطَّل (محرَّر)");
+        var put = await fixture.Client.PutAsJsonAsync(new Uri($"/api/v1/products/{id}", UriKind.Relative), body);
+
+        put.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        using var details = await ReadDetailsAsync(id);
+        details.RootElement.GetProperty("categoryId").GetGuid().ShouldBe(categoryId);
+    }
+
+    [Fact]
+    public async Task Edit_accepts_an_unchanged_reference_to_a_deactivated_manufacturer_REQ_CAT_048()
+    {
+        var (categoryId, manufacturerId, _) = await SeedLookupsAsync("تصنيف شركة مُعطَّلة");
+        var id = await CreateAsync(categoryId, manufacturerId, "منتج بشركة مُعطَّلة", boxPrice: 30m);
+
+        // The manufacturer is deactivated after the product already references it (DEC-CAT-032).
+        // The historical reference must stay editable — the edit is never forced to change it.
+        await DeactivateManufacturerAsync(manufacturerId);
+
+        var body = MinimalEditBody(categoryId, manufacturerId, "منتج بشركة مُعطَّلة (محرَّر)");
+        var put = await fixture.Client.PutAsJsonAsync(new Uri($"/api/v1/products/{id}", UriKind.Relative), body);
+
+        put.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        using var details = await ReadDetailsAsync(id);
+        details.RootElement.GetProperty("manufacturerId").GetGuid().ShouldBe(manufacturerId);
+    }
+
+    [Fact]
     public async Task Details_expose_classification_ids_for_edit_prefill_DEC_CAT_031()
     {
         var (categoryId, manufacturerId, _) = await SeedLookupsAsync("تصنيف معرّفات");
@@ -205,6 +242,20 @@ public sealed class ProductUpdateEndpointTests(ApiFixture fixture)
         DefaultSaleUnitId = SeededCatalogIds.BoxUnit,
         DefaultPurchaseUnitId = SeededCatalogIds.CartonUnit,
     };
+
+    private Task DeactivateCategoryAsync(Guid categoryId) =>
+        fixture.SeedAsync(async dbContext =>
+        {
+            var category = await dbContext.Categories.SingleAsync(entity => entity.Id == categoryId);
+            category.Deactivate();
+        });
+
+    private Task DeactivateManufacturerAsync(Guid manufacturerId) =>
+        fixture.SeedAsync(async dbContext =>
+        {
+            var manufacturer = await dbContext.Manufacturers.SingleAsync(entity => entity.Id == manufacturerId);
+            manufacturer.Deactivate();
+        });
 
     private async Task<Guid> SeedCategoryAsync(string categoryName)
     {

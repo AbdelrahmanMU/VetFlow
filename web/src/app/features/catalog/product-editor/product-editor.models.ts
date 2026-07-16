@@ -5,6 +5,19 @@ export interface LookupOption {
   readonly name: string;
 }
 
+/** A category lookup option — carries the active flag so the editor can show only
+ *  active values for a new product yet keep a product's current inactive value
+ *  visible and selected in edit mode (REQ-CTG-005 / DEC-CTG-002). */
+export interface CategoryOption extends LookupOption {
+  readonly isActive: boolean;
+}
+
+/** A manufacturer lookup option — carries the active flag for the same active-only +
+ *  current-inactive editor behavior as categories (REQ-CAT-048 / DEC-CAT-032). */
+export interface ManufacturerOption extends LookupOption {
+  readonly isActive: boolean;
+}
+
 export interface CreateProductUnitRow {
   readonly unitId: string;
   readonly position: number;

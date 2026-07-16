@@ -6,5 +6,13 @@ export const routes: Routes = [
     path: 'catalog',
     loadChildren: () => import('./features/catalog/catalog.routes').then((m) => m.CATALOG_ROUTES),
   },
+  {
+    path: 'categories',
+    loadChildren: () => import('./features/categories/categories.routes').then((m) => m.CATEGORIES_ROUTES),
+  },
+  {
+    path: 'manufacturers',
+    loadChildren: () => import('./features/manufacturers/manufacturers.routes').then((m) => m.MANUFACTURERS_ROUTES),
+  },
   { path: '**', redirectTo: 'catalog/products' },
 ];
