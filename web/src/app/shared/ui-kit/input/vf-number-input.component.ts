@@ -1,10 +1,18 @@
 import { ChangeDetectionStrategy, Component, forwardRef, input, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
+import { normalizeDigits } from '../../../core/i18n/digits';
+
 /**
  * Labelled numeric field for reactive forms (STD-FE-016): a
  * ControlValueAccessor whose model value is a `number | null` (empty ⇒ null).
  * Owns its label, required marker, and error line (STD-FE-017).
+ *
+ * The field is `type="text" inputmode="decimal"`, not `type="number"`, so that
+ * Arabic-Indic and mixed digits survive to be normalized: a native number input
+ * blanks `.value` for anything that is not an ASCII float, discarding ٥٠٠ before
+ * any script runs. Every keystroke/paste is routed through the canonical
+ * `normalizeDigits` (see core/i18n/digits.ts) — money integrity depends on it.
  */
 @Component({
   selector: 'vf-number-input',
@@ -23,11 +31,9 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
       <input
         class="field-input vf-num"
         [class.field-input--invalid]="!!error()"
-        type="number"
+        type="text"
         inputmode="decimal"
-        [value]="display()"
-        [min]="min()"
-        [step]="step()"
+        [value]="text()"
         [placeholder]="placeholder()"
         [disabled]="disabled()"
         [attr.aria-label]="label()"
@@ -97,22 +103,26 @@ export class VfNumberInputComponent implements ControlValueAccessor {
   readonly placeholder = input('');
   readonly required = input(false);
   readonly error = input<string | null>(null);
+  /** Kept for caller-API stability; native min/step do not apply to type="text". */
   readonly min = input<number | null>(null);
   readonly step = input<number | string>('any');
 
   protected readonly value = signal<number | null>(null);
   protected readonly disabled = signal(false);
 
-  protected readonly display = () => {
-    const current = this.value();
-    return current === null ? '' : String(current);
-  };
+  /**
+   * What the field shows. Held separately from the parsed `value` so the user
+   * can type an in-progress decimal ("123." → 123) without the caret being
+   * yanked to the parsed number and eating the point.
+   */
+  protected readonly text = signal('');
 
   private onChange: (value: number | null) => void = () => undefined;
   protected onTouched: () => void = () => undefined;
 
   writeValue(value: number | null): void {
     this.value.set(value ?? null);
+    this.text.set(value === null || value === undefined ? '' : String(value));
   }
 
   registerOnChange(fn: (value: number | null) => void): void {
@@ -128,8 +138,13 @@ export class VfNumberInputComponent implements ControlValueAccessor {
   }
 
   protected onInput(event: Event): void {
-    const raw = (event.target as HTMLInputElement).value.trim();
-    const next = raw === '' ? null : Number(raw);
+    // Canonicalize digits first (٥٠٠ → 500) so mixed scripts can never yield a
+    // wrong amount; reflect the canonical text back into the field.
+    const canonical = normalizeDigits((event.target as HTMLInputElement).value);
+    this.text.set(canonical);
+
+    const trimmed = canonical.trim();
+    const next = trimmed === '' ? null : Number(trimmed);
     const normalized = next === null || Number.isNaN(next) ? null : next;
     this.value.set(normalized);
     this.onChange(normalized);
