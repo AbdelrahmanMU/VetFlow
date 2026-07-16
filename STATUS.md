@@ -16,6 +16,195 @@ changes require evidence (Governance Change Policy — `docs/architecture/princi
 
 **Every implementation session starts at `.claude/playbooks/implementation.md`.**
 
+## Session close (2026-07-16, Task 4) — Manufacturers Managed Data DONE (backend + frontend + editor), all gates green, live-verified, awaiting owner review, NOT committed
+
+**Task 4 — Manufacturers Managed Data (REQ-CAT-047/048, BR-CAT-052/053, DEC-CAT-032) — DONE, green,
+live-verified.** This completes the Managed Data vertical slice (Tasks 1 Categories backend · 2
+Categories frontend · 3 Product-Editor category active-only · 4 Manufacturers). **Owner rule: one
+vertical cut — still NOT committed; owner review pending before commit. Do not push.**
+
+- **Architecture — mirrored Categories, did NOT abstract (owner directive: prefer copy over premature
+  framework; rule of three).** Manufacturers now form a second near-identical managed-data stack. With
+  only **two** occurrences, extraction was rejected — see the cross-cutting review below. Manufacturers
+  live in the **Catalog** module (REQ-CAT), Categories in their own module; the copy keeps the module
+  boundary clean (no cross-import, STD-FE-004 "mirror without importing").
+- **Backend:** `Manufacturer` gained `IsActive` (default true) + `Rename`/`Activate`/`Deactivate`
+  (BR-CAT-052/053). Reused the command pipeline: `CreateManufacturer`→`ICommand<Guid>`;
+  `RenameManufacturer`/`SetManufacturerActive`→`ICommand<Guid?>` (null⇒404); shared
+  `ManufacturerNameCommandValidator<T>` base. `ManufacturerListQuery` (normalized-Arabic search, sort
+  whitelist name/status + `.ThenBy(Id)`, page cap). Name uniqueness in the handler (per-field 400 →
+  `validation.manufacturer.name.duplicate`) **plus** a unique btree index `ix_manufacturers_name_unique`
+  on the shared `search_text` column (reuse safe — manufacturers are Arabic-name-only, BR-CAT-007) with a
+  `DbUpdateException` 23505 catch for the concurrent-insert race. **`GET /api/v1/manufacturers` repurposed
+  to the management list** (`{id,name,isActive}` superset — the product-list filter and editor consumers
+  keep working); `POST` create, `PUT {id}` rename, `POST {id}/activate|deactivate`. The old
+  `ManufacturerOptionsQuery`/validator/handler were **deleted** (its two consumer tests survive on the
+  superset). Migration `20260716131729_ManufacturersManagedData` (`is_active` default **true** +
+  the unique index; default true so existing product-referenced manufacturers stay active — BR-CAT-052).
+- **Frontend:** new `web/src/app/features/manufacturers/` (mirrors `features/categories/` without importing
+  it): models · `ManufacturersApiService` · `ManufacturerListStore` · `ManufacturerListPageComponent` +
+  components `manufacturer-table`/`-cards`/`-status-badge`/`-list-skeleton`/`-form-dialog`. Route
+  `/manufacturers` (lazy), shell nav «الشركات المصنعة» (pi-building), `ar.ts` `manufacturers.*`. Duplicate
+  name → local Arabic message (branch on `VTF-VAL-001` + `errors.name`, STD-FE-037). No optimistic UI.
+- **Editor:** `ManufacturerOption` gains `isActive`; `manufacturerOptions()` typed to it; new
+  `manufacturerSelectOptions` computed = active only + current inactive preserved (tagged
+  «(غير نشط)» via `editor.manufacturer.inactiveSuffix`) — a **deliberate copy** of `categorySelectOptions`
+  (two call sites, one file; rule of three → keep the copy). Manufacturer select now active-only.
+- **Tests green — all gates independently re-run:** backend **192** (Domain **65** · Architecture **61**
+  · Integration **66**), frontend **98** (+25). New: ManufacturerTests (domain), ManufacturerManagementTests
+  (integration — named by REQ/BR/AC since no manufacturer TS-CAT scenarios were authored; No Speculation),
+  a PUT-keeps-inactive-manufacturer guard test, mirrored frontend specs, and 5 editor manufacturer
+  active-only tests. Build 0/0 Release · `dotnet format` clean · ESLint + Stylelint clean.
+- **Frontend build finding (not a gate failure):** `ng build` succeeds but the initial JS crossed the
+  **500 kB *warning* budget → 503.56 kB** (error budget is 1 MB — build exits 0). Cause: the slice's
+  eager `ar.ts` i18n additions (categories + manufacturers copy). **Owner decision needed** — raise the
+  warning budget, or lazy-load per-feature i18n. Recorded as open item 11 / friction F8.
+- **Live-verified (headless Chrome via CDP, real stack — db :5434 + API :5080 + ng serve :4200) — the
+  FULL owner checklist driven in the browser, not just rendered:** manufacturers list at **1440** (table)
+  and **390** (cards, inactive row «غير نشط»), **dir=rtl and zero horizontal overflow at both**. Every
+  interaction was actually driven: **create** (dialog → type → save → row appears), **rename** (row action
+  → dialog → save; dialog closed on success and the API confirms the renamed row persisted), **activate**
+  (badge غير نشط→نشط) and **deactivate** (badge نشط→غير نشط) via row actions, **search** (filters to one
+  row + «1–1 من 1»), **sorting** (name-header toggle reorders the first row), **pagination** («1 / 2» →
+  «2 / 2»). Product-editor **create** page shows the manufacturer select with the deactivated manufacturer
+  **absent** (active-only). **Edit-preserve — the signature rule (DEC-CAT-032 option B):** seeded a product
+  on an active manufacturer, deactivated it, opened `/catalog/products/{id}/edit` — the editor shows that
+  manufacturer **visible, selected, and tagged «غير نشط»**, RTL, zero overflow. **Zero console errors on
+  every page.** Note: the test manufacturers/product/category seeded during verify **remain in the dev DB**
+  — the cleanup DELETE was blocked by the safety classifier and there is no delete endpoint by design
+  (harmless dev data incl. a few garbled-name rows from an earlier bash-UTF-8 mishap; nothing committed).
+
+### Cross-cutting duplication review (the five owner questions) — verdict: LEAVE THE DUPLICATION
+1. **Backend extraction warranted?** **No.** Two managed-data stacks exist (Categories module ·
+   Catalog manufacturers). A shared `ManagedLookup`/generic name-validator/uniqueness base would couple
+   two modules through a framework and add generic indirection (per-entity DbSet/index-name/message-key
+   config) — a net complexity increase for only two occurrences. Genuinely shared mechanics are *already*
+   shared (command pipeline, `LookupOptionsQuery` base for units/natures, `ArabicSearchText`,
+   `SearchableText`, `QueryStringParser`, `SearchTextInterceptor`); what is copied is the per-entity CRUD
+   surface — exactly what should be copied at N=2.
+2. **Frontend extraction warranted?** **No.** The two feature folders are near-identical, but STD-FE-004
+   ("mirror without importing") is the established convention and both are module-local; a generic
+   managed-list component/store at N=2 is premature.
+3. **Improves readability without indirection?** **No** for the feature/stack extraction (adds
+   generics/config). The one borderline spot is the editor's two `*SelectOptions` computeds (same file,
+   15-line exact-shape dupe) — a local `activeOnlyWithCurrent()` helper would be low-indirection, but at
+   two call sites the owner directive (prefer copy) wins; it becomes worthwhile at a third.
+4. **Reduces future maintenance cost?** **No, today.** Categories and Manufacturers have independent
+   BR ids and may diverge (manufacturers could later get English names or audited rename while categories
+   may not); premature coupling would raise, not lower, maintenance risk.
+5. **Violates the Simplicity Budget?** **Yes** — a cross-module managed-lookup framework at N=2 is the
+   "grow the architectural surface without measurable value" that ADR-0014 §12 / principle 14 prohibit.
+**Rule-of-three trigger recorded:** the NEXT managed-data entity (Suppliers, ProductNature management, …)
+is the point to re-evaluate a shared "Managed Lookup" abstraction — and even then weigh the cross-module
+coupling cost. Logged to the tech-debt ledger as the watch item.
+
+### Final whole-slice review (all four tasks together)
+✓ Categories Backend · ✓ Categories Frontend · ✓ Product-Editor Integration (category + manufacturer
+active-only) · ✓ Manufacturers Backend · ✓ Manufacturers Frontend. **No correctness findings.** Every
+BR/REQ/AC/DEC id in code matches the approved docs; no invented business logic; module boundary intact
+(Manufacturers in Catalog, Categories in its own module, no cross-import); the repurpose-and-delete
+mirrors Task 1 exactly with no orphaned query. Real findings: (a) the managed-data duplication rule-of-three
+watch (above); (b) the bundle-budget *warning* (open item 11 / F8); (c) Accept-Language (open item 10 / F7,
+owner already deferred to a future infra task — both dialogs use local Arabic copy). Nine-question
+self-review: **all NO** (no principle/ADR/standard breach; the duplication is deliberate per owner
+directive and not an unnecessary-complexity violation; boundary intact; no invented logic; docs synchronized;
+no ADR owed — reusing an endpoint client-side + copying a per-entity CRUD surface are cheap-to-reverse
+engineering details already covered by DEC-CAT-032 / DEC-CTG-002).
+
+**STOP per owner instruction: all gates green → do not commit, do not push, do not start another slice.
+Await owner approval to commit the whole four-task Managed Data slice.**
+
+## Session close (2026-07-16, Task 3) — Product-Editor active-only integration DONE, self-reviewed & live-verified, awaiting owner review, NOT committed
+
+**Task 3 — Product Editor integration (REQ-CTG-005 / DEC-CTG-002 / AC-CTG-005) — DONE, green, live-verified.**
+Frontend-only integration (plus one backend guard test). No editor redesign, no new UI pattern, no new
+abstraction. The slice stays uncommitted until Task 4 (owner rule — one vertical cut).
+
+- **Architecture decision — reused the existing `GET /api/v1/categories`; did NOT add a
+  `/categories/options` endpoint** (diverges from the earlier STATUS plan, per the owner's Task-3
+  directive "prefer extending an existing query / justify any new endpoint"). Justification: the list
+  already returns `{id,name,isActive}`, and edit mode must show the product's **current inactive**
+  value — which an active-only endpoint structurally cannot return in one call. So the editor filters
+  client-side; no new query/handler/DI/registration (zero duplication).
+- **Frontend:** `CategoryOption` model gains `isActive`; `categoryOptions()` typed to it; generalized
+  the private `lookupSignal<T>` (no parallel path). New `categorySelectOptions` computed = **active
+  categories only, plus the current value if it is inactive** (tagged «(غير نشط)» via new editor-scoped
+  key `editor.category.inactiveSuffix` — kept out of the `categories.*` namespace, STD-FE-004). Logic is
+  **mode-agnostic**: a create form starts with no category so it only ever offers active; edit prefills a
+  possibly-inactive value that stays selectable until the user picks another, after which it disappears
+  and cannot be re-chosen (BR-CTG-005). Manufacturers untouched — active-only there waits for Task 4.
+- **Backend:** no production change. Added ONE integration test locking the guarantee that a PUT which
+  keeps a now-inactive category returns **204** (historical reference never forced to change).
+- **Tests green:** backend **168** (Domain 54 · Architecture 59 · Integration **55** — +1); frontend
+  **73** (+4: create active-only TS-CTG-006; edit shows+saves inactive TS-CTG-007; switch drops inactive).
+  Build 0/0 Release · `dotnet format` clean · `ng build` clean · ESLint + Stylelint clean.
+- **Live-verified (headless Chrome, real stack — db + API :5080 + ng serve :4200):** create dropdown =
+  active only (`أعلاف بيطرية`, `مستلزمات جراحية`; inactive `أدوية` hidden); edit of a product on the
+  inactive `أدوية` shows **`أدوية (غير نشط)` in the CLOSED select** and offers it + the actives; switching
+  to an active value **drops** the inactive from the reopened dropdown; **save unchanged** lands on
+  Details still showing `أدوية` (value preserved). RTL; zero overflow at 1440 & 390; **zero console errors**.
+- **Nine-question self-review: all NO** (no principle/ADR/standard breach; no duplication; boundary intact;
+  minimal; no invented logic; docs already describe this exactly — REQ/BR/AC/DEC approved 2026-07-16; no
+  ADR owed — reusing an endpoint client-side is a cheap-to-reverse engineering detail).
+- **Cross-cutting (Accept-Language):** Task 3 surfaces **no new** server-localized text, so no active bug.
+  Recommendation recorded under open item 10 — classify as a **reusable infrastructure improvement**
+  (single `/core` `Accept-Language: ar` interceptor), **pending owner approval; not implemented**.
+
+**Remaining: Task 4 — Manufacturers backend + frontend** (mirror the Categories pattern; add `IsActive`,
+then active-only in the editor's manufacturer select — REQ-CAT-047/048, BR-CAT-052/053, DEC-CAT-032).
+Commit only after Task 4.
+
+## Session close (2026-07-16, later) — Managed Data Tasks 1 & 2 implemented (backend + frontend), owner-approved, NOT committed
+
+The Managed Data slice resumed from DoR-READY and produced the first two of four tasks. **Owner
+rule: the slice is ONE vertical cut — commit only after all four tasks** (1 Categories backend ✓ ·
+2 Categories frontend ✓ · 3 Product-Editor active-only integration · 4 Manufacturers
+backend+frontend). Nothing committed or pushed this session. Both tasks were owner-reviewed and
+approved; a mid-slice checkpoint was taken after Task 1 (backend) before Task 2 (frontend).
+
+**Task 1 — Categories backend — DONE, owner-approved, green.**
+- Domain: `Category` gained `IsActive` (default true), `Rename`, `Activate`/`Deactivate`.
+- Reused the command pipeline: `CreateCategory`→`ICommand<Guid>`; `RenameCategory`/`SetCategoryActive`
+  →`ICommand<Guid?>` (null⇒404); shared `CategoryNameCommandValidator<T>` base (no duplication).
+- `CategoryListQuery`: normalized-Arabic search, sort whitelist name/status + `.ThenBy(Id)`, page cap.
+- Name uniqueness (BR-CTG-003) enforced **in the handler** (validators are singletons — no scoped
+  DbContext): normalized pre-check → per-field 400 (`errors.name` / `validation.category.name.duplicate`),
+  **plus** a unique btree index `ix_categories_name_unique` on the shared `search_text` column
+  (reuse safe only because a category is Arabic-name-only — BR-CTG-001) as the DB backstop, and a
+  `DbUpdateException` 23505 catch mapping the concurrent-insert race to the same 400.
+- Endpoints: `GET /api/v1/categories` **repurposed to the management list** (`{id,name,isActive}` —
+  a superset, so the existing product-list/editor consumers keep working); `POST` create,
+  `PUT {id}` rename, `POST {id}/activate|deactivate`. The old `CategoryOptionsQuery` was **deleted**
+  (Task 3 adds an active-only `/categories/options` endpoint when the editor needs it).
+- Migration `20260716110003_CategoriesManagedData` (`is_active` default **true** + the unique index).
+- **Backend 167 tests green** (Domain 54 · Architecture 59 · Integration 54 — Testcontainers;
+  144 → +23), incl. a handler-bypassing test proving the unique index bites and normalization-variant
+  duplicate tests. Build 0/0 Release; `dotnet format` clean.
+
+**Task 2 — Categories frontend — DONE, verified live, green.**
+- New `web/src/app/features/categories/` module (mirrors the catalog list patterns without importing
+  them — STD-FE-004): models · `CategoriesApiService` · `CategoryListStore` (read state + `refresh()`) ·
+  `CategoryListPageComponent` (smart) · components `category-table`, `category-cards` (mobile),
+  `category-list-skeleton`, `category-status-badge`, `category-form-dialog` (VfDialog + typed form).
+- Four data-view states, `VfSkeleton` loading, search/sort/pagination, create/rename dialog,
+  activate/deactivate as labelled row actions, **no optimistic UI** (refresh from server — STD-FE-036).
+- Duplicate name surfaces a **local Arabic** message (branch on errorCode `VTF-VAL-001` + `errors.name`,
+  never message text — STD-FE-037); chosen after live testing showed the server localizes by
+  `Accept-Language` (English browser → English text). Routing `/categories` (lazy), shell nav
+  «التصنيفات», `ar.ts` `categories.*` copy.
+- **Frontend 69 tests green** (+40; 15 files). `ng build` clean; ESLint + Stylelint clean; no physical
+  CSS, no `console.*`/`any`/`!`.
+- **Live (headless Chrome, real stack — db + API :5080 + ng serve :4200):** RTL; empty state;
+  create/rename/deactivate/activate via the UI; search; duplicate→Arabic error (dialog stays open);
+  **zero horizontal overflow at 1440 and 390**; mobile cards; **zero application/JS console errors**
+  (only the browser's expected network log of the intentional duplicate 400).
+
+**Uncommitted working tree** = Task 1 backend + Task 2 frontend, plus the pre-existing untracked
+`docs/releases/` and `docs/ui/product-editor-ux-architecture.md`. **Resume at Task 3.** No new
+business decision was made this session — all behavior implements already-approved DEC-CTG/BR-CTG and
+DEC-CAT-032; the implementation choices above are engineering details (cheap to reverse, no doc
+contradiction), so no `DEC`/ADR is owed. One owner decision is deferred (Accept-Language — open item 10 / friction F7).
+
 ## Session close (2026-07-16) — three outcomes, then implementation begun & interrupted
 
 This session produced, in order:
@@ -58,12 +247,10 @@ promotion to Approved. Documentation-only; **no code written**.
 - Consistency review clean: full REQ↔BR↔AC traceability, no orphans, no duplication, no conflict
   with existing Catalog decisions.
 
-**DoR status: READY.** Implementation was authorized this session and set up, but **interrupted with
-no code written** (see Session close). **Next session resumes here.** Suggested vertical cut:
-Categories-first (create · rename · activate/deactivate · list) then Manufacturers (structurally
-identical → cheap second), reusing the command/query pipelines, pg_trgm Arabic-name normalization,
-and the Vf UI kit; editor options filter to active-only with inactive current values preserved
-(REQ-CTG-005 / DEC-CTG-002).
+**DoR status: READY → Tasks 1 & 2 now IMPLEMENTED** (Categories backend + frontend — see the top
+"Session close (2026-07-16, later)" block). **Remaining: Task 3** (Product-Editor active-only
+integration — REQ-CTG-005 / DEC-CTG-002) **and Task 4** (Manufacturers backend+frontend —
+REQ-CAT-047/048, BR-CAT-052/053, DEC-CAT-032). The slice is committed only after all four tasks.
 
 **Implementation plan carried into next session (tasks 1–5):**
 1. **Categories backend** — `Category` gains `IsActive` + `Rename`; Create/Update(rename)/SetActive
@@ -392,9 +579,16 @@ tech-debt ledger → start Slice 2 (Product Editor).
 
 ## In flight / next
 
-**The Edit Product slice is DONE and committed** (`2e139ad` feat + the docs-sync commit that
-carries this update). Nothing is in flight. **No slice is authorized to start** — the owner
-ended this session with an explicit stop (no Audit, no Images, no Categories).
+**Managed Data slice COMPLETE (all four tasks), one vertical cut, UNCOMMITTED — awaiting owner review.**
+Tasks 1 (Categories backend), 2 (Categories frontend), 3 (Product-Editor category active-only), and
+**4 (Manufacturers backend + frontend + editor manufacturer active-only)** are all DONE, green, and
+live-verified — see the top session-close blocks. Task 4 mirrored Categories (owner directive: prefer copy
+over premature framework); the repurpose-and-delete of `GET /api/v1/manufacturers` mirrors Task 1 exactly
+(the old `ManufacturerOptionsQuery` was deleted, the product-list filter + editor consume the superset).
+**Nothing committed or pushed. Per the owner's explicit stop: with all gates green, wait for owner approval
+before committing the whole four-task slice; do not push; do not start another slice** (not Images, not
+Audit, not Authentication, not Inventory). Open decisions surfaced by this slice: bundle-budget warning
+(open item 11 / F8) and the previously-deferred Accept-Language interceptor (open item 10 / F7).
 
 **Candidate next slices (owner picks — do not start unprompted):**
 - **Categories / managed-data (S6, ledger TD-105)** — the recommended next step: today a
@@ -440,6 +634,23 @@ stop that process first.
 8. Confirm the CI performance budget numbers (ADR-0016 §5) (carried over).
 9. Catalog `overview.md` purchase-cost negative-boundary statements
    (DEC-CAT-024 follow-up) — unanswered since Sprint 1 (carried over).
+10. **Server localization vs. Arabic-only UI (Task 2 finding + Task 3 recommendation).** The API
+    localizes user-facing messages by `Accept-Language` (ADR-0007); a non-Arabic browser gets English
+    text. No active bug (Categories dialog and the editor use local Arabic copy; Task 3 surfaces no new
+    server text). **Task-3 architectural recommendation (owner decision needed; NOT implemented):**
+    classify this as a **reusable infrastructure improvement**, not a per-message local workaround —
+    the recurring, DRY fix is a **single app-wide `Accept-Language: ar` request interceptor in `/core`**
+    so the server's existing ADR-0007 translation point returns Arabic to match the UI, covering every
+    future server-message surface (incl. generic RFC-9457 fallbacks) in one place. Low-risk, additive,
+    ~10 lines, one location. It touches cross-cutting infra, so it needs **explicit owner approval**
+    before implementation (do not add silently). Alternative (keep local copy per message) rejected:
+    duplicative and leaves unmapped/infra messages in English. See friction F7.
+11. **Frontend initial-bundle budget crossed the warning line (Task 4).** `ng build` succeeds but the
+    initial JS is **503.56 kB vs the 500 kB `maximumWarning`** budget (`maximumError` is 1 MB — no error,
+    build exits 0). Cause: the Managed Data slice's eager `ar.ts` i18n additions (Categories + Manufacturers
+    copy). Owner decision: raise the warning budget to fit the current app, or lazy-load per-feature i18n so
+    the eager core shrinks. Additive, low-risk either way; NOT changed this slice (raising a budget is a gate
+    change — needs owner approval). See friction F8.
 
 ## Sprint 2 — Engineering Foundation (COMPLETE, 2026-07-14)
 
@@ -486,3 +697,5 @@ FluentAssertions · generic repositories · `Result<T>` · NgRx.
 | F4 | 2026-07-15 | Several standards name CI scripts/analyzers as enforcement (traceability check, error-catalog uniqueness, TODO scan) but no CI platform exists yet; equivalents run as architecture tests or locally. | 1 | Blocked on the CI platform decision (owner item 3); then implement the named CI scripts. |
 | F5 | 2026-07-15 | STD-BE-020/028 claim architecture-test enforcement of the forbidden-library ban ("no mediator library", "no AutoMapper reference"), and ADR-0014 says "a rule without a test is a wish" — but no such test exists (banned libs verified absent, so no breach). Review finding R1. | 1 | Add the NetArchTest so the claimed enforcement is real; the standard currently overstates enforcement. |
 | F6 | 2026-07-15 | STD-BE-004 (Mandatory, "Api never references domain entities directly") is enforced by a hardcoded entity allowlist that omits real entities (`ProductNature`, `ProductUnit`), so it under-enforces a Mandatory rule. Review finding R5. | 1 | Prefer namespace-scoped architecture rules over enumerated allowlists so new entities are covered automatically. |
+| F7 | 2026-07-16 | The API localizes user-facing messages by the `Accept-Language` header (ADR-0007), but the UI is Arabic-only with no language switcher; a browser defaulting to English receives English server text. Surfaced when the Categories dialog first displayed a server validation message (Task 2). Worked around with local Arabic copy for the duplicate message. | 2 | Add an app-wide `Accept-Language: ar` HTTP interceptor so the server's single translation point matches the Arabic UI (owner decision — open item 10). Owner **approved as a future cross-cutting infra task** (Task-4 review); do not implement in the Managed Data slice. |
+| F8 | 2026-07-16 | The Managed Data slice's eager `ar.ts` i18n additions pushed the frontend initial bundle to 503.56 kB, crossing the 500 kB `maximumWarning` budget (error budget 1 MB — build still passes). The whole app's UI strings live in one eagerly-loaded `AR` object. | 1 | Owner decision (open item 11): raise the warning budget, or split i18n so each lazy feature ships its own strings. If a third+ feature repeats it, prefer the lazy-i18n split. |

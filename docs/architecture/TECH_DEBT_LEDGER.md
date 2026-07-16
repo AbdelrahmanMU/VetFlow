@@ -159,6 +159,34 @@ Design-boundary edges surfaced by implementation.
   of the Create scope.
 - **Estimated impact:** Medium — on an empty catalog, Create cannot be exercised without seeding.
 - **Recommended sprint:** the Categories / managed-data slice (S6).
+- **Status (2026-07-16, uncommitted):** the **management screens are built** — Categories
+  (`/categories`) and Manufacturers (`/manufacturers`) list/search/sort/paginate + create/rename/
+  activate/deactivate. The remaining piece — inline **add-a-value-from-within-the-select** (ui.md §5.2)
+  — is still deferred (not in the Managed Data slice scope).
+
+### TD-106 — Managed-data duplication: rule-of-three watch (recorded 2026-07-16)
+- **Description:** Categories (own module) and Manufacturers (Catalog) are two near-identical
+  managed-data stacks — aggregate + name-command validator base + list query/handler + name-uniqueness
+  helper + endpoints/request DTOs on the backend, and a full feature folder + the editor's
+  `*SelectOptions` computed on the frontend. This is a **deliberate copy** (owner directive: prefer copy
+  over premature framework; rule of three not met at N=2). Cross-cutting review (Task 4) answered all
+  five extraction questions **No**.
+- **Reason for deferral:** at two occurrences, a shared "Managed Lookup" abstraction would couple two
+  modules through a framework and add generic indirection — a net Simplicity-Budget loss (ADR-0014 §12).
+  The entities may also diverge (manufacturers could later gain English names or audited rename).
+- **Estimated impact:** Low today; duplication is module-local and independently readable.
+- **Recommended sprint:** re-evaluate when a **third** managed-data entity appears (Suppliers,
+  ProductNature management, …) — and even then weigh the cross-module coupling cost before extracting.
+
+### TD-107 — Frontend initial-bundle warning budget crossed (F8, recorded 2026-07-16)
+- **Description:** the Managed Data slice's eager `ar.ts` i18n additions pushed the initial JS to
+  503.56 kB vs the 500 kB `maximumWarning` budget (`maximumError` 1 MB — build still passes). The whole
+  UI string table lives in one eagerly-loaded `AR` object.
+- **Reason for deferral:** warning-level only; raising a budget is a gate change needing owner approval,
+  and lazy-splitting i18n is an architectural change out of the slice scope.
+- **Estimated impact:** Low now; grows as more features add eager strings.
+- **Recommended sprint:** owner decision (STATUS open item 11) — raise the warning budget, or split
+  i18n per lazy feature (preferred if a third feature repeats the pattern).
 
 ---
 
