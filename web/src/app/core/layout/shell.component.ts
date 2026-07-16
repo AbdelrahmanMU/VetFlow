@@ -52,6 +52,18 @@ import { TranslationService } from '../i18n/translation.service';
               {{ t.t('nav.manufacturers') }}
             </a>
           </li>
+          <li class="nav-module">{{ t.t('nav.purchasing') }}</li>
+          <li>
+            <a
+              class="nav-link"
+              routerLink="/purchases"
+              routerLinkActive="nav-link--active"
+              [routerLinkActiveOptions]="{ exact: false }"
+            >
+              <i class="pi pi-receipt nav-icon" aria-hidden="true"></i>
+              {{ t.t('nav.purchases') }}
+            </a>
+          </li>
         </ul>
       </nav>
       <main class="content">

@@ -12,4 +12,11 @@ public sealed class DatabaseOptions
 
     /// <summary>Development convenience only; production applies reviewed migrations explicitly.</summary>
     public bool ApplyMigrationsAtStartup { get; init; }
+
+    /// <summary>
+    /// Seeds a handful of sample purchase invoices at startup for local browser
+    /// verification (DEC-PUR-001). Development only, off by default, and idempotent
+    /// (it seeds only when the table is empty) — production and tests never enable it.
+    /// </summary>
+    public bool SeedDevelopmentDataAtStartup { get; init; }
 }

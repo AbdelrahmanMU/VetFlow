@@ -15,8 +15,28 @@ export class FormatService {
 
   private readonly currencyFormats = new Map<string, Intl.NumberFormat>();
 
+  private readonly dateFormat = new Intl.DateTimeFormat(FormatService.Locale, {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+
   integer(value: number): string {
     return this.integerFormat.format(value);
+  }
+
+  /**
+   * Formats an ISO `yyyy-mm-dd` date-only string. The parts are read directly and
+   * a local Date is built so the displayed day always equals the stored day — never
+   * shifted by a timezone (`new Date('yyyy-mm-dd')` would parse as UTC midnight).
+   */
+  date(isoDate: string): string {
+    const [year, month, day] = isoDate.split('-').map(Number);
+    if (!year || !month || !day) {
+      return isoDate;
+    }
+
+    return this.dateFormat.format(new Date(year, month - 1, day));
   }
 
   money(amount: number, currency: string): string {

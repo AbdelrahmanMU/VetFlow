@@ -14,6 +14,7 @@ public static class ValidationMessageKeys
     public const string InvalidId = "validation.id.invalid";
     public const string InvalidBoolean = "validation.boolean.invalid";
     public const string InvalidInteger = "validation.integer.invalid";
+    public const string InvalidDate = "validation.date.invalid";
     public const string UnknownSortField = "validation.sort.unknown";
     public const string UnknownSortDirection = "validation.dir.unknown";
     public const string UnknownStatus = "validation.status.unknown";

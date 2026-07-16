@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VetFlow.Domain.Catalog;
 using VetFlow.Domain.Categories;
+using VetFlow.Domain.Purchasing;
 using VetFlow.Infrastructure.Persistence.Configurations;
 
 namespace VetFlow.Infrastructure.Persistence;
@@ -19,6 +20,8 @@ public sealed class VetFlowDbContext(DbContextOptions<VetFlowDbContext> options)
 
     public DbSet<Category> Categories => Set<Category>();
 
+    public DbSet<PurchaseInvoice> PurchaseInvoices => Set<PurchaseInvoice>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("pg_trgm");
@@ -29,6 +32,7 @@ public sealed class VetFlowDbContext(DbContextOptions<VetFlowDbContext> options)
         modelBuilder.ApplyConfiguration(new UnitConfiguration());
         modelBuilder.ApplyConfiguration(new ProductNatureConfiguration());
         modelBuilder.ApplyConfiguration(new CategoryConfiguration());
+        modelBuilder.ApplyConfiguration(new PurchaseInvoiceConfiguration());
 
         SnakeCaseNames.Apply(modelBuilder);
     }

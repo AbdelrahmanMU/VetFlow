@@ -44,6 +44,26 @@ public sealed class QueryStringParser
         return null;
     }
 
+    public DateOnly? ParseDate(string? value, string field)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        if (DateOnly.TryParse(
+                value,
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None,
+                out var date))
+        {
+            return date;
+        }
+
+        AddError(field, ValidationMessageKeys.InvalidDate);
+        return null;
+    }
+
     public int ParseInteger(string? value, string field, int fallback)
     {
         if (string.IsNullOrWhiteSpace(value))

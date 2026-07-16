@@ -1,0 +1,95 @@
+import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+
+import { FormatService } from '../../../../core/i18n/format.service';
+import { TranslationService } from '../../../../core/i18n/translation.service';
+import { PurchaseListItem } from '../purchase-list.models';
+import { PurchaseStatusBadgeComponent } from './purchase-status-badge.component';
+
+/**
+ * The mobile experience is a fast lookup, not a shrunken table (purchasing
+ * ui.md): a card per invoice — number, supplier, total, date, and status.
+ */
+@Component({
+  selector: 'app-purchase-cards',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [PurchaseStatusBadgeComponent],
+  template: `
+    <ul class="cards">
+      @for (invoice of rows(); track invoice.id) {
+        <li class="card">
+          <div class="card-main">
+            <span class="card-number vf-num">{{ invoice.number }}</span>
+            <span class="card-supplier">{{ invoice.supplierName }}</span>
+            <span class="card-date vf-num">{{ format.date(invoice.invoiceDate) }}</span>
+          </div>
+          <div class="card-side">
+            <span class="card-total vf-num">{{ format.money(invoice.total.amount, invoice.total.currency) }}</span>
+            <app-purchase-status-badge [status]="invoice.status" />
+          </div>
+        </li>
+      }
+    </ul>
+  `,
+  styles: `
+    .cards {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: var(--vf-space-2);
+    }
+
+    .card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--vf-space-3);
+      background: var(--vf-surface);
+      border: 1px solid var(--vf-border);
+      border-radius: var(--vf-radius);
+      padding: var(--vf-space-3) var(--vf-space-4);
+      min-block-size: 4rem;
+    }
+
+    .card-main {
+      min-inline-size: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.125rem;
+    }
+
+    .card-number {
+      font-weight: 600;
+      color: var(--vf-text-secondary);
+      font-size: var(--vf-text-caption);
+    }
+
+    .card-supplier {
+      font-weight: 600;
+    }
+
+    .card-date {
+      font-size: var(--vf-text-caption);
+      color: var(--vf-text-faint);
+    }
+
+    .card-side {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: var(--vf-space-1);
+      text-align: end;
+    }
+
+    .card-total {
+      font-weight: 600;
+    }
+  `,
+})
+export class PurchaseCardsComponent {
+  protected readonly t = inject(TranslationService);
+  protected readonly format = inject(FormatService);
+
+  readonly rows = input.required<readonly PurchaseListItem[]>();
+}

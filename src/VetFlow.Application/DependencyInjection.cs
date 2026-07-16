@@ -13,6 +13,7 @@ using VetFlow.Application.Catalog.Queries.UnitOptions;
 using VetFlow.Application.Categories.Commands.CreateCategory;
 using VetFlow.Application.Categories.Commands.RenameCategory;
 using VetFlow.Application.Categories.Queries.CategoryList;
+using VetFlow.Application.Purchasing.Queries.PurchaseList;
 
 namespace VetFlow.Application;
 
@@ -38,6 +39,7 @@ public static class DependencyInjection
         services.AddSingleton<IValidator<RenameCategoryCommand>, RenameCategoryCommandValidator>();
         services.AddSingleton<IValidator<CreateManufacturerCommand>, CreateManufacturerCommandValidator>();
         services.AddSingleton<IValidator<RenameManufacturerCommand>, RenameManufacturerCommandValidator>();
+        services.AddSingleton<IValidator<PurchaseListQuery>, PurchaseListQueryValidator>();
         return services;
     }
 }

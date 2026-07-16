@@ -57,6 +57,9 @@
   <data name="validation.integer.invalid" xml:space="preserve">
     <value>القيمة يجب أن تكون رقمًا صحيحًا.</value>
   </data>
+  <data name="validation.date.invalid" xml:space="preserve">
+    <value>القيمة يجب أن تكون تاريخًا صحيحًا بصيغة سنة-شهر-يوم.</value>
+  </data>
   <data name="validation.sort.unknown" xml:space="preserve">
     <value>حقل الترتيب غير معروف.</value>
   </data>

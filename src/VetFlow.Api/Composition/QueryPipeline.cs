@@ -9,8 +9,10 @@ using VetFlow.Application.Catalog.Queries.UnitOptions;
 using VetFlow.Application.Categories.Queries.CategoryList;
 using VetFlow.Application.Common;
 using VetFlow.Application.Common.Behaviors;
+using VetFlow.Application.Purchasing.Queries.PurchaseList;
 using VetFlow.Infrastructure.Catalog;
 using VetFlow.Infrastructure.Categories;
+using VetFlow.Infrastructure.Purchasing;
 
 namespace VetFlow.Api.Composition;
 
@@ -30,6 +32,7 @@ public static class QueryPipeline
         services.AddQueryHandler<ProductNatureOptionsQuery, PagedResult<LookupOptionDto>, ProductNatureOptionsQueryHandler>();
         services.AddQueryHandler<UnitOptionsQuery, PagedResult<LookupOptionDto>, UnitOptionsQueryHandler>();
         services.AddQueryHandler<CategoryListQuery, PagedResult<CategoryListItemDto>, CategoryListQueryHandler>();
+        services.AddQueryHandler<PurchaseListQuery, PagedResult<PurchaseListItemDto>, PurchaseListQueryHandler>();
         return services;
     }
 

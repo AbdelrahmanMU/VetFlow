@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using VetFlow.Domain.Catalog;
 using VetFlow.Domain.Categories;
+using VetFlow.Domain.Purchasing;
 
 namespace VetFlow.Infrastructure.Persistence;
 
@@ -48,6 +49,9 @@ public sealed class SearchTextInterceptor : SaveChangesInterceptor
                 Manufacturer manufacturer => ArabicSearchText.Normalize(manufacturer.Name),
                 ProductNature nature => ArabicSearchText.Normalize(nature.Name),
                 Category category => ArabicSearchText.Normalize(category.Name),
+                // Supplier name + the supplier's invoice reference are searchable
+                // (BR-PUR-004); notes are deliberately excluded.
+                PurchaseInvoice invoice => ArabicSearchText.Normalize(invoice.SupplierName, invoice.SupplierInvoiceReference),
                 _ => null,
             };
 

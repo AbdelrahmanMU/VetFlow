@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using VetFlow.Infrastructure.Catalog;
 using VetFlow.Infrastructure.Categories;
 using VetFlow.Infrastructure.Persistence;
+using VetFlow.Infrastructure.Purchasing;
 
 namespace VetFlow.Infrastructure;
 
@@ -46,6 +47,7 @@ public static class DependencyInjection
         services.AddScoped<CreateManufacturerCommandHandler>();
         services.AddScoped<RenameManufacturerCommandHandler>();
         services.AddScoped<SetManufacturerActiveCommandHandler>();
+        services.AddScoped<PurchaseListQueryHandler>();
 
         return services;
     }
@@ -62,5 +64,22 @@ public static class DependencyInjection
 
         var dbContext = scope.ServiceProvider.GetRequiredService<VetFlowDbContext>();
         await dbContext.Database.MigrateAsync();
+    }
+
+    /// <summary>
+    /// Seeds sample purchase invoices when Database:SeedDevelopmentDataAtStartup is
+    /// enabled (development only — DEC-PUR-001). Idempotent and off by default.
+    /// </summary>
+    public static async Task SeedDevelopmentDataIfConfiguredAsync(IServiceProvider serviceProvider)
+    {
+        await using var scope = serviceProvider.CreateAsyncScope();
+        var options = scope.ServiceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value;
+        if (!options.SeedDevelopmentDataAtStartup)
+        {
+            return;
+        }
+
+        var dbContext = scope.ServiceProvider.GetRequiredService<VetFlowDbContext>();
+        await PurchaseInvoiceDevelopmentSeeder.SeedAsync(dbContext, TimeProvider.System);
     }
 }

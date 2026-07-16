@@ -6,6 +6,7 @@ using VetFlow.Api;
 using VetFlow.Api.Composition;
 using VetFlow.Api.Endpoints.Catalog;
 using VetFlow.Api.Endpoints.Categories;
+using VetFlow.Api.Endpoints.Purchasing;
 using VetFlow.Api.Middleware;
 using VetFlow.Application;
 using VetFlow.Infrastructure;
@@ -70,8 +71,10 @@ app.MapManufacturerEndpoints();
 app.MapProductNatureEndpoints();
 app.MapUnitEndpoints();
 app.MapCategoryEndpoints();
+app.MapPurchaseInvoiceEndpoints();
 
 await VetFlow.Infrastructure.DependencyInjection.ApplyMigrationsIfConfiguredAsync(app.Services);
+await VetFlow.Infrastructure.DependencyInjection.SeedDevelopmentDataIfConfiguredAsync(app.Services);
 
 await app.RunAsync();
 

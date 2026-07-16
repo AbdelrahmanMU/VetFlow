@@ -245,6 +245,47 @@ export const AR = {
   'manufacturers.error.required': 'اسم الشركة المصنعة مطلوب.',
   'manufacturers.error.duplicate': 'توجد شركة مصنعة بهذا الاسم بالفعل.',
   'manufacturers.error.saveFailed': 'تعذّر حفظ الشركة المصنعة. أعد المحاولة.',
+
+  // Purchasing — Purchase List (Slice 1) — purchasing/ui.md, REQ-PUR-001, BR-PUR-004
+  'nav.purchasing': 'المشتريات',
+  'nav.purchases': 'فواتير الشراء',
+
+  'purchases.title': 'المشتريات',
+  'purchases.search.placeholder': 'ابحث برقم الفاتورة أو اسم المورد أو مرجع المورد…',
+  'purchases.search.clear': 'مسح البحث',
+  'purchases.loading': 'جارٍ تحميل فواتير الشراء…',
+
+  'purchases.filters.open': 'الفلاتر',
+  'purchases.filters.title': 'فلاتر القائمة',
+  'purchases.filters.clearAll': 'مسح الكل',
+  'purchases.filter.status': 'الحالة',
+  'purchases.filter.dateFrom': 'من تاريخ',
+  'purchases.filter.dateTo': 'إلى تاريخ',
+  'purchases.filter.any': 'الكل',
+
+  'purchases.table.label': 'قائمة فواتير الشراء',
+  'purchases.column.number': 'رقم النظام',
+  'purchases.column.supplier': 'المورد',
+  'purchases.column.invoiceDate': 'تاريخ الفاتورة',
+  'purchases.column.status': 'الحالة',
+  'purchases.column.total': 'الإجمالي',
+  'purchases.column.createdAt': 'تاريخ الإنشاء',
+  'purchases.reference.label': 'مرجع المورد',
+
+  'purchases.status.draft': 'مسودة',
+  'purchases.status.received': 'مستلمة',
+  'purchases.status.cancelled': 'ملغاة',
+
+  'purchases.empty.new.title': 'لا توجد فواتير شراء حتى الآن',
+  'purchases.empty.new.body': 'ستظهر فواتير شراء المنتجات من الموردين هنا فور إنشائها.',
+  'purchases.empty.new.action': 'إنشاء فاتورة شراء',
+  'purchases.empty.search.title': 'لا توجد فاتورة مطابقة لـ «{query}».',
+  'purchases.empty.search.body': 'جرّب رقم فاتورة أو اسم مورد آخر، أو امسح البحث.',
+  'purchases.empty.filters.title': 'لا نتائج مطابقة للفلاتر المطبَّقة.',
+  'purchases.empty.filters.body': 'وسّع الفلاتر أو امسحها لعرض الفواتير.',
+  'purchases.error.title': 'تعذّر تحميل فواتير الشراء.',
+  'purchases.error.body': 'تحقق من الاتصال ثم أعد المحاولة.',
+  'purchases.error.retry': 'إعادة المحاولة',
 } as const;
 
 export type MessageKey = keyof typeof AR;

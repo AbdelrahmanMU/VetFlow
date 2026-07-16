@@ -146,19 +146,24 @@ public sealed class ConventionTests
     }
 
     [Fact]
-    public void Catalog_and_categories_modules_do_not_reach_into_each_other_STD_BE_005()
+    public void Business_modules_do_not_reach_into_each_other_STD_BE_005()
     {
         // Query handlers are the sanctioned cross-module read path (ADR-0014 §2);
         // shared Persistence and the composition root wire everything.
         AssertNoDependency(
             "VetFlow.Domain.Catalog",
             "VetFlow.Application.Catalog",
-            forbidden: ["VetFlow.Domain.Categories", "VetFlow.Application.Categories"]);
+            forbidden: ["VetFlow.Domain.Categories", "VetFlow.Application.Categories", "VetFlow.Domain.Purchasing", "VetFlow.Application.Purchasing"]);
 
         AssertNoDependency(
             "VetFlow.Domain.Categories",
             "VetFlow.Application.Categories",
-            forbidden: ["VetFlow.Domain.Catalog", "VetFlow.Application.Catalog"]);
+            forbidden: ["VetFlow.Domain.Catalog", "VetFlow.Application.Catalog", "VetFlow.Domain.Purchasing", "VetFlow.Application.Purchasing"]);
+
+        AssertNoDependency(
+            "VetFlow.Domain.Purchasing",
+            "VetFlow.Application.Purchasing",
+            forbidden: ["VetFlow.Domain.Catalog", "VetFlow.Application.Catalog", "VetFlow.Domain.Categories", "VetFlow.Application.Categories"]);
     }
 
     private static void AssertNoDependency(string namespaceA, string namespaceB, string[] forbidden)

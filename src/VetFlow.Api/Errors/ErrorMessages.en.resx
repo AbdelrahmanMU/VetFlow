@@ -57,6 +57,9 @@
   <data name="validation.integer.invalid" xml:space="preserve">
     <value>The value must be an integer.</value>
   </data>
+  <data name="validation.date.invalid" xml:space="preserve">
+    <value>The value must be a valid date in year-month-day format.</value>
+  </data>
   <data name="validation.sort.unknown" xml:space="preserve">
     <value>Unknown sort field.</value>
   </data>
