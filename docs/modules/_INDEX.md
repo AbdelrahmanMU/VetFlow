@@ -6,8 +6,8 @@
 
 | Module | Folder | Status |
 |---|---|---|
-| Catalog (incl. Pricing) | `catalog/` | Approved (docs 8/8, 2026-07-14) — Product List + Create/View Details + Edit (non-audited unified editor, DEC-CAT-031) + Manufacturer Managed Data (REQ-CAT-047/048, DEC-CAT-032) slices implemented (last uncommitted, pending owner review) |
-| Categories | `categories/` | Approved (docs 8/8, 2026-07-16 — Managed Data slice, REQ/BR/AC-CTG, owner-ruled) — implemented (uncommitted, pending owner review) |
+| Catalog (incl. Pricing) | `catalog/` | Approved (docs 8/8, 2026-07-14) — Product List + Create/View Details + Edit (non-audited unified editor, DEC-CAT-031) + Manufacturer Managed Data (REQ-CAT-047/048, DEC-CAT-032) slices implemented & committed (`9e5c99c`, 2026-07-16) |
+| Categories | `categories/` | Approved (docs 8/8, 2026-07-16 — Managed Data slice, REQ/BR/AC-CTG, owner-ruled) — implemented & committed (`9e5c99c`, 2026-07-16) |
 | Suppliers | `suppliers/` | Not documented |
 | Customers (minimal) | `customers/` | Not documented |
 | Purchasing | `purchasing/` | Not documented |

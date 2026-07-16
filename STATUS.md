@@ -16,12 +16,20 @@ changes require evidence (Governance Change Policy — `docs/architecture/princi
 
 **Every implementation session starts at `.claude/playbooks/implementation.md`.**
 
-## Session close (2026-07-16, Task 4) — Manufacturers Managed Data DONE (backend + frontend + editor), all gates green, live-verified, awaiting owner review, NOT committed
+## Session close (2026-07-16, Task 4) — Managed Data slice DONE, owner-APPROVED, and COMMITTED (`9e5c99c` + `6263b43`)
+
+**Owner review 2026-07-16: the whole four-task Managed Data slice is APPROVED and now COMMITTED**
+(two commits: `9e5c99c` `feat(managed-data): Categories and Manufacturers management` — implementation
+only; `6263b43` `docs(managed-data): synchronize repository after Managed Data slice` — STATUS/_INDEX/
+ledger only, no mixing). **Not pushed** (no remote — owner item #4). Owner rulings this session:
+duplication decision **approved** (leave it — do NOT build a ManagedData framework; rule of three
+remains; **TD-106** stays open until a third managed entity exists); **TD-107 accepted as debt — do
+NOT raise the warning budget** (future work must shrink the bundle, not relax the gate). No new business
+decision — all behavior implements already-approved DEC-CAT-032 / DEC-CTG-002; no DEC/ADR owed.
 
 **Task 4 — Manufacturers Managed Data (REQ-CAT-047/048, BR-CAT-052/053, DEC-CAT-032) — DONE, green,
-live-verified.** This completes the Managed Data vertical slice (Tasks 1 Categories backend · 2
-Categories frontend · 3 Product-Editor category active-only · 4 Manufacturers). **Owner rule: one
-vertical cut — still NOT committed; owner review pending before commit. Do not push.**
+live-verified.** This completed the Managed Data vertical slice (Tasks 1 Categories backend · 2
+Categories frontend · 3 Product-Editor category active-only · 4 Manufacturers).
 
 - **Architecture — mirrored Categories, did NOT abstract (owner directive: prefer copy over premature
   framework; rule of three).** Manufacturers now form a second near-identical managed-data stack. With
@@ -111,8 +119,8 @@ directive and not an unnecessary-complexity violation; boundary intact; no inven
 no ADR owed — reusing an endpoint client-side + copying a per-entity CRUD surface are cheap-to-reverse
 engineering details already covered by DEC-CAT-032 / DEC-CTG-002).
 
-**STOP per owner instruction: all gates green → do not commit, do not push, do not start another slice.
-Await owner approval to commit the whole four-task Managed Data slice.**
+**Owner approved → committed (`9e5c99c` + `6263b43`); not pushed. Next slice recommended below
+(Inventory) but NOT started, per owner instruction.**
 
 ## Session close (2026-07-16, Task 3) — Product-Editor active-only integration DONE, self-reviewed & live-verified, awaiting owner review, NOT committed
 
@@ -579,16 +587,24 @@ tech-debt ledger → start Slice 2 (Product Editor).
 
 ## In flight / next
 
-**Managed Data slice COMPLETE (all four tasks), one vertical cut, UNCOMMITTED — awaiting owner review.**
-Tasks 1 (Categories backend), 2 (Categories frontend), 3 (Product-Editor category active-only), and
-**4 (Manufacturers backend + frontend + editor manufacturer active-only)** are all DONE, green, and
-live-verified — see the top session-close blocks. Task 4 mirrored Categories (owner directive: prefer copy
-over premature framework); the repurpose-and-delete of `GET /api/v1/manufacturers` mirrors Task 1 exactly
-(the old `ManufacturerOptionsQuery` was deleted, the product-list filter + editor consume the superset).
-**Nothing committed or pushed. Per the owner's explicit stop: with all gates green, wait for owner approval
-before committing the whole four-task slice; do not push; do not start another slice** (not Images, not
-Audit, not Authentication, not Inventory). Open decisions surfaced by this slice: bundle-budget warning
-(open item 11 / F8) and the previously-deferred Accept-Language interceptor (open item 10 / F7).
+**Managed Data slice COMPLETE and COMMITTED (`9e5c99c` impl + `6263b43` docs), owner-approved, not
+pushed.** All four tasks (Categories backend/frontend, Product-Editor category active-only, Manufacturers
+backend/frontend + editor manufacturer active-only) are done, green (290 tests: backend 192, frontend 98),
+and live-verified. Two managed-data stacks kept as deliberate copies (Categories module · Catalog
+manufacturers) — rule of three (TD-106) governs any future extraction.
+
+**Recommended next slice — Inventory (stock-ledger foundation), NOT started (owner picks; do not start
+unprompted).** Rationale (full comparison in the 2026-07-16 owner report): Inventory is the topological
+linchpin of the commercial cycle — it sits directly on Catalog (products + units, done) with **no unmet
+upstream dependency**, and Purchasing/Sales/Monitoring/Batch/Reports all depend on it (very high reuse).
+Scope the first cut minimally to **stock-on-hand + manual adjustment / opening balance** (the Catalog
+Slice-1/2 "start minimal" discipline). **Documentation-First gate applies:** Inventory is "Not documented"
+— the slice must begin with a discovery→owner-approval pass **plus one ledger-model ADR** (snapshot-balance
+vs. movement-ledger — expensive to reverse), i.e. docs + ADR before any code. Runner-up: **Audit** (no
+upstream deps, high reuse, ideally precedes the first write-heavy transactional module) — blocked on the
+audit record-shape decision (open item 2 / DEC-CAT-028), which can be decided in parallel. **Auth** and
+**Images** are owner-blocked (mechanism / storage undecided). **Sales** is highest-value but most
+downstream (needs Inventory + Customers + Cash).
 
 **Candidate next slices (owner picks — do not start unprompted):**
 - **Categories / managed-data (S6, ledger TD-105)** — the recommended next step: today a
@@ -645,12 +661,11 @@ stop that process first.
     ~10 lines, one location. It touches cross-cutting infra, so it needs **explicit owner approval**
     before implementation (do not add silently). Alternative (keep local copy per message) rejected:
     duplicative and leaves unmapped/infra messages in English. See friction F7.
-11. **Frontend initial-bundle budget crossed the warning line (Task 4).** `ng build` succeeds but the
-    initial JS is **503.56 kB vs the 500 kB `maximumWarning`** budget (`maximumError` is 1 MB — no error,
-    build exits 0). Cause: the Managed Data slice's eager `ar.ts` i18n additions (Categories + Manufacturers
-    copy). Owner decision: raise the warning budget to fit the current app, or lazy-load per-feature i18n so
-    the eager core shrinks. Additive, low-risk either way; NOT changed this slice (raising a budget is a gate
-    change — needs owner approval). See friction F8.
+11. **RESOLVED (owner ruling 2026-07-16) — Frontend initial-bundle budget warning.** `ng build` succeeds
+    but the initial JS is 503.56 kB vs the 500 kB `maximumWarning` (error budget 1 MB). **Owner ruled:
+    accept as technical debt (TD-107); do NOT raise the warning budget — the warning is intentional, and
+    future optimization must reduce the bundle, not relax the gate.** No further action pending; TD-107
+    tracks the eventual reduction (e.g. lazy per-feature i18n). See friction F8.
 
 ## Sprint 2 — Engineering Foundation (COMPLETE, 2026-07-14)
 
