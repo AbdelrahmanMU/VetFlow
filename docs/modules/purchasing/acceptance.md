@@ -1,6 +1,6 @@
 # Purchasing — Acceptance
 
-> Status: Approved (2026-07-16) — Slice 1 (Purchase List); Approved (2026-07-17) — Slice 2 (Purchase Details). Sprint 4.
+> Status: Approved (2026-07-16) — Slice 1 (Purchase List); Approved (2026-07-17) — Slice 2 (Purchase Details); Approved (2026-07-17) — Slice 3 (Create Purchase). Sprint 4.
 
 ## Acceptance criteria
 
@@ -31,9 +31,21 @@
 المنتج المعتمد.
 - **يتتبّع:** REQ-PUR-002
 
+### AC-PUR-006 — إنشاء فاتورة شراء بنجاح (Slice 3)
+عند إدخال اسم مورد وتاريخ فاتورة صحيحين (ومرجع/ملاحظات اختياريين) وحفظ، تُنشأ فاتورة جديدة **مسودة**
+برقم نظام مُولَّد آليًا (`PUR-000001`) وإجمالي **صفر (EGP)**، وينتقل المستخدم إلى شاشة تفاصيلها
+(REQ-PUR-002). لا يختار المستخدم الحالة ولا رقم النظام.
+- **يتتبّع:** REQ-PUR-003، BR-PUR-001، BR-PUR-002، BR-PUR-003
+
+### AC-PUR-007 — تحقّق إنشاء فاتورة الشراء (Slice 3)
+حين يغيب اسم المورد أو تاريخ الفاتورة، يرفض النظام الحفظ ويعرض رسائل خطأ **حقلًا بحقل** (عربية RTL)
+دون إنشاء فاتورة؛ الحقول الاختيارية (المرجع/الملاحظات) لا تمنع الحفظ.
+- **يتتبّع:** REQ-PUR-003، BR-PUR-001
+
 ## Owner sign-off
 
 | Date | Scope approved | Signed by |
 |---|---|---|
 | 2026-07-16 | Slice 1 — Purchase List (REQ-PUR-001، BR-PUR-001..004، AC-PUR-001..003، DEC-PUR-001) | المالك |
 | 2026-07-17 | Slice 2 — Purchase Details (REQ-PUR-002، AC-PUR-004..005، TS-PUR-008..011؛ تعيد استخدام BR-PUR-001..003) | المالك |
+| 2026-07-17 | Slice 3 — Create Purchase (REQ-PUR-003، AC-PUR-006..007، TS-PUR-012..015؛ تعيد استخدام BR-PUR-001..003، DEC-PUR-001؛ إجمالي صفر عند الإنشاء — البنود مؤجَّلة، حسم المالك) | المالك |

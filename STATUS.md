@@ -3,7 +3,7 @@
 > The single mutable state file. Update it before ending any significant
 > session. Stable knowledge does NOT belong here — it goes in `docs/`.
 
-**Updated:** 2026-07-17
+**Updated:** 2026-07-17 (Slice 3 — Create Purchase — COMPLETED, owner-APPROVED, COMMITTED `375e2ab`)
 
 ## Current sprint
 
@@ -15,6 +15,56 @@ safe, and evaluate the change only after the feature is complete.** Governance
 changes require evidence (Governance Change Policy — `docs/architecture/principles.md`).
 
 **Every implementation session starts at `.claude/playbooks/implementation.md`.**
+
+## Session close (2026-07-17) — Purchasing Slice 3 (Create Purchase): COMPLETED, owner-APPROVED, COMMITTED (`375e2ab` + this docs commit)
+
+**Slice 3 = COMPLETED.** The Create Purchase vertical slice is implemented, fully gated, live-verified,
+owner-approved, and COMMITTED as two commits (`375e2ab` `feat(purchasing): Create Purchase (Slice 3)` —
+backend + frontend + tests; this `docs(purchasing): synchronize repository after Create Purchase` —
+STATUS/module docs/_INDEX, no mixing). **Not pushed** (no remote — standing owner item). Owner directed:
+do not squash, do not push.
+
+**DoR (owner-approved 2026-07-17, prior session).** Drafted minimal Slice-3 docs; owner approved with the
+explicit ruling **Total = 0 on create** (DEC-PUR-002). Approved IDs: **REQ-PUR-003** (create header only —
+supplier name required · reference optional · invoice date required · notes optional; number auto-`PUR-`;
+born **Draft**; **total 0 EGP**; success → Details) · **AC-PUR-006** (success) · **AC-PUR-007**
+(field-by-field validation) · **TS-PUR-012..015** · **DEC-PUR-002** (Total 0; BR-PUR-001 total clause
+time-scoped to a later line-items slice). All five module doc files Approved + sign-off.
+
+**Scope delivered (exactly the approved docs — nothing else):** the first write path in Purchasing.
+- **Backend:** `Application/Purchasing/Commands/CreatePurchaseInvoice/` (Command · Result · Validator —
+  supplier + invoiceDate required, length caps reuse `TextTooLong`); `Infrastructure/Purchasing/
+  CreatePurchaseInvoiceCommandHandler.cs` (allocates the `PUR-` number from `purchase_invoice_number_seq`,
+  builds the aggregate Draft/**total 0**/`TimeProvider.GetUtcNow()`, one `SaveChanges` — mirrors
+  `CreateProductCommandHandler`); `Api/Endpoints/Purchasing/CreatePurchaseInvoiceRequest` +
+  **`POST /api/v1/purchase-invoices`** (201 + Location → Details). Registered: Infrastructure DI (handler +
+  `AddSingleton(TimeProvider.System)`), `CommandPipeline`, Application DI (validator); new
+  `ValidationMessageKeys.SupplierNameRequired`/`InvoiceDateRequired` + ar/en resx. **No migration**
+  (table/sequence/indexes exist from Slice 1). **No new architecture/library/ADR.**
+- **Frontend:** `purchase-create-page.component.ts` mirroring the approved product-editor create path
+  (STD-FE-004) — typed reactive form (STD-FE-016), submit → markAllAsTouched → invalid returns, POST →
+  success navigates to `/purchases/:id`, error → banner, `errorFor` on submitted/touched. Route
+  `/purchases/new` **before** `:id`; list header «إنشاء فاتورة شراء» button + wired empty-state CTA (both
+  → `/purchases/new`); `VfDateInput` additive `error`/`required` inputs (backward-compatible); i18n
+  `purchaseCreate.*` + `purchases.create`. Supporting models/forms/api service (from the prior session).
+
+**Gates (independently re-run):** `dotnet build` 0/0 Release · `dotnet format` clean (also fixed stray LF
+line-endings in the new integration test) · backend **231** (Domain **80** +1 · Architecture **64** ·
+Integration **87** +4) · frontend **118** (+5) · ESLint + Stylelint clean · `ng build` exit 0 (initial
+538.18 kB — TD-107 warning budget, not raised). **Live-verified (headless Chrome/CDP, real stack — db :5434
++ API :5080 + ng :4200, dev-seeded):** desktop 1440 + mobile 390 both `dir=rtl`, **zero horizontal
+overflow**, **zero console errors**; empty submit → 2 field errors «هذا الحقل مطلوب.», no navigation
+(AC-PUR-007); create round-trip → Details `PUR-000007`, badge **مسودة**, reference **—**, total **0.00 ج.م.**
+(DEC-PUR-002), zero console errors (AC-PUR-006). API curl: 201 + Location and per-field 400.
+
+**Nine-question self-review: all NO** (no principle/ADR/standard breach; mirror-not-duplicate; boundary
+intact; minimal; no invented logic — no date cap, no total input; docs were Approved last session so
+code-only; no ADR owed). **Findings:** none blocking — the empty-state CTA was wired but not live-driven
+(dev DB non-empty); it calls the same `goToCreate()` handler as the live-verified header button. **TD:**
+none new; TD-107 unchanged and not relaxed. Dev DB holds a few harmless verify invoices (`PUR-000006/007`).
+
+**Next (NOT started):** Purchasing Slice 4 — Receive (per the Sprint-4 order). Pre-existing untracked
+(intentionally not committed): `docs/releases/`, `docs/ui/product-editor-ux-architecture.md`.
 
 ## Session close (2026-07-17) — Purchasing Slice 2 (Purchase Details): COMPLETED, owner-APPROVED (final), COMMITTED (`a0cf372` + this docs commit)
 
