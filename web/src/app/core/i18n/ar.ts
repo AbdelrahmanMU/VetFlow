@@ -271,6 +271,7 @@ export const AR = {
   'purchases.column.total': 'الإجمالي',
   'purchases.column.createdAt': 'تاريخ الإنشاء',
   'purchases.reference.label': 'مرجع المورد',
+  'purchases.row.open': 'عرض تفاصيل الفاتورة {number}',
 
   'purchases.status.draft': 'مسودة',
   'purchases.status.received': 'مستلمة',
@@ -286,6 +287,22 @@ export const AR = {
   'purchases.error.title': 'تعذّر تحميل فواتير الشراء.',
   'purchases.error.body': 'تحقق من الاتصال ثم أعد المحاولة.',
   'purchases.error.retry': 'إعادة المحاولة',
+
+  'purchaseDetails.loading': 'جارٍ تحميل فاتورة الشراء…',
+  'purchaseDetails.error.title': 'تعذّر تحميل فاتورة الشراء.',
+  'purchaseDetails.error.body': 'تحقق من الاتصال ثم أعد المحاولة.',
+  'purchaseDetails.error.retry': 'إعادة المحاولة',
+  'purchaseDetails.notFound.title': 'فاتورة الشراء غير موجودة.',
+  'purchaseDetails.notFound.body': 'قد يكون الرابط غير صحيح.',
+  'purchaseDetails.back': 'العودة إلى المشتريات',
+  'purchaseDetails.section.invoice': 'بيانات الفاتورة',
+  'purchaseDetails.section.notes': 'الملاحظات',
+  'purchaseDetails.supplier': 'المورد',
+  'purchaseDetails.reference': 'مرجع فاتورة المورد',
+  'purchaseDetails.invoiceDate': 'تاريخ الفاتورة',
+  'purchaseDetails.total': 'الإجمالي',
+  'purchaseDetails.createdAt': 'تاريخ الإنشاء',
+  'purchaseDetails.noNotes': 'لا توجد ملاحظات',
 } as const;
 
 export type MessageKey = keyof typeof AR;

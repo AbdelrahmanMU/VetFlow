@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 
 import { FormatService } from '../../../../core/i18n/format.service';
 import { TranslationService } from '../../../../core/i18n/translation.service';
@@ -16,7 +16,14 @@ import { PurchaseStatusBadgeComponent } from './purchase-status-badge.component'
   template: `
     <ul class="cards">
       @for (invoice of rows(); track invoice.id) {
-        <li class="card">
+        <li
+          class="card"
+          tabindex="0"
+          role="button"
+          [attr.aria-label]="t.t('purchases.row.open', { number: invoice.number })"
+          (click)="open.emit(invoice.id)"
+          (keydown.enter)="open.emit(invoice.id)"
+        >
           <div class="card-main">
             <span class="card-number vf-num">{{ invoice.number }}</span>
             <span class="card-supplier">{{ invoice.supplierName }}</span>
@@ -50,6 +57,12 @@ import { PurchaseStatusBadgeComponent } from './purchase-status-badge.component'
       border-radius: var(--vf-radius);
       padding: var(--vf-space-3) var(--vf-space-4);
       min-block-size: 4rem;
+      cursor: pointer;
+    }
+
+    .card:focus-visible {
+      outline: none;
+      box-shadow: var(--vf-focus-ring);
     }
 
     .card-main {
@@ -92,4 +105,5 @@ export class PurchaseCardsComponent {
   protected readonly format = inject(FormatService);
 
   readonly rows = input.required<readonly PurchaseListItem[]>();
+  readonly open = output<string>();
 }

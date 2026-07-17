@@ -48,6 +48,7 @@ public static class DependencyInjection
         services.AddScoped<RenameManufacturerCommandHandler>();
         services.AddScoped<SetManufacturerActiveCommandHandler>();
         services.AddScoped<PurchaseListQueryHandler>();
+        services.AddScoped<PurchaseDetailsQueryHandler>();
 
         return services;
     }

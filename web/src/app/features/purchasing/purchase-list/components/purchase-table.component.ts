@@ -47,7 +47,13 @@ const PURCHASE_COLUMNS: readonly PurchaseColumn[] = [
       (sortChange)="onSortChange($event)"
     >
       <ng-template #row let-invoice let-cols="columns">
-        <tr tabindex="0">
+        <tr
+          tabindex="0"
+          class="clickable-row"
+          [attr.aria-label]="t.t('purchases.row.open', { number: invoice.number })"
+          (click)="open.emit(invoice.id)"
+          (keydown.enter)="open.emit(invoice.id)"
+        >
           @for (col of cols; track col.id) {
             @switch (col.id) {
               @case ('number') {
@@ -89,6 +95,10 @@ const PURCHASE_COLUMNS: readonly PurchaseColumn[] = [
       min-block-size: 0;
     }
 
+    .clickable-row {
+      cursor: pointer;
+    }
+
     .number {
       font-weight: 600;
       color: var(--vf-text);
@@ -126,6 +136,7 @@ export class PurchaseTableComponent {
   readonly rows = input.required<readonly PurchaseListItem[]>();
   readonly sort = input.required<PurchaseSort>();
   readonly sortChange = output<PurchaseSort>();
+  readonly open = output<string>();
 
   protected readonly tableColumns = computed<readonly VfTableColumn[]>(() =>
     PURCHASE_COLUMNS.map((column) => ({

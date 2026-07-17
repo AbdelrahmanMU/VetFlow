@@ -1,6 +1,7 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
 import { map } from 'rxjs/operators';
 
 import { FormatService } from '../../../core/i18n/format.service';
@@ -123,12 +124,13 @@ import { PurchasesApiService } from './purchases-api.service';
               @default {
                 @if (readyView(); as view) {
                   @if (isMobile()) {
-                    <app-purchase-cards [rows]="view.items" />
+                    <app-purchase-cards [rows]="view.items" (open)="goToDetails($event)" />
                   } @else {
                     <app-purchase-table
                       [rows]="view.items"
                       [sort]="store.sort()"
                       (sortChange)="store.setSort($event)"
+                      (open)="goToDetails($event)"
                     />
                   }
                   <vf-pagination
@@ -239,6 +241,7 @@ export class PurchaseListPageComponent {
   protected readonly format = inject(FormatService);
   protected readonly store = inject(PurchaseListStore);
   private readonly breakpoints = inject(BreakpointObserver);
+  private readonly router = inject(Router);
 
   protected readonly pageSize = PurchaseListStore.PageSize;
   protected readonly filtersOpen = signal(false);
@@ -252,6 +255,10 @@ export class PurchaseListPageComponent {
     const view = this.store.view();
     return view.kind === 'ready' ? view : null;
   });
+
+  protected goToDetails(id: string): void {
+    void this.router.navigate(['/purchases', id]);
+  }
 
   protected readonly announcement = computed(() => {
     const view = this.store.view();
