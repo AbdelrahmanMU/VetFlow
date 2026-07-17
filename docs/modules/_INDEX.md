@@ -10,7 +10,7 @@
 | Categories | `categories/` | Approved (docs 8/8, 2026-07-16 — Managed Data slice, REQ/BR/AC-CTG, owner-ruled) — implemented & committed (`9e5c99c`, 2026-07-16) |
 | Suppliers | `suppliers/` | Not documented |
 | Customers (minimal) | `customers/` | Not documented |
-| Purchasing | `purchasing/` | Not documented |
+| Purchasing | `purchasing/` | Approved (Slice 1 — Purchase List, Sprint 4, 2026-07-16; REQ-PUR-001, BR-PUR-001..004, AC-PUR-001..003, DEC-PUR-001) — Slice-1 implemented & green, awaiting owner review (uncommitted) |
 | Sales | `sales/` | Not documented |
 | Inventory | `inventory/` | Not documented |
 | Batch | `batch/` | Not documented |

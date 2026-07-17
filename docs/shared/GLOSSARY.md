@@ -52,6 +52,8 @@
 | Sale | عملية بيع | Selling to a customer. |
 | Sale refund | استرجاع بيع | Reversing a sale. Exact rules TODO (Sales module docs). |
 | Purchase | عملية شراء | Buying from a supplier. |
+| Purchase invoice | فاتورة شراء | The document recording a purchase from a supplier — the header identity that goods enter inventory by (BR-PUR-001). Its system number is its stable identity (BR-PUR-002). |
+| Purchase invoice number | رقم فاتورة الشراء | System-generated internal number, `PUR-000001` format, immutable and never reused (BR-PUR-002). |
 | Purchase return | إرجاع مشتريات | Returning purchased goods to a supplier. Exact rules TODO (Purchasing module docs). |
 
 ## Money & records — النقدية والسجلات

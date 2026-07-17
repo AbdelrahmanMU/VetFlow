@@ -181,12 +181,28 @@ Design-boundary edges surfaced by implementation.
 ### TD-107 — Frontend initial-bundle warning budget crossed (F8, recorded 2026-07-16)
 - **Description:** the Managed Data slice's eager `ar.ts` i18n additions pushed the initial JS to
   503.56 kB vs the 500 kB `maximumWarning` budget (`maximumError` 1 MB — build still passes). The whole
-  UI string table lives in one eagerly-loaded `AR` object.
+  UI string table lives in one eagerly-loaded `AR` object. The Purchase List slice added its own eager
+  `purchases.*` strings (~4.5 kB → 508.14 kB), continuing the trend.
 - **Reason for deferral:** warning-level only; raising a budget is a gate change needing owner approval,
   and lazy-splitting i18n is an architectural change out of the slice scope.
 - **Estimated impact:** Low now; grows as more features add eager strings.
-- **Recommended sprint:** owner decision (STATUS open item 11) — raise the warning budget, or split
-  i18n per lazy feature (preferred if a third feature repeats the pattern).
+- **Recommended sprint:** **owner ruling (2026-07-17): keep TD-107 open — do NOT raise budgets, do NOT
+  relax gates, do NOT optimize prematurely.** Bundle optimization happens only after measurable user
+  impact or future growth. Candidate fix stays lazy per-feature i18n.
+
+### TD-108 — Status sort uses lexicographic string order, not lifecycle order (recorded 2026-07-17, owner-ruled)
+- **Description:** "sort by status" orders by the persisted enum string (`HasConversion<string>`), i.e.
+  alphabetically — Cancelled → Draft → Received for Purchasing (`PurchaseListQueryHandler.ApplySorting`),
+  and Active → Disabled for Catalog (`ProductListQueryHandler.ApplySorting`). Not a business lifecycle order.
+- **Owner ruling (2026-07-17):** business ordering must always be **explicit** — never depend on enum names
+  or localized strings. Define the Purchasing lifecycle order as **Draft → Received → Cancelled** via an
+  explicit internal mapping (ordinal / switch / expression). Reuse the same business-ordering pattern for
+  Product Status to keep the system consistent. **Explicitly NOT a blocker for the Purchase List slice** —
+  recorded as a small follow-up to implement **together with Product Status in a later consistency pass**,
+  so both modules gain explicit ordering at once (avoids a cross-module divergence mid-slice).
+- **Estimated impact:** Low — status sort is deterministic today, just not lifecycle-ordered; consistent
+  across both modules (both lexicographic).
+- **Recommended sprint:** a small cross-module consistency pass covering Purchasing + Catalog status sort.
 
 ---
 

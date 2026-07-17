@@ -1,5 +1,26 @@
 # Purchasing — Acceptance
 
-> Status: Placeholder — pending documentation phase. Do not implement from this file.
+> Status: Approved (2026-07-16) — Slice 1 (Purchase List), Sprint 4.
 
-Acceptance criteria and owner sign-off will be documented here.
+## Acceptance criteria
+
+### AC-PUR-001 — عرض قائمة فواتير الشراء
+تعرض الشاشة فواتير الشراء بالأعمدة الستة (رقم النظام، المورد، تاريخ الفاتورة، الحالة، الإجمالي،
+تاريخ الإنشاء)، مع الحالات الأربع، والبحث والفلاتر والفرز والترقيم كما في BR-PUR-004، بواجهة
+عربية RTL دون فيض أفقي، وبتصميم متجاوب (جدول على سطح المكتب، بطاقات على الجوال).
+- **يتتبّع:** REQ-PUR-001، BR-PUR-004
+
+### AC-PUR-002 — شارة الحالة العربية
+تُعرض حالة كل فاتورة كشارة عربية بدلالتها: **مسودة (محايد) / مستلمة (نجاح) / ملغاة (خطر)** —
+الألوان تخصّ لغة التصميم.
+- **يتتبّع:** BR-PUR-003
+
+### AC-PUR-003 — تنسيق رقم النظام
+يُعرض رقم النظام بالصيغة `PUR-000001`.
+- **يتتبّع:** BR-PUR-002
+
+## Owner sign-off
+
+| Date | Scope approved | Signed by |
+|---|---|---|
+| 2026-07-16 | Slice 1 — Purchase List (REQ-PUR-001، BR-PUR-001..004، AC-PUR-001..003، DEC-PUR-001) | المالك |

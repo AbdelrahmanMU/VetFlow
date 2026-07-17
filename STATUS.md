@@ -3,7 +3,7 @@
 > The single mutable state file. Update it before ending any significant
 > session. Stable knowledge does NOT belong here — it goes in `docs/`.
 
-**Updated:** 2026-07-16
+**Updated:** 2026-07-17
 
 ## Current sprint
 
@@ -15,6 +15,124 @@ safe, and evaluate the change only after the feature is complete.** Governance
 changes require evidence (Governance Change Policy — `docs/architecture/principles.md`).
 
 **Every implementation session starts at `.claude/playbooks/implementation.md`.**
+
+## Session close (2026-07-17) — Purchasing Slice 1 (Purchase List) DONE, owner-APPROVED (final), COMMITTED (`c2669f7` + this docs commit)
+
+**The Purchase List vertical slice is implemented, fully gated, live-verified, owner-approved, and
+COMMITTED as two commits** (`c2669f7` `feat(purchasing): Purchase List (Slice 1)` — implementation +
+tests; this `docs(purchasing): synchronize repository after Purchase List` — STATUS/_INDEX/GLOSSARY/
+module docs/TD ledger, no mixing). **Not pushed** (no remote — standing owner item). Owner ended the
+session with an explicit stop after the two commits: do NOT start Purchase Details / Slice 2.
+
+**Scope delivered (exactly the approved docs):** read-only list (REQ-PUR-001) — search (number exact /
+supplier contains / reference contains, Arabic-normalized, **not notes**), status + invoice-date-range
+filters, whitelisted sort + stable `Id` tiebreaker, default newest-first, pagination, Arabic status
+badges (AC-PUR-002), `PUR-000001` format (AC-PUR-003, BR-PUR-002), four data-view states, RTL,
+responsive table/cards. **Nothing else** — no create/edit/receive, inventory, suppliers CRUD, ledger,
+payments, taxes, discounts, line items (scope lock held).
+
+**Architecture:** new **isolated Purchasing module** (Domain/Application namespaces; arch isolation test
+extended to it, green) mirroring the Catalog list pattern — reused query pipeline, RFC-9457 middleware,
+`ArabicSearchText`/`SearchTextInterceptor`/`SearchableText`, pagination, and the `PRD-`-style PG sequence
+(as `PUR-`). Header-only `PurchaseInvoice` aggregate born Draft (BR-PUR-003); **Received/Cancelled
+transition methods deferred** to the receiving slice (non-Draft states seeded directly — the Catalog
+`MarkDisabled` precedent). No new architecture, no new library. One new UI-kit primitive `VfDateInput`
+(date-range filter) — owner-approved. Dev seed: config-gated (`Database:SeedDevelopmentDataAtStartup`),
+**Development only, idempotent, never tests/prod** (DEC-PUR-001) — leaves 5 sample rows in the dev DB.
+
+**Gates (independently re-run, not trusted from prior reports):** `dotnet build` 0/0 Release · `dotnet
+format` clean · backend **220** (Domain **79** · Architecture **62** · Integration **79**) · frontend
+**109** (+11) · ESLint + Stylelint clean. **Live-verified (headless Chrome, real stack — db :5434 + API
+:5080 + ng serve :4200):** list at 1440 (table) and 390 (cards), **dir=rtl and zero horizontal overflow
+at both**, 5 rows newest-first, all three badges (مسودة/مستلمة/ملغاة), search-narrows, no-match empty
+state, sort-by-total reorders, filters drawer (status select + 2 date inputs render), **zero console
+errors** everywhere. API curl checks: normalized supplier search, exact number, reference, status filter,
+date range, sort, malformed-date → 400.
+
+**Owner rulings applied (2026-07-17 final approval):** (1) **status sort → explicit lifecycle order
+Draft→Received→Cancelled, recorded as TD-108, deferred to a joint consistency pass with Product Status**
+(owner-sanctioned: implement both together to keep the system consistent — not a Slice-1 blocker);
+(2) supplier reference kept as secondary metadata in the supplier column (documented in `ui.md`, not a
+7th column); (3) **TD-107 kept open** — do not raise bundle budgets / relax gates / optimize prematurely
+(the slice's eager i18n nudged the initial bundle to 508.14 kB, warning-only, error budget 1 MB, exit 0);
+(4) dev seed, (5) query impl, (6) search semantics, (7) indexes — all approved as-is, no change.
+
+**Doc corrections this session:** TS-PUR-001 fixed (five→six columns); supplier-reference display
+documented (`ui.md`); state-machine/seed deferral documented (`business-rules.md` BR-PUR-003 +
+`decisions.md` DEC-PUR-001); GLOSSARY «فاتورة شراء»/«رقم فاتورة الشراء»; `_INDEX` Purchasing row;
+TD-108 added, TD-107 updated. Consistency review clean (no drift, no broken refs, no gate regression).
+
+**Next (NOT started, per owner):** Purchasing Slice 2 — Purchase Details. Untracked and intentionally
+not committed (pre-existing, prior sessions): `docs/releases/`, `docs/ui/product-editor-ux-architecture.md`.
+
+## Sprint 4 opened (2026-07-16) — Purchasing Slice 1 (Purchase List): DOCS APPROVED, DoR READY, NO CODE
+
+**Sprint 4 objective (owner):** make inventory *real* — a clinic owner must be able to receive
+products into inventory via purchase invoices. Optimize for **business value / MVP velocity, not
+governance expansion** — no new ADRs/standards/playbooks unless implementation proves a real gap.
+Build **small vertical slices**, stop after each for owner review. Recommended order: **1 Purchase
+List · 2 Details · 3 Create Invoice · 4 Receive · 5 Inventory Update**.
+
+**Owner scoping rulings (2026-07-16):** (a) **lightweight per-slice discovery** — draft minimal docs
+per slice → owner approves → implement; (b) **supplier = free-text name** (no Suppliers module — future
+capability, may replace the field without changing purchase identity); (c) **inventory ledger model**
+(movement-ledger vs snapshot-balance — expensive to reverse) **decided at Slice 4**, not now.
+
+**Purchasing module → Approved (Slice-1 scope only), owner sign-off in `acceptance.md`.** The DoR gate
+(playbook Step 0) is now satisfied for Slice 1. Approved IDs:
+- **REQ-PUR-001** — purchase list (search / filters / sort / pagination / 4 states).
+- **BR-PUR-001** invoice header · **BR-PUR-002** `PUR-000001` numbering (generated on first draft
+  persist, immutable, never reused, gaps OK, not editable, not partial-format-searchable — DEC-CAT-026
+  pattern) · **BR-PUR-003** state machine (مسودة→مستلمة | مسودة→ملغاة; مستلمة/ملغاة terminal; forbidden:
+  مستلمة→مسودة, ملغاة→مسودة, مستلمة→ملغاة) · **BR-PUR-004** list (6 frozen columns incl. Created At;
+  search = number/supplier/ref, **not notes**; filters = status + date range; sort whitelist = number/
+  invoice-date/supplier/status/total).
+- **AC-PUR-001..003** · **DEC-PUR-001** (scope + header + ledger deferral + dev-seed 2–5 rows approved).
+- Deferred (documented out-of-scope, not invented): line-items/cost → Slice 3 · receiving/stock → Slice
+  4/5 · ledger ADR → Slice 4 · standalone Suppliers → future. Scope-lock list in `overview.md`.
+
+**Owner APPROVED Slice-1 implementation (2026-07-17).** Implementation started but was **interrupted
+during the context-study phase — ZERO code written.** Working tree = the 8 Purchasing docs (now Approved)
++ `_INDEX.md` row + this STATUS entry, plus the two pre-existing untracked items. Nothing committed.
+
+**Resume point: `implementation.md` → Implementation step** (DoR ✅, Context Loading done). Mode = New
+Feature (budget Medium ≤60k). Mandate = **reuse/mirror the Catalog Product-List pattern** (do NOT invent
+a second list mechanism). Pattern studied this session — canonical **mirror sources** for the next session:
+
+- **Backend query stack (the exact pattern to copy):** `Application/Catalog/Queries/ProductList/`
+  (`ProductListQuery` — page/pageSize/sort/direction consts + `MaxPage` overflow guard · `…Validator`
+  (FluentValidation, `ValidationMessageKeys`) · `ProductListItemDto` · `ProductListSortField` enum ·
+  `ProductStatusFilter` enum) and the handler `Infrastructure/Catalog/ProductListQueryHandler.cs`
+  (CQRS-lite projection, `ApplyFilters` → `ArabicSearchText.Normalize` + `EF.Functions.ILike` on
+  `SearchableText.PropertyName`, `ApplySorting` whitelist **with `.ThenBy(row.Id)` total-order
+  tiebreaker — R3**, `Skip/Take`). Shared: `Application/Common/{PagedResult,IQuery,IQueryHandler,
+  SortDirection,MoneyDto,Currencies,ValidationMessageKeys}`.
+- **Endpoint/parse:** `Api/Endpoints/Catalog/ProductEndpoints.cs` (`MapGet /api/v1/products` +
+  `[AsParameters]`), `ProductListRequest.cs` (token dictionaries → `QueryStringParser`), `Api/Endpoints/
+  QueryStringParser.cs`. Register the handler in `Infrastructure/DependencyInjection.cs`, validator in
+  `Application/DependencyInjection.cs`, query pipeline in `Api/Composition/QueryPipeline.cs`, endpoint in
+  `Program.cs`.
+- **Domain + persistence (still to read next session):** `Domain/Catalog/Product.cs` (aggregate factory/
+  invariant pattern), `Infrastructure/Catalog/InternalProductCode.cs` (**the `PRD-` PostgreSQL-sequence
+  pattern to mirror for `PUR-000001` — BR-PUR-002**), `Persistence/Configurations/ProductConfiguration.cs`,
+  `SearchTextInterceptor.cs` + `SearchableText.cs` + `ArabicSearchText.cs` + `NormalizedArabicName.cs`
+  (search_text maintenance), `VetFlowDbContext.cs`, and a migration (`ProductWritePath`) for the sequence
+  + index migration shape. Frontend mirror: `web/src/app/features/catalog/product-list/` (page/store/
+  models/api/columns/components + specs) — the Purchase list is simpler (2 filters: status + date range).
+
+**Purchasing-specific deltas from the Product-List pattern (per Approved docs):** new `Purchasing`
+namespace/module (NOT inside Catalog); `PurchaseInvoice` aggregate = header only (BR-PUR-001) with a
+3-state enum + state machine (BR-PUR-003, transitions enforced but only Draft is creatable in Slice 1 —
+there is no create endpoint yet, so seed 2–5 rows in dev DB for verification per DEC-PUR-001); list
+columns = 6 incl. CreatedAt; search = number/supplier/ref (NOT notes); filters = status + date-range;
+sort whitelist = number/invoiceDate/supplier/status/total (BR-PUR-004). Snapshot-only entity — **no
+stock, no line items, no receiving** (scope lock). Frontend route `/purchases` + shell nav «المشتريات»;
+empty-state «لا توجد فواتير شراء حتى الآن» + non-functional CTA «إنشاء فاتورة شراء».
+
+**Task list (this session, carried forward):** #1 study pattern (mostly done — backend query stack read;
+domain/persistence + frontend still to read) · #2 backend build · #3 frontend build · #4 tests · #5
+gates+self-review+owner report. **Stop condition unchanged: full gate + owner report, then STOP — do NOT
+commit until owner review** (Sprint-4 rule: stop after every slice).
 
 ## Session close (2026-07-16, Task 4) — Managed Data slice DONE, owner-APPROVED, and COMMITTED (`9e5c99c` + `6263b43`)
 

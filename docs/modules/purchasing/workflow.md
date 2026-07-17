@@ -1,5 +1,10 @@
 # Purchasing — Workflow
 
-> Status: Placeholder — pending documentation phase. Do not implement from this file.
+> Status: Approved (2026-07-16) — Slice 1 (Purchase List), Sprint 4.
 
-Flows, actors, and exception paths will be documented here.
+## WF-PUR-LIST — استعراض قائمة المشتريات
+1. يفتح المستخدم «المشتريات» من التنقّل.
+2. يعرض النظام قائمة فواتير الشراء (أحدث فاتورة أولًا افتراضيًا) بالحالات الأربع للعرض.
+3. يبحث/يفلتر/يفرز/يتنقّل بين الصفحات (BR-PUR-004).
+
+> انتقالات الحالة (مسودة → مستلمة، الإلغاء) والإنشاء والاستلام وأثر المخزون: تُوثَّق في شرائحها.
