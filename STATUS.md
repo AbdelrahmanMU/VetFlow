@@ -16,6 +16,52 @@ changes require evidence (Governance Change Policy — `docs/architecture/princi
 
 **Every implementation session starts at `.claude/playbooks/implementation.md`.**
 
+## Session close (2026-07-17) — Purchasing Slice 2 (Purchase Details): COMPLETED, owner-APPROVED (final), COMMITTED (`a0cf372` + this docs commit)
+
+**Slice 2 = COMPLETED.** The read-only Purchase Details vertical slice is implemented, fully gated,
+live-verified, owner-approved (final rulings applied), and COMMITTED as two commits (`a0cf372`
+`feat(purchasing): Purchase Details (Slice 2)` — implementation + tests; this
+`docs(purchasing): synchronize repository after Purchase Details` — STATUS/_INDEX/module docs/TD ledger,
+no mixing). **Not pushed** (no remote — standing owner item). Owner ended the session with an explicit
+stop: do NOT start Slice 3 / Create Purchase.
+
+**Scope delivered (exactly the approved docs — REQ-PUR-002, AC-PUR-004/005, TS-PUR-008..011):** open any
+invoice from the list (table row click · keyboard **Enter** · mobile card tap → `/purchases/:id`) into a
+read-only Details page showing the complete header in the **frozen canonical order** (owner ruling): 1 رقم
+النظام · 2 الحالة (شارة) — both in the minimal header — then 3 المورد · 4 مرجع المورد · 5 تاريخ الفاتورة ·
+6 الإجمالي (EGP) · 7 تاريخ الإنشاء · 8 الملاحظات. Four data states (تحميل/بيانات/غير موجود/خطأ), RTL,
+responsive, zero overflow. Empty/null notes → standard placeholder «لا توجد ملاحظات» (owner standard).
+**Nothing else** — no edit/receive/inventory/line-items/cost/taxes/discounts/payments/supplier-CRUD (scope lock held).
+
+**Architecture:** reused the query pipeline + CQRS-lite projection (ADR-0014 §5), RFC-9457 404, `MoneyDto`,
+the existing `PurchaseInvoiceStatusDto`, `FormatService`, the existing `PurchaseStatusBadgeComponent`, and
+the VetFlow UI Kit — mirroring the Catalog Product-Details screen (STD-FE-004 mirror-without-importing).
+New: `PurchaseDetailsQuery`/`Validator`/`Dto` (Application) + `PurchaseDetailsQueryHandler` (Infrastructure)
++ `GET /api/v1/purchase-invoices/{id}` (404 → NotFound); frontend `purchase-details` feature + route
+`/purchases/:id`; list `open` outputs wired on the table/cards for row navigation. **No new architecture,
+no new library, no new ADR.**
+
+**Owner rulings applied (2026-07-17 final review):** (1) routing decision documented in `ui.md`
+(`/api/v1/purchase-invoices/{id}` API + `/purchases/:id` frontend — "frontend optimized for navigation,
+backend resource-oriented"); (2) header minimal = number + status badge only (supplier moved out of the
+header — fixed in self-review); (3) canonical Details order **frozen** in `ui.md` (no reorder without a UX
+decision); (4) empty/null notes → «لا توجد ملاحظات» standard; (5) navigation via row click + Enter + card
+tap verified; (6) intentional-404 browser noise reported as **expected**, not a defect; (7) **TD-109**
+logged (null supplier reference must not render an empty label — future UI consistency pass, **NOT modified
+in Slice 2**).
+
+**Gates (independently re-run):** `dotnet build` 0/0 Release · `dotnet format` clean · backend **224**
+(Domain **79** · Architecture **62** · Integration **83**, +4) · frontend **113** (+4) · ESLint + Stylelint
+clean. **Live-verified (headless Chrome/CDP, real stack — db :5434 + API :5080 + ng :4200, dev-seeded 5
+invoices):** list→details via row click, keyboard Enter, and mobile card tap; received/cancelled/no-ref(—)/
+null-notes(«لا توجد ملاحظات»)/not-found(«فاتورة الشراء غير موجودة») all rendered; desktop 1440 (table) +
+mobile 390 (cards); dir=rtl and zero horizontal overflow at both on list/details/not-found; **zero
+application console errors** (the only 404 is the intentional missing-id fetch — expected). API curl: full
+header round-trip + 404.
+
+**Next (NOT started, per owner):** Purchasing Slice 3 — Create Purchase. Untracked/intentionally not
+committed (pre-existing): `docs/releases/`, `docs/ui/product-editor-ux-architecture.md`.
+
 ## Session close (2026-07-17) — Purchasing Slice 1 (Purchase List) DONE, owner-APPROVED (final), COMMITTED (`c2669f7` + this docs commit)
 
 **The Purchase List vertical slice is implemented, fully gated, live-verified, owner-approved, and
@@ -23,6 +69,7 @@ COMMITTED as two commits** (`c2669f7` `feat(purchasing): Purchase List (Slice 1)
 tests; this `docs(purchasing): synchronize repository after Purchase List` — STATUS/_INDEX/GLOSSARY/
 module docs/TD ledger, no mixing). **Not pushed** (no remote — standing owner item). Owner ended the
 session with an explicit stop after the two commits: do NOT start Purchase Details / Slice 2.
+*(Superseded 2026-07-17 — Slice 2 has since been implemented, approved, and committed; see the top entry.)*
 
 **Scope delivered (exactly the approved docs):** read-only list (REQ-PUR-001) — search (number exact /
 supplier contains / reference contains, Arabic-normalized, **not notes**), status + invoice-date-range
@@ -62,8 +109,8 @@ documented (`ui.md`); state-machine/seed deferral documented (`business-rules.md
 `decisions.md` DEC-PUR-001); GLOSSARY «فاتورة شراء»/«رقم فاتورة الشراء»; `_INDEX` Purchasing row;
 TD-108 added, TD-107 updated. Consistency review clean (no drift, no broken refs, no gate regression).
 
-**Next (NOT started, per owner):** Purchasing Slice 2 — Purchase Details. Untracked and intentionally
-not committed (pre-existing, prior sessions): `docs/releases/`, `docs/ui/product-editor-ux-architecture.md`.
+**Next:** Purchasing Slice 2 — Purchase Details **(since COMPLETED — see the top entry).** Untracked and
+intentionally not committed (pre-existing, prior sessions): `docs/releases/`, `docs/ui/product-editor-ux-architecture.md`.
 
 ## Sprint 4 opened (2026-07-16) — Purchasing Slice 1 (Purchase List): DOCS APPROVED, DoR READY, NO CODE
 

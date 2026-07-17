@@ -204,6 +204,16 @@ Design-boundary edges surfaced by implementation.
   across both modules (both lexicographic).
 - **Recommended sprint:** a small cross-module consistency pass covering Purchasing + Catalog status sort.
 
+### TD-109 — Empty label rendering when Supplier Reference is null (recorded 2026-07-17, owner-ruled backlog)
+- **Description (owner wording):** "When Supplier Reference is null, the UI must not render an empty label."
+  On the Purchase Details screen (REQ-PUR-002) a null supplier reference currently renders the field with a
+  «—» placeholder value under its label; the label row itself is still shown.
+- **Owner ruling (2026-07-17):** **do NOT modify Slice 2** for this; record as a backlog note only, to be
+  covered in a **future UI consistency pass** (label suppression / empty-field handling across detail
+  screens).
+- **Estimated impact:** Low — cosmetic consistency of read-only detail screens; no correctness or data issue.
+- **Recommended sprint:** a future UI consistency pass covering empty-field rendering across detail views.
+
 ---
 
 ## Future Optimizations
