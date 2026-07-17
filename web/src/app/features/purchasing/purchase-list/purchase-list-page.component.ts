@@ -43,6 +43,9 @@ import { PurchasesApiService } from './purchases-api.service';
     <div class="page">
       <header class="page-header">
         <h1 class="page-title">{{ t.t('purchases.title') }}</h1>
+        <vf-button variant="primary" icon="pi-plus" (pressed)="goToCreate()">
+          {{ t.t('purchases.create') }}
+        </vf-button>
       </header>
 
       <div class="toolbar">
@@ -97,8 +100,7 @@ import { PurchasesApiService } from './purchases-api.service';
                   [title]="t.t('purchases.empty.new.title')"
                   [body]="t.t('purchases.empty.new.body')"
                 >
-                  <!-- Creation is out of scope until Slice 3; the CTA is intentionally disabled (ui.md). -->
-                  <vf-button variant="primary" icon="pi-plus" [disabled]="true">
+                  <vf-button variant="primary" icon="pi-plus" (pressed)="goToCreate()">
                     {{ t.t('purchases.empty.new.action') }}
                   </vf-button>
                 </vf-empty-state>
@@ -258,6 +260,10 @@ export class PurchaseListPageComponent {
 
   protected goToDetails(id: string): void {
     void this.router.navigate(['/purchases', id]);
+  }
+
+  protected goToCreate(): void {
+    void this.router.navigate(['/purchases/new']);
   }
 
   protected readonly announcement = computed(() => {

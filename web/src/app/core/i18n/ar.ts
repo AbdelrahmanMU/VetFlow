@@ -251,6 +251,7 @@ export const AR = {
   'nav.purchases': 'فواتير الشراء',
 
   'purchases.title': 'المشتريات',
+  'purchases.create': 'إنشاء فاتورة شراء',
   'purchases.search.placeholder': 'ابحث برقم الفاتورة أو اسم المورد أو مرجع المورد…',
   'purchases.search.clear': 'مسح البحث',
   'purchases.loading': 'جارٍ تحميل فواتير الشراء…',
@@ -303,6 +304,18 @@ export const AR = {
   'purchaseDetails.total': 'الإجمالي',
   'purchaseDetails.createdAt': 'تاريخ الإنشاء',
   'purchaseDetails.noNotes': 'لا توجد ملاحظات',
+
+  'purchaseCreate.title': 'إنشاء فاتورة شراء',
+  'purchaseCreate.section.invoice': 'بيانات الفاتورة',
+  'purchaseCreate.field.supplierName': 'اسم المورد',
+  'purchaseCreate.field.supplierReference': 'مرجع فاتورة المورد',
+  'purchaseCreate.field.invoiceDate': 'تاريخ الفاتورة',
+  'purchaseCreate.field.notes': 'الملاحظات',
+  'purchaseCreate.required': 'هذا الحقل مطلوب.',
+  'purchaseCreate.save': 'حفظ',
+  'purchaseCreate.saving': 'جارٍ الحفظ…',
+  'purchaseCreate.cancel': 'إلغاء',
+  'purchaseCreate.error': 'تعذّر إنشاء فاتورة الشراء. تحقق من الاتصال ثم أعد المحاولة.',
 } as const;
 
 export type MessageKey = keyof typeof AR;

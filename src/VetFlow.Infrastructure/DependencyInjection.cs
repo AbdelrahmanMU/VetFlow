@@ -23,6 +23,7 @@ public static class DependencyInjection
                 "Database:ConnectionString must be configured.")
             .ValidateOnStart();
 
+        services.AddSingleton(TimeProvider.System);
         services.AddSingleton<SearchTextInterceptor>();
         services.AddDbContext<VetFlowDbContext>((serviceProvider, options) =>
         {
@@ -49,6 +50,7 @@ public static class DependencyInjection
         services.AddScoped<SetManufacturerActiveCommandHandler>();
         services.AddScoped<PurchaseListQueryHandler>();
         services.AddScoped<PurchaseDetailsQueryHandler>();
+        services.AddScoped<CreatePurchaseInvoiceCommandHandler>();
 
         return services;
     }

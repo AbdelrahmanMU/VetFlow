@@ -7,6 +7,12 @@ export const PURCHASING_ROUTES: Routes = [
       import('./purchase-list/purchase-list-page.component').then((m) => m.PurchaseListPageComponent),
   },
   {
+    // Registered before ':id' so the literal segment wins (ui.md, REQ-PUR-003).
+    path: 'new',
+    loadComponent: () =>
+      import('./purchase-create/purchase-create-page.component').then((m) => m.PurchaseCreatePageComponent),
+  },
+  {
     path: ':id',
     loadComponent: () =>
       import('./purchase-details/purchase-details-page.component').then((m) => m.PurchaseDetailsPageComponent),

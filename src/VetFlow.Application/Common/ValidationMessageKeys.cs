@@ -49,4 +49,10 @@ public static class ValidationMessageKeys
     // raised by the handler (uniqueness needs the database), not a validator.
     public const string ManufacturerNameRequired = "validation.manufacturer.name.required";
     public const string ManufacturerNameDuplicate = "validation.manufacturer.name.duplicate";
+
+    // Create purchase invoice (REQ-PUR-003 / AC-PUR-007 / BR-PUR-001): the required
+    // header fields each raise their own field-keyed error so the response names
+    // exactly which field is missing.
+    public const string SupplierNameRequired = "validation.supplierName.required";
+    public const string InvoiceDateRequired = "validation.invoiceDate.required";
 }

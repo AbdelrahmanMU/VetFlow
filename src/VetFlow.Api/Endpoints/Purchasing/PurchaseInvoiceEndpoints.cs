@@ -1,4 +1,5 @@
 using VetFlow.Application.Common;
+using VetFlow.Application.Purchasing.Commands.CreatePurchaseInvoice;
 using VetFlow.Application.Purchasing.Queries.PurchaseDetails;
 using VetFlow.Application.Purchasing.Queries.PurchaseList;
 
@@ -25,6 +26,17 @@ public static class PurchaseInvoiceEndpoints
             {
                 var details = await handler.HandleAsync(new PurchaseDetailsQuery { Id = id }, cancellationToken);
                 return details is null ? Results.NotFound() : Results.Ok(details);
+            });
+
+        app.MapPost(
+            "/api/v1/purchase-invoices",
+            async (
+                CreatePurchaseInvoiceRequest request,
+                ICommandHandler<CreatePurchaseInvoiceCommand, CreatePurchaseInvoiceResult> handler,
+                CancellationToken cancellationToken) =>
+            {
+                var result = await handler.HandleAsync(request.ToCommand(), cancellationToken);
+                return Results.Created($"/api/v1/purchase-invoices/{result.Id}", result);
             });
     }
 }

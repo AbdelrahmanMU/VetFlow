@@ -6,24 +6,36 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
  * panels use it without form binding. The value is the ISO `yyyy-mm-dd` string
  * the native control exposes; an empty field emits `null`.
  *
- * Presentation only (STD-FE-011): it owns its label and layout, holds no state,
- * and injects no services.
+ * Presentation only (STD-FE-011): it owns its label, its optional required marker,
+ * its optional error line (STD-FE-017), and its layout; it holds no state and
+ * injects no services. The controlled `[value]`/`(valueChange)` contract is
+ * unchanged, so filter panels keep using it without the error inputs.
  */
 @Component({
   selector: 'vf-date-input',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <label class="field">
-      <span class="field-caption">{{ label() }}</span>
+      <span class="field-caption">
+        {{ label() }}
+        @if (required()) {
+          <span class="field-required" aria-hidden="true">*</span>
+        }
+      </span>
       <input
         class="field-input"
+        [class.field-input--invalid]="!!error()"
         type="date"
         [value]="value() ?? ''"
         [max]="max() ?? ''"
         [min]="min() ?? ''"
         [attr.aria-label]="label()"
+        [attr.aria-invalid]="!!error()"
         (input)="onInput($event)"
       />
+      @if (error(); as message) {
+        <span class="field-error" role="alert">{{ message }}</span>
+      }
     </label>
   `,
   styles: `
@@ -37,6 +49,11 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
       font-size: var(--vf-text-secondary-size);
       color: var(--vf-text-secondary);
       font-weight: 500;
+    }
+
+    .field-required {
+      color: var(--vf-danger, #b42318);
+      margin-inline-start: 0.125rem;
     }
 
     .field-input {
@@ -57,6 +74,15 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
       box-shadow: var(--vf-focus-ring);
       outline: none;
     }
+
+    .field-input--invalid {
+      border-color: var(--vf-danger, #b42318);
+    }
+
+    .field-error {
+      font-size: var(--vf-text-caption);
+      color: var(--vf-danger, #b42318);
+    }
   `,
 })
 export class VfDateInputComponent {
@@ -65,6 +91,8 @@ export class VfDateInputComponent {
   /** Optional inclusive bounds (ISO `yyyy-mm-dd`) — e.g. a range's other end. */
   readonly min = input<string | null>(null);
   readonly max = input<string | null>(null);
+  readonly required = input(false);
+  readonly error = input<string | null>(null);
   readonly valueChange = output<string | null>();
 
   protected onInput(event: Event): void {

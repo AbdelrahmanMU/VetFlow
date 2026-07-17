@@ -89,6 +89,17 @@ public sealed class PurchaseInvoiceTests
         Should.Throw<ArgumentOutOfRangeException>(() => NewInvoice(total: -1m));
     }
 
+    [Fact]
+    public void The_constructor_accepts_a_zero_total_for_a_header_only_create_BR_PUR_001()
+    {
+        // Create (REQ-PUR-003 / DEC-PUR-001) builds the header with a zero total —
+        // line items and total derivation belong to a later slice.
+        var invoice = NewInvoice(total: 0m);
+
+        invoice.TotalAmount.ShouldBe(0m);
+        invoice.Status.ShouldBe(PurchaseInvoiceStatus.Draft);
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("   ")]

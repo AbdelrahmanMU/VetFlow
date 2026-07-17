@@ -10,8 +10,10 @@ using VetFlow.Application.Categories.Commands.RenameCategory;
 using VetFlow.Application.Categories.Commands.SetCategoryActive;
 using VetFlow.Application.Common;
 using VetFlow.Application.Common.Behaviors;
+using VetFlow.Application.Purchasing.Commands.CreatePurchaseInvoice;
 using VetFlow.Infrastructure.Catalog;
 using VetFlow.Infrastructure.Categories;
+using VetFlow.Infrastructure.Purchasing;
 
 namespace VetFlow.Api.Composition;
 
@@ -33,6 +35,7 @@ public static class CommandPipeline
         services.AddCommandHandler<CreateManufacturerCommand, Guid, CreateManufacturerCommandHandler>();
         services.AddCommandHandler<RenameManufacturerCommand, Guid?, RenameManufacturerCommandHandler>();
         services.AddCommandHandler<SetManufacturerActiveCommand, Guid?, SetManufacturerActiveCommandHandler>();
+        services.AddCommandHandler<CreatePurchaseInvoiceCommand, CreatePurchaseInvoiceResult, CreatePurchaseInvoiceCommandHandler>();
         return services;
     }
 
