@@ -10,7 +10,7 @@
 | Categories | `categories/` | Approved (docs 8/8, 2026-07-16 — Managed Data slice, REQ/BR/AC-CTG, owner-ruled) — implemented & committed (`9e5c99c`, 2026-07-16) |
 | Suppliers | `suppliers/` | Not documented |
 | Customers (minimal) | `customers/` | Not documented |
-| Purchasing | `purchasing/` | Approved (Sprint 4; Slice 1 — Purchase List, 2026-07-16, REQ-PUR-001/BR-PUR-001..004/AC-PUR-001..003/DEC-PUR-001; Slice 2 — Purchase Details, 2026-07-17, REQ-PUR-002/AC-PUR-004..005/TS-PUR-008..011; Slice 3 — Create Purchase, 2026-07-17, REQ-PUR-003/AC-PUR-006..007/TS-PUR-012..015/DEC-PUR-002) — **Slices 1 & 2 committed; Slice 3 docs Approved, implementation IN PROGRESS (uncommitted, see STATUS.md)** |
+| Purchasing | `purchasing/` | Approved (Sprint 4; docs 8/8) — Slice 1 Purchase List (2026-07-16, REQ-PUR-001/BR-PUR-001..004/AC-PUR-001..003/DEC-PUR-001) · Slice 2 Purchase Details (2026-07-17, REQ-PUR-002/AC-PUR-004..005/TS-PUR-008..011) · Slice 3 Create Purchase (2026-07-17, REQ-PUR-003/AC-PUR-006..007/TS-PUR-012..015/DEC-PUR-002) · Slice 4 Purchase Line Items (REQ-PUR-004/BR-PUR-005..008/AC-PUR-008..013/TS-PUR-016..024/DEC-PUR-003..006) — **Slices 1–4 implemented & committed (see STATUS.md)** |
 | Sales | `sales/` | Not documented |
 | Inventory | `inventory/` | Not documented |
 | Batch | `batch/` | Not documented |
