@@ -23,6 +23,16 @@ public sealed class PurchaseInvoiceConfiguration : IEntityTypeConfiguration<Purc
             .HasMaxLength(SearchableText.MaxLength)
             .IsRequired();
 
+        // Line items are owned by the invoice aggregate (BR-PUR-005, DEC-PUR-003): a
+        // shadow FK, field access (the collection is private), and cascade delete — the
+        // Product/ProductUnit precedent.
+        builder.HasMany(invoice => invoice.Lines)
+            .WithOne()
+            .HasForeignKey("PurchaseInvoiceId")
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Navigation(invoice => invoice.Lines).UsePropertyAccessMode(PropertyAccessMode.Field);
+
         // Supplier name + supplier reference are searchable with Arabic normalization
         // (BR-PUR-004); the trigram index backs the ILIKE partial match.
         builder.HasIndex(SearchableText.PropertyName).HasMethod("gin").HasOperators("gin_trgm_ops");

@@ -6,8 +6,11 @@ import { TranslationService } from '../../../core/i18n/translation.service';
 import { VfButtonComponent } from '../../../shared/ui-kit/button/vf-button.component';
 import { VfEmptyStateComponent } from '../../../shared/ui-kit/empty-state/vf-empty-state.component';
 import { PurchaseStatusBadgeComponent } from '../purchase-list/components/purchase-status-badge.component';
+import { PurchaseLineItemsComponent } from './components/purchase-line-items.component';
 import { PurchaseDetailsApiService } from './purchase-details-api.service';
 import { PurchaseDetailsStore } from './purchase-details.store';
+import { PurchaseLinesApiService } from './purchase-lines-api.service';
+import { PurchaseLinesStore } from './purchase-lines.store';
 
 /**
  * تفاصيل فاتورة الشراء (purchasing ui.md, REQ-PUR-002): a read-only page showing
@@ -18,8 +21,8 @@ import { PurchaseDetailsStore } from './purchase-details.store';
 @Component({
   selector: 'app-purchase-details-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [PurchaseDetailsApiService, PurchaseDetailsStore],
-  imports: [VfButtonComponent, VfEmptyStateComponent, PurchaseStatusBadgeComponent],
+  providers: [PurchaseDetailsApiService, PurchaseDetailsStore, PurchaseLinesApiService, PurchaseLinesStore],
+  imports: [VfButtonComponent, VfEmptyStateComponent, PurchaseStatusBadgeComponent, PurchaseLineItemsComponent],
   template: `
     <div class="page">
       @switch (store.view().kind) {
@@ -81,6 +84,12 @@ import { PurchaseDetailsStore } from './purchase-details.store';
                 <div><dt>{{ t.t('purchaseDetails.createdAt') }}</dt><dd class="vf-num">{{ format.date(invoice.createdAt.slice(0, 10)) }}</dd></div>
               </dl>
             </section>
+
+            <app-purchase-line-items
+              [isDraft]="invoice.status === 'draft'"
+              [total]="invoice.total"
+              (changed)="store.retry()"
+            />
 
             <section class="card">
               <h2 class="card-title">{{ t.t('purchaseDetails.section.notes') }}</h2>
@@ -192,13 +201,18 @@ export class PurchaseDetailsPageComponent {
   protected readonly t = inject(TranslationService);
   protected readonly format = inject(FormatService);
   protected readonly store = inject(PurchaseDetailsStore);
+  private readonly linesStore = inject(PurchaseLinesStore);
   private readonly router = inject(Router);
 
   /** Route parameter bound via withComponentInputBinding(). */
   readonly id = input.required<string>();
 
   constructor() {
-    effect(() => this.store.setId(this.id()));
+    effect(() => {
+      const id = this.id();
+      this.store.setId(id);
+      this.linesStore.setId(id);
+    });
   }
 
   protected readyInvoice() {

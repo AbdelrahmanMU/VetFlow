@@ -50,7 +50,10 @@ public static class DependencyInjection
         services.AddScoped<SetManufacturerActiveCommandHandler>();
         services.AddScoped<PurchaseListQueryHandler>();
         services.AddScoped<PurchaseDetailsQueryHandler>();
+        services.AddScoped<PurchaseLineItemsQueryHandler>();
         services.AddScoped<CreatePurchaseInvoiceCommandHandler>();
+        services.AddScoped<AddPurchaseLineItemCommandHandler>();
+        services.AddScoped<RemovePurchaseLineItemCommandHandler>();
 
         return services;
     }

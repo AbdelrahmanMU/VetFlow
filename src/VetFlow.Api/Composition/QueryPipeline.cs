@@ -10,6 +10,7 @@ using VetFlow.Application.Categories.Queries.CategoryList;
 using VetFlow.Application.Common;
 using VetFlow.Application.Common.Behaviors;
 using VetFlow.Application.Purchasing.Queries.PurchaseDetails;
+using VetFlow.Application.Purchasing.Queries.PurchaseLineItems;
 using VetFlow.Application.Purchasing.Queries.PurchaseList;
 using VetFlow.Infrastructure.Catalog;
 using VetFlow.Infrastructure.Categories;
@@ -35,6 +36,7 @@ public static class QueryPipeline
         services.AddQueryHandler<CategoryListQuery, PagedResult<CategoryListItemDto>, CategoryListQueryHandler>();
         services.AddQueryHandler<PurchaseListQuery, PagedResult<PurchaseListItemDto>, PurchaseListQueryHandler>();
         services.AddQueryHandler<PurchaseDetailsQuery, PurchaseDetailsDto?, PurchaseDetailsQueryHandler>();
+        services.AddQueryHandler<PurchaseLineItemsQuery, IReadOnlyList<PurchaseLineItemDto>?, PurchaseLineItemsQueryHandler>();
         return services;
     }
 

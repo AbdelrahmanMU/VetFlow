@@ -55,4 +55,12 @@ public static class ValidationMessageKeys
     // exactly which field is missing.
     public const string SupplierNameRequired = "validation.supplierName.required";
     public const string InvoiceDateRequired = "validation.invoiceDate.required";
+
+    // Add purchase line item (REQ-PUR-004 / AC-PUR-009 / BR-PUR-005): each field of a
+    // line raises its own field-keyed error so the add-line dialog highlights exactly
+    // what is wrong.
+    public const string LineProductRequired = "validation.line.product.required";
+    public const string LinePurchaseUnitRequired = "validation.line.purchaseUnit.required";
+    public const string LineQuantityPositive = "validation.line.quantity.positive";
+    public const string LineUnitPriceNonNegative = "validation.line.unitPrice.nonNegative";
 }

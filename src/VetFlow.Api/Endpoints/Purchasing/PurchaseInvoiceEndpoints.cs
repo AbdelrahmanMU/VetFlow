@@ -1,6 +1,9 @@
 using VetFlow.Application.Common;
+using VetFlow.Application.Purchasing.Commands.AddPurchaseLineItem;
 using VetFlow.Application.Purchasing.Commands.CreatePurchaseInvoice;
+using VetFlow.Application.Purchasing.Commands.RemovePurchaseLineItem;
 using VetFlow.Application.Purchasing.Queries.PurchaseDetails;
+using VetFlow.Application.Purchasing.Queries.PurchaseLineItems;
 using VetFlow.Application.Purchasing.Queries.PurchaseList;
 
 namespace VetFlow.Api.Endpoints.Purchasing;
@@ -37,6 +40,45 @@ public static class PurchaseInvoiceEndpoints
             {
                 var result = await handler.HandleAsync(request.ToCommand(), cancellationToken);
                 return Results.Created($"/api/v1/purchase-invoices/{result.Id}", result);
+            });
+
+        app.MapGet(
+            "/api/v1/purchase-invoices/{id:guid}/lines",
+            async (
+                Guid id,
+                IQueryHandler<PurchaseLineItemsQuery, IReadOnlyList<PurchaseLineItemDto>?> handler,
+                CancellationToken cancellationToken) =>
+            {
+                var lines = await handler.HandleAsync(new PurchaseLineItemsQuery { InvoiceId = id }, cancellationToken);
+                return lines is null ? Results.NotFound() : Results.Ok(lines);
+            });
+
+        app.MapPost(
+            "/api/v1/purchase-invoices/{id:guid}/lines",
+            async (
+                Guid id,
+                AddPurchaseLineItemRequest request,
+                ICommandHandler<AddPurchaseLineItemCommand, Guid?> handler,
+                CancellationToken cancellationToken) =>
+            {
+                var lineId = await handler.HandleAsync(request.ToCommand(id), cancellationToken);
+                return lineId is null
+                    ? Results.NotFound()
+                    : Results.Created($"/api/v1/purchase-invoices/{id}", new { lineId });
+            });
+
+        app.MapDelete(
+            "/api/v1/purchase-invoices/{id:guid}/lines/{lineId:guid}",
+            async (
+                Guid id,
+                Guid lineId,
+                ICommandHandler<RemovePurchaseLineItemCommand, Guid?> handler,
+                CancellationToken cancellationToken) =>
+            {
+                var removed = await handler.HandleAsync(
+                    new RemovePurchaseLineItemCommand { InvoiceId = id, LineId = lineId },
+                    cancellationToken);
+                return removed is null ? Results.NotFound() : Results.NoContent();
             });
     }
 }

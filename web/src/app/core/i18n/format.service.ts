@@ -21,8 +21,21 @@ export class FormatService {
     day: '2-digit',
   });
 
+  private readonly decimalFormats = new Map<number, Intl.NumberFormat>();
+
   integer(value: number): string {
     return this.integerFormat.format(value);
+  }
+
+  /** A decimal amount (e.g. a line quantity) with up to `maxFractionDigits` places. */
+  decimal(value: number, maxFractionDigits = 3): string {
+    let format = this.decimalFormats.get(maxFractionDigits);
+    if (!format) {
+      format = new Intl.NumberFormat(FormatService.Locale, { maximumFractionDigits: maxFractionDigits });
+      this.decimalFormats.set(maxFractionDigits, format);
+    }
+
+    return format.format(value);
   }
 
   /**

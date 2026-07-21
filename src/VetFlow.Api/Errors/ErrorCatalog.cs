@@ -1,5 +1,6 @@
 using VetFlow.Domain.Catalog;
 using VetFlow.Domain.Common;
+using VetFlow.Domain.Purchasing;
 
 namespace VetFlow.Api.Errors;
 
@@ -61,6 +62,18 @@ public static class ErrorCatalog
                 Code = CatalogErrorCodes.OpenExpirationPeriodRequired,
                 Status = StatusCodes.Status400BadRequest,
                 Title = "Open-expiration products require the open-expiration period",
+            },
+            new()
+            {
+                Code = PurchasingErrorCodes.InvoiceNotDraft,
+                Status = StatusCodes.Status409Conflict,
+                Title = "Only a draft purchase invoice may change",
+            },
+            new()
+            {
+                Code = PurchasingErrorCodes.LineComposition,
+                Status = StatusCodes.Status400BadRequest,
+                Title = "The purchase line is invalid",
             },
         }.ToDictionary(entry => entry.Code);
 

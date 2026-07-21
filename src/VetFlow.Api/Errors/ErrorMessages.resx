@@ -132,6 +132,24 @@
   <data name="validation.invoiceDate.required" xml:space="preserve">
     <value>تاريخ الفاتورة إجباري.</value>
   </data>
+  <data name="validation.line.product.required" xml:space="preserve">
+    <value>المنتج إجباري.</value>
+  </data>
+  <data name="validation.line.purchaseUnit.required" xml:space="preserve">
+    <value>وحدة الشراء إجبارية.</value>
+  </data>
+  <data name="validation.line.quantity.positive" xml:space="preserve">
+    <value>الكمية يجب أن تكون أكبر من صفر.</value>
+  </data>
+  <data name="validation.line.unitPrice.nonNegative" xml:space="preserve">
+    <value>سعر الوحدة يجب أن يكون صفرًا أو أكثر.</value>
+  </data>
+  <data name="VTF-PUR-003" xml:space="preserve">
+    <value>لا يمكن تعديل البنود إلا لفاتورة شراء مسودة.</value>
+  </data>
+  <data name="VTF-PUR-005" xml:space="preserve">
+    <value>بند الشراء غير صالح. راجع المنتج ووحدة الشراء والكمية وسعر الوحدة.</value>
+  </data>
   <data name="error.internal" xml:space="preserve">
     <value>حدث خطأ غير متوقع. أعد المحاولة، وإن تكرر تواصل مع الدعم الفني.</value>
   </data>

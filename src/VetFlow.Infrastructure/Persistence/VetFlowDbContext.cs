@@ -22,6 +22,8 @@ public sealed class VetFlowDbContext(DbContextOptions<VetFlowDbContext> options)
 
     public DbSet<PurchaseInvoice> PurchaseInvoices => Set<PurchaseInvoice>();
 
+    public DbSet<PurchaseLineItem> PurchaseLineItems => Set<PurchaseLineItem>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("pg_trgm");
@@ -33,6 +35,7 @@ public sealed class VetFlowDbContext(DbContextOptions<VetFlowDbContext> options)
         modelBuilder.ApplyConfiguration(new ProductNatureConfiguration());
         modelBuilder.ApplyConfiguration(new CategoryConfiguration());
         modelBuilder.ApplyConfiguration(new PurchaseInvoiceConfiguration());
+        modelBuilder.ApplyConfiguration(new PurchaseLineItemConfiguration());
 
         SnakeCaseNames.Apply(modelBuilder);
     }

@@ -1,21 +1,32 @@
+using VetFlow.Domain.Common;
+
 namespace VetFlow.Domain.Purchasing;
 
 /// <summary>
 /// The purchase-invoice aggregate — the document by which goods enter inventory
-/// from a supplier (purchasing overview). In this first version it is a
-/// <b>header only</b> (BR-PUR-001): identity, the free-text supplier name, the
-/// optional supplier reference, the invoice date, the status, the header total,
-/// optional notes, and the creation timestamp. Line items, cost, receiving, and
-/// the inventory effect belong to later slices (scope lock, overview.md).
+/// from a supplier (purchasing overview). It carries the header (BR-PUR-001):
+/// identity, the free-text supplier name, the optional supplier reference, the
+/// invoice date, the status, the total, optional notes, and the creation
+/// timestamp — plus its <b>line items</b> (BR-PUR-005), the content of the
+/// invoice. Receiving and the inventory effect belong to later slices (scope
+/// lock, overview.md).
+///
+/// The aggregate is the <b>single</b> owner of the total (BR-PUR-006, DEC-PUR-003):
+/// <see cref="AddLine"/> and <see cref="RemoveLine"/> mutate the line set and
+/// recompute <see cref="TotalAmount"/> as the sum of line totals — no handler,
+/// repository, endpoint, database, or frontend ever computes or overwrites it.
 ///
 /// An invoice is always born a <see cref="PurchaseInvoiceStatus.Draft"/>
-/// (BR-PUR-003). The received/cancelled transitions and their inventory effect
-/// are owned by the receiving slice, so — as with the Catalog deactivation
-/// workflow — no transition method exists yet; a non-draft state is a persisted
-/// fact set by seeding, never produced by this aggregate.
+/// (BR-PUR-003) and only a draft may change its lines (BR-PUR-005). The
+/// received/cancelled transitions and their inventory effect are owned by the
+/// receiving slice, so — as with the Catalog deactivation workflow — no transition
+/// method exists yet; a non-draft state is a persisted fact set by seeding, never
+/// produced by this aggregate.
 /// </summary>
 public sealed class PurchaseInvoice
 {
+    private readonly List<PurchaseLineItem> _lines = [];
+
     private PurchaseInvoice()
     {
         // EF Core materialization only.
@@ -90,4 +101,75 @@ public sealed class PurchaseInvoice
     public DateTimeOffset CreatedAt { get; private set; }
 
     public PurchaseInvoiceStatus Status { get; private set; }
+
+    /// <summary>The invoice's line items (BR-PUR-005); an invoice may temporarily hold none.</summary>
+    public IReadOnlyCollection<PurchaseLineItem> Lines => _lines.AsReadOnly();
+
+    /// <summary>
+    /// Add a line to a draft invoice (REQ-PUR-004, BR-PUR-005) and recompute the total
+    /// (BR-PUR-006). The product and unit names are already resolved to their catalog
+    /// snapshot by the handler (BR-PUR-007). Only a draft may change (BR-PUR-003);
+    /// otherwise the call is rejected without mutation.
+    /// </summary>
+    public PurchaseLineItem AddLine(
+        Guid lineId,
+        Guid productId,
+        string productName,
+        Guid purchaseUnitId,
+        string purchaseUnitName,
+        decimal quantity,
+        decimal unitPrice,
+        DateTimeOffset addedAt)
+    {
+        EnsureDraft();
+
+        var line = new PurchaseLineItem(
+            lineId,
+            productId,
+            productName,
+            purchaseUnitId,
+            purchaseUnitName,
+            quantity,
+            unitPrice,
+            addedAt);
+
+        _lines.Add(line);
+        RecalculateTotal();
+        return line;
+    }
+
+    /// <summary>
+    /// Remove a line from a draft invoice by id (REQ-PUR-004, BR-PUR-005) and recompute
+    /// the total (BR-PUR-006). Returns <c>false</c> when the line is not on this invoice
+    /// (the endpoint answers 404) — the total is unchanged in that case. Only a draft may
+    /// change (BR-PUR-003).
+    /// </summary>
+    public bool RemoveLine(Guid lineId)
+    {
+        EnsureDraft();
+
+        var line = _lines.FirstOrDefault(item => item.Id == lineId);
+        if (line is null)
+        {
+            return false;
+        }
+
+        _lines.Remove(line);
+        RecalculateTotal();
+        return true;
+    }
+
+    private void EnsureDraft()
+    {
+        if (Status != PurchaseInvoiceStatus.Draft)
+        {
+            throw new BusinessRuleException(PurchasingErrorCodes.InvoiceNotDraft);
+        }
+    }
+
+    /// <summary>
+    /// The single canonical total computation (BR-PUR-006, DEC-PUR-003): the sum of the
+    /// (already EGP-rounded) line totals. An invoice with no lines totals zero.
+    /// </summary>
+    private void RecalculateTotal() => TotalAmount = _lines.Sum(line => line.LineTotal);
 }

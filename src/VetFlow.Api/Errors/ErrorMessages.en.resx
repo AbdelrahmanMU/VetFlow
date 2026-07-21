@@ -132,6 +132,24 @@
   <data name="validation.invoiceDate.required" xml:space="preserve">
     <value>The invoice date is required.</value>
   </data>
+  <data name="validation.line.product.required" xml:space="preserve">
+    <value>The product is required.</value>
+  </data>
+  <data name="validation.line.purchaseUnit.required" xml:space="preserve">
+    <value>The purchase unit is required.</value>
+  </data>
+  <data name="validation.line.quantity.positive" xml:space="preserve">
+    <value>The quantity must be greater than zero.</value>
+  </data>
+  <data name="validation.line.unitPrice.nonNegative" xml:space="preserve">
+    <value>The unit price must be zero or more.</value>
+  </data>
+  <data name="VTF-PUR-003" xml:space="preserve">
+    <value>Only a draft purchase invoice may change its lines.</value>
+  </data>
+  <data name="VTF-PUR-005" xml:space="preserve">
+    <value>The purchase line is invalid. Check the product, purchase unit, quantity, and unit price.</value>
+  </data>
   <data name="error.internal" xml:space="preserve">
     <value>An unexpected error occurred. Retry, and contact support if it persists.</value>
   </data>
