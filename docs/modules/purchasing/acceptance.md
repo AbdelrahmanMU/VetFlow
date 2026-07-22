@@ -1,6 +1,6 @@
 # Purchasing — Acceptance
 
-> Status: Approved (2026-07-16) — Slice 1 (Purchase List); Approved (2026-07-17) — Slice 2 (Purchase Details); Approved (2026-07-17) — Slice 3 (Create Purchase); Approved (2026-07-17) — Slice 4 (Purchase Line Items): AC-PUR-008..013. Sprint 4.
+> Status: Approved (2026-07-16) — Slice 1 (Purchase List); Approved (2026-07-17) — Slice 2 (Purchase Details); Approved (2026-07-17) — Slice 3 (Create Purchase); Approved (2026-07-17) — Slice 4 (Purchase Line Items): AC-PUR-008..013; **Approved (2026-07-22) — Slice 5 (Purchase Receiving): AC-PUR-014..018 (DEC-PUR-007..009) — DoR مكتملة.** Sprint 4.
 
 ## Acceptance criteria
 
@@ -73,6 +73,33 @@
 وقت الإضافة (لا يتغيّر بتغيّر الكتالوج).
 - **يتتبّع:** REQ-PUR-004، BR-PUR-007
 
+## Slice 5 — Purchase Receiving (Approved 2026-07-22)
+
+### AC-PUR-014 — استلام ناجح (Slice 5)
+معطى فاتورة **مسودة** بها **بند واحد على الأقل**، عند تأكيد الاستلام: تنتقل الحالة إلى **مستلمة**، وتُنشأ
+**دفعة لكل بند** وتزداد كميات المخزون **ذرّيًّا** (BR-PUR-010)، وتصبح الفاتورة **ثابتة** (BR-PUR-011)، وتعرض
+شاشة التفاصيل شارة **«مستلمة»**. (سؤال ١٢)
+- **يتتبّع:** REQ-PUR-005، BR-PUR-009، BR-PUR-010، BR-PUR-011
+
+### AC-PUR-015 — منع الاستلام المتكرر (Slice 5)
+محاولة استلام فاتورة **مستلمة** (أو **ملغاة**) **تُرفض بوضوح دون أيّ أثر** على الحالة أو المخزون
+(الاستلام مرة واحدة، والحالة نهائية). (سؤالان ١، ٣)
+- **يتتبّع:** BR-PUR-009، BR-PUR-012، BR-PUR-003
+
+### AC-PUR-016 — منع استلام فاتورة بلا بنود (Slice 5)
+محاولة استلام فاتورة **مسودة بلا بنود** تُرفض دون أثر (حسم المالك 2026-07-22). (سؤال ١١)
+- **يتتبّع:** BR-PUR-009، BR-PUR-012
+
+### AC-PUR-017 — الثبات بعد الاستلام (Slice 5)
+بعد الاستلام **لا يمكن** إضافة بند أو حذفه أو تعديله ولا تحرير الترويسة؛ أزرار التعديل/الاستلام تختفي.
+(سؤالان ٣، ٤، ٩)
+- **يتتبّع:** BR-PUR-011، BR-PUR-005، AC-PUR-012
+
+### AC-PUR-018 — تاريخ الصلاحية عند الاستلام حسب تعريف المنتج (Slice 5)
+**متطلّب الصلاحية يحدّده تعريف المنتج:** إن ألزم المنتجُ الصلاحيةَ **وجب إدخالها** لبنده عند الاستلام (وإلا رُفض
+الاستلام)؛ وإن لم يُلزِمها المنتج تُنشأ الدفعة **بلا تاريخ صلاحية**. (سؤالان ٧، ٨)
+- **يتتبّع:** BR-PUR-013، BR-PUR-012، DEC-PUR-009
+
 ## Owner sign-off
 
 | Date | Scope approved | Signed by |
@@ -81,3 +108,4 @@
 | 2026-07-17 | Slice 2 — Purchase Details (REQ-PUR-002، AC-PUR-004..005، TS-PUR-008..011؛ تعيد استخدام BR-PUR-001..003) | المالك |
 | 2026-07-17 | Slice 3 — Create Purchase (REQ-PUR-003، AC-PUR-006..007، TS-PUR-012..015؛ تعيد استخدام BR-PUR-001..003، DEC-PUR-001؛ إجمالي صفر عند الإنشاء — البنود مؤجَّلة، حسم المالك) | المالك |
 | 2026-07-17 | Slice 4 — Purchase Line Items (REQ-PUR-004، BR-PUR-005..007، AC-PUR-008..013، TS-PUR-016..024، DEC-PUR-003) | المالك |
+| 2026-07-22 | Slice 5 — Purchase Receiving (REQ-PUR-005، BR-PUR-009..013، AC-PUR-014..018، TS-PUR-025..033، DEC-PUR-007..009؛ يُفعِّل «مسودة→مستلمة» في BR-PUR-003؛ العقد العام مع Inventory) | المالك |
