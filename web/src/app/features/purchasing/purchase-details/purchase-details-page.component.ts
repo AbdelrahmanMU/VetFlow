@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { FormatService } from '../../../core/i18n/format.service';
@@ -7,10 +7,12 @@ import { VfButtonComponent } from '../../../shared/ui-kit/button/vf-button.compo
 import { VfEmptyStateComponent } from '../../../shared/ui-kit/empty-state/vf-empty-state.component';
 import { PurchaseStatusBadgeComponent } from '../purchase-list/components/purchase-status-badge.component';
 import { PurchaseLineItemsComponent } from './components/purchase-line-items.component';
+import { ReceivePurchaseDialogComponent } from './components/receive-purchase-dialog.component';
 import { PurchaseDetailsApiService } from './purchase-details-api.service';
 import { PurchaseDetailsStore } from './purchase-details.store';
 import { PurchaseLinesApiService } from './purchase-lines-api.service';
 import { PurchaseLinesStore } from './purchase-lines.store';
+import { ReceivePurchaseInvoicePayload } from './purchase-lines.models';
 
 /**
  * تفاصيل فاتورة الشراء (purchasing ui.md, REQ-PUR-002): a read-only page showing
@@ -22,7 +24,13 @@ import { PurchaseLinesStore } from './purchase-lines.store';
   selector: 'app-purchase-details-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [PurchaseDetailsApiService, PurchaseDetailsStore, PurchaseLinesApiService, PurchaseLinesStore],
-  imports: [VfButtonComponent, VfEmptyStateComponent, PurchaseStatusBadgeComponent, PurchaseLineItemsComponent],
+  imports: [
+    VfButtonComponent,
+    VfEmptyStateComponent,
+    PurchaseStatusBadgeComponent,
+    PurchaseLineItemsComponent,
+    ReceivePurchaseDialogComponent,
+  ],
   template: `
     <div class="page">
       @switch (store.view().kind) {
@@ -62,6 +70,11 @@ import { PurchaseLinesStore } from './purchase-lines.store';
                 <app-purchase-status-badge [status]="invoice.status" />
               </div>
               <div class="header-actions">
+                @if (invoice.status === 'draft') {
+                  <vf-button variant="primary" icon="pi-check-circle" [disabled]="linesStore.saving()" (pressed)="openReceive()">
+                    {{ t.t('purchaseDetails.receive.action') }}
+                  </vf-button>
+                }
                 <vf-button variant="quiet" icon="pi-arrow-right" (pressed)="goToList()">
                   {{ t.t('purchaseDetails.back') }}
                 </vf-button>
@@ -96,6 +109,14 @@ import { PurchaseLinesStore } from './purchase-lines.store';
               <!-- Null OR empty/whitespace always shows the standard placeholder (owner ruling 2026-07-17). -->
               <p class="notes">{{ invoice.notes && invoice.notes.trim() ? invoice.notes : t.t('purchaseDetails.noNotes') }}</p>
             </section>
+
+            <app-receive-purchase-dialog
+              [(visible)]="receiveDialogVisible"
+              [lines]="linesStore.lines()"
+              [saving]="linesStore.saving()"
+              [serverError]="receiveServerError()"
+              (confirmed)="onReceiveConfirm($event)"
+            />
           }
         }
       }
@@ -201,11 +222,14 @@ export class PurchaseDetailsPageComponent {
   protected readonly t = inject(TranslationService);
   protected readonly format = inject(FormatService);
   protected readonly store = inject(PurchaseDetailsStore);
-  private readonly linesStore = inject(PurchaseLinesStore);
+  protected readonly linesStore = inject(PurchaseLinesStore);
   private readonly router = inject(Router);
 
   /** Route parameter bound via withComponentInputBinding(). */
   readonly id = input.required<string>();
+
+  protected readonly receiveDialogVisible = signal(false);
+  protected readonly receiveServerError = signal<string | null>(null);
 
   constructor() {
     effect(() => {
@@ -222,5 +246,24 @@ export class PurchaseDetailsPageComponent {
 
   protected goToList(): void {
     void this.router.navigate(['/purchases']);
+  }
+
+  protected openReceive(): void {
+    this.receiveServerError.set(null);
+    this.receiveDialogVisible.set(true);
+  }
+
+  protected onReceiveConfirm(payload: ReceivePurchaseInvoicePayload): void {
+    this.receiveServerError.set(null);
+    this.linesStore.receive(payload, (succeeded) => {
+      if (succeeded) {
+        this.receiveDialogVisible.set(false);
+        // Re-read the header: the invoice is now Received and immutable, so the receive
+        // and line-change actions disappear (BR-PUR-011).
+        this.store.retry();
+      } else {
+        this.receiveServerError.set(this.t.t('purchaseDetails.receive.dialog.error'));
+      }
+    });
   }
 }

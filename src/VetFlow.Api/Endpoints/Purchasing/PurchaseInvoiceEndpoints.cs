@@ -1,6 +1,7 @@
 using VetFlow.Application.Common;
 using VetFlow.Application.Purchasing.Commands.AddPurchaseLineItem;
 using VetFlow.Application.Purchasing.Commands.CreatePurchaseInvoice;
+using VetFlow.Application.Purchasing.Commands.ReceivePurchaseInvoice;
 using VetFlow.Application.Purchasing.Commands.RemovePurchaseLineItem;
 using VetFlow.Application.Purchasing.Queries.PurchaseDetails;
 using VetFlow.Application.Purchasing.Queries.PurchaseLineItems;
@@ -65,6 +66,18 @@ public static class PurchaseInvoiceEndpoints
                 return lineId is null
                     ? Results.NotFound()
                     : Results.Created($"/api/v1/purchase-invoices/{id}", new { lineId });
+            });
+
+        app.MapPost(
+            "/api/v1/purchase-invoices/{id:guid}/receive",
+            async (
+                Guid id,
+                ReceivePurchaseInvoiceRequest request,
+                ICommandHandler<ReceivePurchaseInvoiceCommand, Guid?> handler,
+                CancellationToken cancellationToken) =>
+            {
+                var received = await handler.HandleAsync(request.ToCommand(id), cancellationToken);
+                return received is null ? Results.NotFound() : Results.NoContent();
             });
 
         app.MapDelete(

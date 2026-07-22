@@ -153,17 +153,24 @@ public sealed class ConventionTests
         AssertNoDependency(
             "VetFlow.Domain.Catalog",
             "VetFlow.Application.Catalog",
-            forbidden: ["VetFlow.Domain.Categories", "VetFlow.Application.Categories", "VetFlow.Domain.Purchasing", "VetFlow.Application.Purchasing"]);
+            forbidden: ["VetFlow.Domain.Categories", "VetFlow.Application.Categories", "VetFlow.Domain.Purchasing", "VetFlow.Application.Purchasing", "VetFlow.Domain.Inventory", "VetFlow.Application.Inventory"]);
 
         AssertNoDependency(
             "VetFlow.Domain.Categories",
             "VetFlow.Application.Categories",
-            forbidden: ["VetFlow.Domain.Catalog", "VetFlow.Application.Catalog", "VetFlow.Domain.Purchasing", "VetFlow.Application.Purchasing"]);
+            forbidden: ["VetFlow.Domain.Catalog", "VetFlow.Application.Catalog", "VetFlow.Domain.Purchasing", "VetFlow.Application.Purchasing", "VetFlow.Domain.Inventory", "VetFlow.Application.Inventory"]);
 
         AssertNoDependency(
             "VetFlow.Domain.Purchasing",
             "VetFlow.Application.Purchasing",
-            forbidden: ["VetFlow.Domain.Catalog", "VetFlow.Application.Catalog", "VetFlow.Domain.Categories", "VetFlow.Application.Categories"]);
+            forbidden: ["VetFlow.Domain.Catalog", "VetFlow.Application.Catalog", "VetFlow.Domain.Categories", "VetFlow.Application.Categories", "VetFlow.Domain.Inventory", "VetFlow.Application.Inventory"]);
+
+        // The Inventory write kernel (write-kernel.md, DEC-PUR-008) exposes a public contract and
+        // depends on no other module; Purchasing reaches it only through the composition root.
+        AssertNoDependency(
+            "VetFlow.Domain.Inventory",
+            "VetFlow.Application.Inventory",
+            forbidden: ["VetFlow.Domain.Catalog", "VetFlow.Application.Catalog", "VetFlow.Domain.Categories", "VetFlow.Application.Categories", "VetFlow.Domain.Purchasing", "VetFlow.Application.Purchasing"]);
     }
 
     private static void AssertNoDependency(string namespaceA, string namespaceB, string[] forbidden)

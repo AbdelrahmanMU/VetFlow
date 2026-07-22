@@ -13,6 +13,19 @@ export interface PurchaseLine {
   readonly quantity: number;
   readonly unitPrice: Money;
   readonly lineTotal: Money;
+  /** Live flag: the line's product currently requires an expiry date at receiving (BR-PUR-013). */
+  readonly requiresExpiry: boolean;
+}
+
+/** JSON body of POST /api/v1/purchase-invoices/{id}/receive (REQ-PUR-005). */
+export interface ReceivePurchaseInvoicePayload {
+  readonly lines: readonly ReceiveLineExpiry[];
+}
+
+/** An expiry date captured for one line at receiving (BR-PUR-013); ISO yyyy-MM-dd. */
+export interface ReceiveLineExpiry {
+  readonly lineId: string;
+  readonly expiryDate: string | null;
 }
 
 /** JSON body of POST /api/v1/purchase-invoices/{id}/lines. */

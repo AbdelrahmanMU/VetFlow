@@ -150,6 +150,12 @@
   <data name="VTF-PUR-005" xml:space="preserve">
     <value>The purchase line is invalid. Check the product, purchase unit, quantity, and unit price.</value>
   </data>
+  <data name="VTF-PUR-006" xml:space="preserve">
+    <value>A purchase invoice with no lines cannot be received. Add at least one line before receiving.</value>
+  </data>
+  <data name="VTF-PUR-007" xml:space="preserve">
+    <value>This product requires an expiry date at receiving.</value>
+  </data>
   <data name="error.internal" xml:space="preserve">
     <value>An unexpected error occurred. Retry, and contact support if it persists.</value>
   </data>

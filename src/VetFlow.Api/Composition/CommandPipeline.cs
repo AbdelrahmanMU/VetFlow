@@ -12,6 +12,7 @@ using VetFlow.Application.Common;
 using VetFlow.Application.Common.Behaviors;
 using VetFlow.Application.Purchasing.Commands.AddPurchaseLineItem;
 using VetFlow.Application.Purchasing.Commands.CreatePurchaseInvoice;
+using VetFlow.Application.Purchasing.Commands.ReceivePurchaseInvoice;
 using VetFlow.Application.Purchasing.Commands.RemovePurchaseLineItem;
 using VetFlow.Infrastructure.Catalog;
 using VetFlow.Infrastructure.Categories;
@@ -40,6 +41,7 @@ public static class CommandPipeline
         services.AddCommandHandler<CreatePurchaseInvoiceCommand, CreatePurchaseInvoiceResult, CreatePurchaseInvoiceCommandHandler>();
         services.AddCommandHandler<AddPurchaseLineItemCommand, Guid?, AddPurchaseLineItemCommandHandler>();
         services.AddCommandHandler<RemovePurchaseLineItemCommand, Guid?, RemovePurchaseLineItemCommandHandler>();
+        services.AddCommandHandler<ReceivePurchaseInvoiceCommand, Guid?, ReceivePurchaseInvoiceCommandHandler>();
         return services;
     }
 

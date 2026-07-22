@@ -15,6 +15,7 @@ using VetFlow.Application.Categories.Commands.RenameCategory;
 using VetFlow.Application.Categories.Queries.CategoryList;
 using VetFlow.Application.Purchasing.Commands.AddPurchaseLineItem;
 using VetFlow.Application.Purchasing.Commands.CreatePurchaseInvoice;
+using VetFlow.Application.Purchasing.Commands.ReceivePurchaseInvoice;
 using VetFlow.Application.Purchasing.Queries.PurchaseDetails;
 using VetFlow.Application.Purchasing.Queries.PurchaseLineItems;
 using VetFlow.Application.Purchasing.Queries.PurchaseList;
@@ -48,6 +49,7 @@ public static class DependencyInjection
         services.AddSingleton<IValidator<PurchaseLineItemsQuery>, PurchaseLineItemsQueryValidator>();
         services.AddSingleton<IValidator<CreatePurchaseInvoiceCommand>, CreatePurchaseInvoiceCommandValidator>();
         services.AddSingleton<IValidator<AddPurchaseLineItemCommand>, AddPurchaseLineItemCommandValidator>();
+        services.AddSingleton<IValidator<ReceivePurchaseInvoiceCommand>, ReceivePurchaseInvoiceCommandValidator>();
         return services;
     }
 }

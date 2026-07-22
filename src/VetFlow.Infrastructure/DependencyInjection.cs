@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using VetFlow.Application.Inventory;
 using VetFlow.Infrastructure.Catalog;
 using VetFlow.Infrastructure.Categories;
+using VetFlow.Infrastructure.Inventory;
 using VetFlow.Infrastructure.Persistence;
 using VetFlow.Infrastructure.Purchasing;
 
@@ -54,6 +56,11 @@ public static class DependencyInjection
         services.AddScoped<CreatePurchaseInvoiceCommandHandler>();
         services.AddScoped<AddPurchaseLineItemCommandHandler>();
         services.AddScoped<RemovePurchaseLineItemCommandHandler>();
+        services.AddScoped<ReceivePurchaseInvoiceCommandHandler>();
+
+        // Inventory write kernel (write-kernel.md, DEC-INV-001) — the public write contract
+        // Purchase Receiving depends on; internals owned by Inventory (DEC-PUR-008).
+        services.AddScoped<IInventoryReceiptWriter, InventoryReceiptWriter>();
 
         return services;
     }

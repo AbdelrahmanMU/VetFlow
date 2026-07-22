@@ -25,4 +25,12 @@ public sealed record PurchaseLineItemDto
     public required MoneyDto UnitPrice { get; init; }
 
     public required MoneyDto LineTotal { get; init; }
+
+    /// <summary>
+    /// Whether the line's product currently requires an expiry date at receiving (BR-PUR-013,
+    /// DEC-PUR-009). A <b>live</b> read of the current product definition — not a snapshot — so the
+    /// receive dialog can mark the expiry field required; the receive handler enforces it as the
+    /// backstop (VTF-PUR-007).
+    /// </summary>
+    public required bool RequiresExpiry { get; init; }
 }

@@ -150,6 +150,12 @@
   <data name="VTF-PUR-005" xml:space="preserve">
     <value>بند الشراء غير صالح. راجع المنتج ووحدة الشراء والكمية وسعر الوحدة.</value>
   </data>
+  <data name="VTF-PUR-006" xml:space="preserve">
+    <value>لا يمكن استلام فاتورة شراء بلا بنود. أضِف بندًا واحدًا على الأقل قبل الاستلام.</value>
+  </data>
+  <data name="VTF-PUR-007" xml:space="preserve">
+    <value>هذا المنتج يتطلّب تاريخ صلاحية عند الاستلام.</value>
+  </data>
   <data name="error.internal" xml:space="preserve">
     <value>حدث خطأ غير متوقع. أعد المحاولة، وإن تكرر تواصل مع الدعم الفني.</value>
   </data>

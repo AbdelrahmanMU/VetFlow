@@ -159,6 +159,28 @@ public sealed class PurchaseInvoice
         return true;
     }
 
+    /// <summary>
+    /// Receive a draft invoice (REQ-PUR-005, BR-PUR-009): the one-time, all-or-nothing
+    /// transition Draft → Received (BR-PUR-003). Only a draft with at least one line may be
+    /// received (BR-PUR-012); receiving a non-draft invoice or an empty one is rejected
+    /// without mutation. The inventory effect — one batch per line and the on-hand increase
+    /// — is applied by the receiving handler through the Inventory write kernel within the
+    /// same unit of work (BR-PUR-010, DEC-PUR-008); this method owns only the state
+    /// transition. Afterwards the invoice is immutable (BR-PUR-011): the Draft-only guards on
+    /// <see cref="AddLine"/> / <see cref="RemoveLine"/> block any further change.
+    /// </summary>
+    public void Receive()
+    {
+        EnsureDraft();
+
+        if (_lines.Count == 0)
+        {
+            throw new BusinessRuleException(PurchasingErrorCodes.InvoiceHasNoLines);
+        }
+
+        Status = PurchaseInvoiceStatus.Received;
+    }
+
     private void EnsureDraft()
     {
         if (Status != PurchaseInvoiceStatus.Draft)

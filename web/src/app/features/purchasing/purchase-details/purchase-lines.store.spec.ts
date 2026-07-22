@@ -36,6 +36,7 @@ describe('PurchaseLinesStore', () => {
     quantity: 3,
     unitPrice: { amount: 100, currency: 'EGP' },
     lineTotal: { amount: 300, currency: 'EGP' },
+    requiresExpiry: false,
   };
 
   it('loads the lines when the invoice id is set', () => {
@@ -124,5 +125,37 @@ describe('PurchaseLinesStore', () => {
     expect(reported).toBe(true);
     const view = store.view();
     expect(view.kind === 'ready' && view.lines.length).toBe(0);
+  });
+
+  it('POSTs a receive and reports success (REQ-PUR-005)', () => {
+    store.setId('inv-1');
+    TestBed.tick();
+    http.expectOne('/api/v1/purchase-invoices/inv-1/lines').flush([line]);
+
+    let reported: boolean | null = null;
+    store.receive({ lines: [] }, (ok) => (reported = ok));
+
+    http
+      .expectOne((request) => request.method === 'POST' && request.url === '/api/v1/purchase-invoices/inv-1/receive')
+      .flush(null);
+
+    expect(reported).toBe(true);
+    expect(store.saving()).toBe(false);
+  });
+
+  it('reports failure when receiving is rejected (AC-PUR-015/016/018)', () => {
+    store.setId('inv-1');
+    TestBed.tick();
+    http.expectOne('/api/v1/purchase-invoices/inv-1/lines').flush([line]);
+
+    let reported: boolean | null = null;
+    store.receive({ lines: [] }, (ok) => (reported = ok));
+
+    http
+      .expectOne('/api/v1/purchase-invoices/inv-1/receive')
+      .flush({ errorCode: 'VTF-PUR-006' }, { status: 409, statusText: 'Conflict' });
+
+    expect(reported).toBe(false);
+    expect(store.saving()).toBe(false);
   });
 });

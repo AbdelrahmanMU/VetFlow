@@ -9,6 +9,7 @@ import {
   ProductPickerOption,
   PurchaseLine,
   PurchaseUnitOption,
+  ReceivePurchaseInvoicePayload,
 } from './purchase-lines.models';
 
 /**
@@ -33,6 +34,11 @@ export class PurchaseLinesApiService {
 
   removeLine(invoiceId: string, lineId: string): Observable<void> {
     return this.api.delete<void>(`/purchase-invoices/${invoiceId}/lines/${lineId}`);
+  }
+
+  /** Receive the invoice (REQ-PUR-005): transitions it to Received and persists the inventory effect. */
+  receive(invoiceId: string, payload: ReceivePurchaseInvoicePayload): Observable<void> {
+    return this.api.post<void>(`/purchase-invoices/${invoiceId}/receive`, payload);
   }
 
   /** Active products only (DEC-PUR-003 — the picker mirrors the Catalog active-only convention). */

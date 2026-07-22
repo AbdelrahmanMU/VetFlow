@@ -23,6 +23,7 @@ describe('PurchaseLineItemsComponent', () => {
     quantity: 3,
     unitPrice: { amount: 100, currency: 'EGP' },
     lineTotal: { amount: 300, currency: 'EGP' },
+    requiresExpiry: false,
   };
 
   function setup(isDraft: boolean, total = { amount: 300, currency: 'EGP' }, lines: unknown[] = [line]) {

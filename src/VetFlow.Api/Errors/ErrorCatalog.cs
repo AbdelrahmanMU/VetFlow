@@ -75,6 +75,18 @@ public static class ErrorCatalog
                 Status = StatusCodes.Status400BadRequest,
                 Title = "The purchase line is invalid",
             },
+            new()
+            {
+                Code = PurchasingErrorCodes.InvoiceHasNoLines,
+                Status = StatusCodes.Status409Conflict,
+                Title = "A purchase invoice with no lines cannot be received",
+            },
+            new()
+            {
+                Code = PurchasingErrorCodes.ExpiryRequired,
+                Status = StatusCodes.Status400BadRequest,
+                Title = "This product requires an expiry date at receiving",
+            },
         }.ToDictionary(entry => entry.Code);
 
     public static ErrorCatalogEntry Get(string code) =>

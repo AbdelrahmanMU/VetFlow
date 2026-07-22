@@ -3,7 +3,7 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { of } from 'rxjs';
 import { catchError, map, startWith, switchMap } from 'rxjs/operators';
 
-import { AddPurchaseLinePayload, PurchaseLine } from './purchase-lines.models';
+import { AddPurchaseLinePayload, PurchaseLine, ReceivePurchaseInvoicePayload } from './purchase-lines.models';
 import { PurchaseLinesApiService } from './purchase-lines-api.service';
 
 export type PurchaseLinesViewState =
@@ -27,6 +27,12 @@ export class PurchaseLinesStore {
 
   private readonly _saving = signal(false);
   readonly saving = this._saving.asReadonly();
+
+  /** The current lines when the read is ready (empty otherwise) — the receive dialog consumes them. */
+  readonly lines = computed(() => {
+    const view = this.view();
+    return view.kind === 'ready' ? view.lines : [];
+  });
 
   readonly view = toSignal(
     toObservable(this.request).pipe(
@@ -86,6 +92,29 @@ export class PurchaseLinesStore {
       next: () => {
         this._saving.set(false);
         this.refresh();
+        done(true);
+      },
+      error: () => {
+        this._saving.set(false);
+        done(false);
+      },
+    });
+  }
+
+  /**
+   * Receive the invoice (REQ-PUR-005): on success report so the page re-reads the header (the
+   * status becomes Received and the invoice is immutable). No optimistic UI (STD-FE-036).
+   */
+  receive(payload: ReceivePurchaseInvoicePayload, done: (succeeded: boolean) => void): void {
+    const id = this.invoiceId();
+    if (!id) {
+      return;
+    }
+
+    this._saving.set(true);
+    this.api.receive(id, payload).subscribe({
+      next: () => {
+        this._saving.set(false);
         done(true);
       },
       error: () => {
