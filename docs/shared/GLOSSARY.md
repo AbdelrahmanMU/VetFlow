@@ -44,6 +44,13 @@
 | Monitoring | المراقبة | Watching stock levels and expiry dates and raising alerts. |
 | Low-stock threshold | الحد الأدنى للمخزون | Level below which an alert is raised. Exact behavior TODO (Monitoring module docs). |
 | Alert | تنبيه | A warning raised by Monitoring before a loss occurs. |
+| On-hand quantity | الرصيد المتاح | The committed current quantity of a product held in inventory, in the product's stock-keeping unit (`ProductOnHand`; BR-INV-002, BR-INV-008). |
+| Inventory projection | إسقاط المخزون | Read-only, on-the-fly view of committed inventory; owns no state and is rebuildable from `InventoryBatch`/`ProductOnHand` (BR-INV-006). |
+| Batch count | عدد الدفعات | Number of a product's active inventory batches (`RemainingQuantity > 0`) (BR-INV-009). |
+| Nearest expiry | أقرب صلاحية | The earliest expiry date among a product's active batches (BR-INV-010). |
+| Expiring soon | قرب انتهاء الصلاحية | A product whose nearest expiry falls within 30 calendar days (BR-INV-013, DEC-INV-005). |
+| Out of stock | نفاد المخزون | On-hand quantity equals zero (BR-INV-011). |
+| Reorder level | حد إعادة الطلب | Future per-product Catalog capability that will define Low Stock; not yet in the model (DEC-INV-004, BR-INV-012). |
 
 ## Trading — الحركة التجارية
 
