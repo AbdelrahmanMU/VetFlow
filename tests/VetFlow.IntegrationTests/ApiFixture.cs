@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
 using VetFlow.Infrastructure.Persistence;
@@ -56,6 +57,30 @@ public sealed class ApiFixture : IAsyncLifetime
         var dbContext = scope.ServiceProvider.GetRequiredService<VetFlowDbContext>();
         await seed(dbContext);
         await dbContext.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Runs <paramref name="write"/> inside a transaction that is never committed, invokes
+    /// <paramref name="whileUncommitted"/> while those rows are still uncommitted, then rolls back.
+    /// Because the API request runs on a separate connection under READ COMMITTED, it cannot see the
+    /// uncommitted rows — proving read models reflect committed state only (BR-INV-016).
+    /// </summary>
+    public async Task AssertInvisibleWhileUncommittedAsync(
+        Func<VetFlowDbContext, Task> write,
+        Func<Task> whileUncommitted)
+    {
+        if (_factory is null)
+        {
+            throw new InvalidOperationException("Fixture not initialized.");
+        }
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<VetFlowDbContext>();
+        await using var transaction = await dbContext.Database.BeginTransactionAsync();
+        await write(dbContext);
+        await dbContext.SaveChangesAsync();
+        await whileUncommitted();
+        await transaction.RollbackAsync();
     }
 
     public async Task<TResult> QueryDbAsync<TResult>(Func<VetFlowDbContext, Task<TResult>> query)

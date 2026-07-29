@@ -9,11 +9,13 @@ using VetFlow.Application.Catalog.Queries.UnitOptions;
 using VetFlow.Application.Categories.Queries.CategoryList;
 using VetFlow.Application.Common;
 using VetFlow.Application.Common.Behaviors;
+using VetFlow.Application.Inventory.Queries.InventoryProjection;
 using VetFlow.Application.Purchasing.Queries.PurchaseDetails;
 using VetFlow.Application.Purchasing.Queries.PurchaseLineItems;
 using VetFlow.Application.Purchasing.Queries.PurchaseList;
 using VetFlow.Infrastructure.Catalog;
 using VetFlow.Infrastructure.Categories;
+using VetFlow.Infrastructure.Inventory;
 using VetFlow.Infrastructure.Purchasing;
 
 namespace VetFlow.Api.Composition;
@@ -37,6 +39,7 @@ public static class QueryPipeline
         services.AddQueryHandler<PurchaseListQuery, PagedResult<PurchaseListItemDto>, PurchaseListQueryHandler>();
         services.AddQueryHandler<PurchaseDetailsQuery, PurchaseDetailsDto?, PurchaseDetailsQueryHandler>();
         services.AddQueryHandler<PurchaseLineItemsQuery, IReadOnlyList<PurchaseLineItemDto>?, PurchaseLineItemsQueryHandler>();
+        services.AddQueryHandler<InventoryProjectionQuery, PagedResult<InventoryProjectionItemDto>, InventoryProjectionQueryHandler>();
         return services;
     }
 

@@ -57,6 +57,7 @@ public static class DependencyInjection
         services.AddScoped<AddPurchaseLineItemCommandHandler>();
         services.AddScoped<RemovePurchaseLineItemCommandHandler>();
         services.AddScoped<ReceivePurchaseInvoiceCommandHandler>();
+        services.AddScoped<InventoryProjectionQueryHandler>();
 
         // Inventory write kernel (write-kernel.md, DEC-INV-001) — the public write contract
         // Purchase Receiving depends on; internals owned by Inventory (DEC-PUR-008).

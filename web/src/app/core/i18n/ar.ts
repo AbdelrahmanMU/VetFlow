@@ -359,6 +359,40 @@ export const AR = {
   'purchaseDetails.lines.error.unit': 'اختر وحدة الشراء.',
   'purchaseDetails.lines.error.quantity': 'الكمية يجب أن تكون أكبر من صفر.',
   'purchaseDetails.lines.error.price': 'سعر الوحدة يجب أن يكون صفرًا أو أكثر.',
+
+  // Inventory — Inventory Projection (Slice 1) — inventory/ui.md, REQ-INV-002, BR-INV-006..017
+  'nav.inventory': 'المخزون',
+
+  'inventory.title': 'المخزون',
+  'inventory.search.placeholder': 'ابحث باسم المنتج…',
+  'inventory.search.clear': 'مسح البحث',
+  'inventory.loading': 'جارٍ تحميل المخزون…',
+
+  'inventory.filters.open': 'الفلاتر',
+  'inventory.filters.title': 'فلاتر المخزون',
+  'inventory.filters.clearAll': 'مسح الكل',
+  'inventory.filter.category': 'التصنيف',
+  'inventory.filter.any': 'الكل',
+  'inventory.filter.expiringSoon': 'قرب انتهاء الصلاحية',
+  'inventory.filter.outOfStock': 'نفاد المخزون',
+
+  'inventory.table.label': 'قائمة المخزون',
+  'inventory.column.product': 'المنتج',
+  'inventory.column.onHand': 'الرصيد المتاح',
+  'inventory.column.stockUnit': 'وحدة المخزون',
+  'inventory.column.batchCount': 'عدد الدفعات',
+  'inventory.column.nearestExpiry': 'أقرب صلاحية',
+  'inventory.row.open': 'عرض دفعات المنتج {product}',
+
+  'inventory.empty.new.title': 'لا يوجد مخزون بعد',
+  'inventory.empty.new.body': 'ستظهر أرصدة المنتجات هنا فور استلام أول فاتورة شراء.',
+  'inventory.empty.search.title': 'لا يوجد منتج مطابق لـ «{query}».',
+  'inventory.empty.search.body': 'جرّب اسم منتج آخر، أو امسح البحث.',
+  'inventory.empty.filters.title': 'لا نتائج مطابقة للفلاتر المطبَّقة.',
+  'inventory.empty.filters.body': 'وسّع الفلاتر أو امسحها لعرض المخزون.',
+  'inventory.error.title': 'تعذّر تحميل المخزون.',
+  'inventory.error.body': 'تحقق من الاتصال ثم أعد المحاولة.',
+  'inventory.error.retry': 'إعادة المحاولة',
 } as const;
 
 export type MessageKey = keyof typeof AR;
