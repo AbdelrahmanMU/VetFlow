@@ -67,4 +67,21 @@ public sealed class InventoryBatch
 
     /// <summary>System timestamp at receiving (BR-INV-001).</summary>
     public DateTimeOffset ReceivedAt { get; }
+
+    /// <summary>
+    /// Consume part (or all) of this batch's remaining quantity (BR-INV-047) — the write half of
+    /// FEFO allocation, and the only path that ever decreases <see cref="RemainingQuantity"/>.
+    /// <see cref="Quantity"/>, the historical received amount, never changes; the batch is never
+    /// deleted, and a batch drained to zero simply becomes "depleted" by the existing derivation
+    /// (BR-INV-021). The remaining quantity can never go below zero: the allocator checks
+    /// sufficiency against the saleable batches before writing anything (BR-INV-052), so an
+    /// over-consumption here is a programmer error, not a business failure.
+    /// </summary>
+    public void Consume(decimal quantity)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(quantity, RemainingQuantity);
+
+        RemainingQuantity -= quantity;
+    }
 }

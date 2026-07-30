@@ -1,12 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using VetFlow.Application.Common;
 using VetFlow.Application.Inventory;
 using VetFlow.Infrastructure.Catalog;
 using VetFlow.Infrastructure.Categories;
+using VetFlow.Infrastructure.Common;
 using VetFlow.Infrastructure.Inventory;
 using VetFlow.Infrastructure.Persistence;
 using VetFlow.Infrastructure.Purchasing;
+using VetFlow.Infrastructure.Sales;
 
 namespace VetFlow.Infrastructure;
 
@@ -25,7 +28,19 @@ public static class DependencyInjection
                 "Database:ConnectionString must be configured.")
             .ValidateOnStart();
 
+        // The clinic's business date comes from one configured time zone (BR-INV-060). An absent or
+        // unresolvable zone refuses to boot: running with an unknown time zone would make the
+        // expiry safety decision undefined, and silently falling back to UTC is prohibited.
+        services.AddOptions<ClinicTimeOptions>()
+            .BindConfiguration(ClinicTimeOptions.SectionName)
+            .Validate(
+                options => !string.IsNullOrWhiteSpace(options.TimeZone),
+                "Clinic:TimeZone must be configured (BR-INV-060 — UTC fallback is prohibited).")
+            .Validate(IsResolvableTimeZone, "Clinic:TimeZone is not a time zone this system knows.")
+            .ValidateOnStart();
+
         services.AddSingleton(TimeProvider.System);
+        services.AddSingleton<IClinicClock, ClinicClock>();
         services.AddSingleton<SearchTextInterceptor>();
         services.AddDbContext<VetFlowDbContext>((serviceProvider, options) =>
         {
@@ -58,12 +73,43 @@ public static class DependencyInjection
         services.AddScoped<RemovePurchaseLineItemCommandHandler>();
         services.AddScoped<ReceivePurchaseInvoiceCommandHandler>();
         services.AddScoped<InventoryProjectionQueryHandler>();
+        services.AddScoped<BatchViewerQueryHandler>();
+        services.AddScoped<ExpiryMonitoringQueryHandler>();
+        services.AddScoped<SalesDetailsQueryHandler>();
+        services.AddScoped<SalesLineItemsQueryHandler>();
+        services.AddScoped<CreateSalesInvoiceCommandHandler>();
+        services.AddScoped<AddSalesLineItemCommandHandler>();
+        services.AddScoped<RemoveSalesLineItemCommandHandler>();
+        services.AddScoped<CommitSalesInvoiceCommandHandler>();
 
         // Inventory write kernel (write-kernel.md, DEC-INV-001) — the public write contract
         // Purchase Receiving depends on; internals owned by Inventory (DEC-PUR-008).
         services.AddScoped<IInventoryReceiptWriter, InventoryReceiptWriter>();
 
+        // Inventory consumption (REQ-INV-006/007, DEC-INV-019) — the public write contract
+        // committing a sale depends on; FEFO and batch selection stay inside Inventory
+        // (DEC-SAL-006, BR-SAL-013).
+        services.AddScoped<IInventoryConsumptionWriter, InventoryConsumptionWriter>();
+
         return services;
+    }
+
+    private static bool IsResolvableTimeZone(ClinicTimeOptions options)
+    {
+        if (string.IsNullOrWhiteSpace(options.TimeZone))
+        {
+            return false;
+        }
+
+        try
+        {
+            TimeZoneInfo.FindSystemTimeZoneById(options.TimeZone);
+            return true;
+        }
+        catch (Exception exception) when (exception is TimeZoneNotFoundException or InvalidTimeZoneException)
+        {
+            return false;
+        }
     }
 
     /// <summary>Applies pending migrations when Database:ApplyMigrationsAtStartup is enabled.</summary>

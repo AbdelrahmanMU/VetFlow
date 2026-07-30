@@ -5,7 +5,9 @@ using VetFlow.Api.Errors;
 using VetFlow.Application.Common;
 using VetFlow.Domain.Catalog;
 using VetFlow.Domain.Common;
+using VetFlow.Domain.Inventory;
 using VetFlow.Domain.Purchasing;
+using VetFlow.Domain.Sales;
 
 namespace VetFlow.ArchitectureTests;
 
@@ -24,7 +26,9 @@ public sealed class ErrorCatalogTests
         var data = new TheoryData<string>();
         var codes = CollectConstants(typeof(CommonErrorCodes))
             .Concat(CollectConstants(typeof(CatalogErrorCodes)))
-            .Concat(CollectConstants(typeof(PurchasingErrorCodes)));
+            .Concat(CollectConstants(typeof(PurchasingErrorCodes)))
+            .Concat(CollectConstants(typeof(InventoryErrorCodes)))
+            .Concat(CollectConstants(typeof(SalesErrorCodes)));
         foreach (var code in codes)
         {
             data.Add(code);

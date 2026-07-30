@@ -150,27 +150,38 @@ public sealed class ConventionTests
     {
         // Query handlers are the sanctioned cross-module read path (ADR-0014 §2);
         // shared Persistence and the composition root wire everything.
-        AssertNoDependency(
-            "VetFlow.Domain.Catalog",
-            "VetFlow.Application.Catalog",
-            forbidden: ["VetFlow.Domain.Categories", "VetFlow.Application.Categories", "VetFlow.Domain.Purchasing", "VetFlow.Application.Purchasing", "VetFlow.Domain.Inventory", "VetFlow.Application.Inventory"]);
+        AssertModuleIsIsolated("Catalog");
+        AssertModuleIsIsolated("Categories");
+        AssertModuleIsIsolated("Purchasing");
 
-        AssertNoDependency(
-            "VetFlow.Domain.Categories",
-            "VetFlow.Application.Categories",
-            forbidden: ["VetFlow.Domain.Catalog", "VetFlow.Application.Catalog", "VetFlow.Domain.Purchasing", "VetFlow.Application.Purchasing", "VetFlow.Domain.Inventory", "VetFlow.Application.Inventory"]);
+        // The Inventory write kernel and its consumption contract (write-kernel.md, DEC-PUR-008,
+        // DEC-INV-019) expose public contracts and depend on no other module; Purchasing and Sales
+        // reach them only through the composition root.
+        AssertModuleIsIsolated("Inventory");
 
-        AssertNoDependency(
-            "VetFlow.Domain.Purchasing",
-            "VetFlow.Application.Purchasing",
-            forbidden: ["VetFlow.Domain.Catalog", "VetFlow.Application.Catalog", "VetFlow.Domain.Categories", "VetFlow.Application.Categories", "VetFlow.Domain.Inventory", "VetFlow.Application.Inventory"]);
+        // Sales, in both directions (Sprint 7): Sales must not reach into Inventory — putting FEFO
+        // or batch knowledge in Sales would break the boundary the owner ruled (DEC-SAL-006,
+        // BR-SAL-013) — and no module may reach into Sales. The second direction matters because
+        // Inventory now stores a sale-line id (REQ-INV-008): it must stay a plain Guid, never a
+        // Sales type.
+        AssertModuleIsIsolated("Sales");
+    }
 
-        // The Inventory write kernel (write-kernel.md, DEC-PUR-008) exposes a public contract and
-        // depends on no other module; Purchasing reaches it only through the composition root.
-        AssertNoDependency(
-            "VetFlow.Domain.Inventory",
-            "VetFlow.Application.Inventory",
-            forbidden: ["VetFlow.Domain.Catalog", "VetFlow.Application.Catalog", "VetFlow.Domain.Categories", "VetFlow.Application.Categories", "VetFlow.Domain.Purchasing", "VetFlow.Application.Purchasing"]);
+    /// <summary>
+    /// A module's Domain and Application namespaces must not depend on any <b>other</b> module's
+    /// Domain or Application namespace (STD-BE-005, ADR-0014 §2). Because this runs for every
+    /// module, each pair is asserted in both directions.
+    /// </summary>
+    private static void AssertModuleIsIsolated(string module)
+    {
+        string[] modules = ["Catalog", "Categories", "Purchasing", "Inventory", "Sales"];
+
+        var forbidden = modules
+            .Where(other => !string.Equals(other, module, StringComparison.Ordinal))
+            .SelectMany(other => new[] { $"VetFlow.Domain.{other}", $"VetFlow.Application.{other}" })
+            .ToArray();
+
+        AssertNoDependency($"VetFlow.Domain.{module}", $"VetFlow.Application.{module}", forbidden);
     }
 
     private static void AssertNoDependency(string namespaceA, string namespaceB, string[] forbidden)

@@ -8,6 +8,8 @@ export interface ProblemDetails {
   readonly errorCode?: string;
   readonly traceId?: string;
   readonly errors?: Record<string, readonly string[]>;
+  /** Structured facts about the failure — e.g. the products a sale could not cover. Data, not copy. */
+  readonly metadata?: Record<string, string>;
 }
 
 /**

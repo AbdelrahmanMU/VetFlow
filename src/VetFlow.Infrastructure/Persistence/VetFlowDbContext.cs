@@ -3,6 +3,7 @@ using VetFlow.Domain.Catalog;
 using VetFlow.Domain.Categories;
 using VetFlow.Domain.Inventory;
 using VetFlow.Domain.Purchasing;
+using VetFlow.Domain.Sales;
 using VetFlow.Infrastructure.Persistence.Configurations;
 
 namespace VetFlow.Infrastructure.Persistence;
@@ -29,6 +30,12 @@ public sealed class VetFlowDbContext(DbContextOptions<VetFlowDbContext> options)
 
     public DbSet<ProductOnHand> ProductOnHands => Set<ProductOnHand>();
 
+    public DbSet<InventoryConsumption> InventoryConsumptions => Set<InventoryConsumption>();
+
+    public DbSet<SalesInvoice> SalesInvoices => Set<SalesInvoice>();
+
+    public DbSet<SalesLineItem> SalesLineItems => Set<SalesLineItem>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("pg_trgm");
@@ -43,6 +50,9 @@ public sealed class VetFlowDbContext(DbContextOptions<VetFlowDbContext> options)
         modelBuilder.ApplyConfiguration(new PurchaseLineItemConfiguration());
         modelBuilder.ApplyConfiguration(new InventoryBatchConfiguration());
         modelBuilder.ApplyConfiguration(new ProductOnHandConfiguration());
+        modelBuilder.ApplyConfiguration(new InventoryConsumptionConfiguration());
+        modelBuilder.ApplyConfiguration(new SalesInvoiceConfiguration());
+        modelBuilder.ApplyConfiguration(new SalesLineItemConfiguration());
 
         SnakeCaseNames.Apply(modelBuilder);
     }

@@ -165,4 +165,31 @@
   <data name="error.methodNotAllowed" xml:space="preserve">
     <value>The method is not allowed on this path.</value>
   </data>
+  <data name="validation.saleDate.required" xml:space="preserve">
+    <value>Sale date is required.</value>
+  </data>
+  <data name="validation.line.saleUnit.required" xml:space="preserve">
+    <value>Sale unit is required.</value>
+  </data>
+  <data name="VTF-SAL-003" xml:space="preserve">
+    <value>Only a draft sales invoice may change its lines or be committed.</value>
+  </data>
+  <data name="VTF-SAL-004" xml:space="preserve">
+    <value>The sales line is invalid. Check the product, the sale unit, the quantity, and the defined sale price.</value>
+  </data>
+  <data name="VTF-SAL-009" xml:space="preserve">
+    <value>A sales invoice with no lines cannot be committed. Add at least one line first.</value>
+  </data>
+  <data name="VTF-SAL-012" xml:space="preserve">
+    <value>A line quantity does not convert into the stock unit exactly. Nothing was rounded or truncated; the commit was rejected.</value>
+  </data>
+  <data name="VTF-INV-046" xml:space="preserve">
+    <value>The inventory consumption request is invalid.</value>
+  </data>
+  <data name="VTF-INV-052" xml:space="preserve">
+    <value>Saleable stock is not sufficient. No balance was changed and no batch was reduced.</value>
+  </data>
+  <data name="VTF-INV-056" xml:space="preserve">
+    <value>Inventory changed while the sale was being committed. Nothing was saved. Try again.</value>
+  </data>
 </root>

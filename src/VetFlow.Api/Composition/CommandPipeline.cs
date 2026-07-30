@@ -14,9 +14,14 @@ using VetFlow.Application.Purchasing.Commands.AddPurchaseLineItem;
 using VetFlow.Application.Purchasing.Commands.CreatePurchaseInvoice;
 using VetFlow.Application.Purchasing.Commands.ReceivePurchaseInvoice;
 using VetFlow.Application.Purchasing.Commands.RemovePurchaseLineItem;
+using VetFlow.Application.Sales.Commands.AddSalesLineItem;
+using VetFlow.Application.Sales.Commands.CommitSalesInvoice;
+using VetFlow.Application.Sales.Commands.CreateSalesInvoice;
+using VetFlow.Application.Sales.Commands.RemoveSalesLineItem;
 using VetFlow.Infrastructure.Catalog;
 using VetFlow.Infrastructure.Categories;
 using VetFlow.Infrastructure.Purchasing;
+using VetFlow.Infrastructure.Sales;
 
 namespace VetFlow.Api.Composition;
 
@@ -42,6 +47,10 @@ public static class CommandPipeline
         services.AddCommandHandler<AddPurchaseLineItemCommand, Guid?, AddPurchaseLineItemCommandHandler>();
         services.AddCommandHandler<RemovePurchaseLineItemCommand, Guid?, RemovePurchaseLineItemCommandHandler>();
         services.AddCommandHandler<ReceivePurchaseInvoiceCommand, Guid?, ReceivePurchaseInvoiceCommandHandler>();
+        services.AddCommandHandler<CreateSalesInvoiceCommand, CreateSalesInvoiceResult, CreateSalesInvoiceCommandHandler>();
+        services.AddCommandHandler<AddSalesLineItemCommand, Guid?, AddSalesLineItemCommandHandler>();
+        services.AddCommandHandler<RemoveSalesLineItemCommand, Guid?, RemoveSalesLineItemCommandHandler>();
+        services.AddCommandHandler<CommitSalesInvoiceCommand, Guid?, CommitSalesInvoiceCommandHandler>();
         return services;
     }
 

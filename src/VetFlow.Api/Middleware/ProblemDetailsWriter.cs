@@ -24,7 +24,8 @@ public static class ProblemDetailsWriter
         string title,
         string? detail,
         string? errorCode,
-        IReadOnlyDictionary<string, string[]>? errors = null)
+        IReadOnlyDictionary<string, string[]>? errors = null,
+        IReadOnlyDictionary<string, string>? metadata = null)
     {
         var problem = new Dictionary<string, object?>
         {
@@ -48,6 +49,15 @@ public static class ProblemDetailsWriter
         if (errors is not null)
         {
             problem["errors"] = errors;
+        }
+
+        // Structured, already-non-translatable facts the client needs to compose a precise message
+        // — the products a sale could not cover (AC-INV-041, AC-SAL-009), the line whose conversion
+        // was inexact (AC-SAL-013). Data, never UI copy: the wording stays with the localized
+        // detail above (ADR-0018).
+        if (metadata is { Count: > 0 })
+        {
+            problem["metadata"] = metadata;
         }
 
         context.Response.StatusCode = status;

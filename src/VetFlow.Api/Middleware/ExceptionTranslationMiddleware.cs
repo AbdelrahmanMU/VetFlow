@@ -47,7 +47,9 @@ public sealed partial class ExceptionTranslationMiddleware(
                 entry.Status,
                 entry.Title,
                 ProblemDetailsWriter.Localize(context, exception.ErrorCode),
-                exception.ErrorCode);
+                exception.ErrorCode,
+                errors: null,
+                exception.Metadata);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {

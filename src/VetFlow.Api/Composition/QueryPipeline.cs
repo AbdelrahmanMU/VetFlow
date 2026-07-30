@@ -9,14 +9,19 @@ using VetFlow.Application.Catalog.Queries.UnitOptions;
 using VetFlow.Application.Categories.Queries.CategoryList;
 using VetFlow.Application.Common;
 using VetFlow.Application.Common.Behaviors;
+using VetFlow.Application.Inventory.Queries.BatchViewer;
+using VetFlow.Application.Inventory.Queries.ExpiryMonitoring;
 using VetFlow.Application.Inventory.Queries.InventoryProjection;
 using VetFlow.Application.Purchasing.Queries.PurchaseDetails;
 using VetFlow.Application.Purchasing.Queries.PurchaseLineItems;
 using VetFlow.Application.Purchasing.Queries.PurchaseList;
+using VetFlow.Application.Sales.Queries.SalesDetails;
+using VetFlow.Application.Sales.Queries.SalesLineItems;
 using VetFlow.Infrastructure.Catalog;
 using VetFlow.Infrastructure.Categories;
 using VetFlow.Infrastructure.Inventory;
 using VetFlow.Infrastructure.Purchasing;
+using VetFlow.Infrastructure.Sales;
 
 namespace VetFlow.Api.Composition;
 
@@ -40,6 +45,10 @@ public static class QueryPipeline
         services.AddQueryHandler<PurchaseDetailsQuery, PurchaseDetailsDto?, PurchaseDetailsQueryHandler>();
         services.AddQueryHandler<PurchaseLineItemsQuery, IReadOnlyList<PurchaseLineItemDto>?, PurchaseLineItemsQueryHandler>();
         services.AddQueryHandler<InventoryProjectionQuery, PagedResult<InventoryProjectionItemDto>, InventoryProjectionQueryHandler>();
+        services.AddQueryHandler<BatchViewerQuery, BatchViewerResult?, BatchViewerQueryHandler>();
+        services.AddQueryHandler<ExpiryMonitoringQuery, PagedResult<ExpiryMonitoringItemDto>, ExpiryMonitoringQueryHandler>();
+        services.AddQueryHandler<SalesDetailsQuery, SalesDetailsDto?, SalesDetailsQueryHandler>();
+        services.AddQueryHandler<SalesLineItemsQuery, IReadOnlyList<SalesLineItemDto>?, SalesLineItemsQueryHandler>();
         return services;
     }
 

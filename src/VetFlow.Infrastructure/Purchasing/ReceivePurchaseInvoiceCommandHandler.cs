@@ -5,6 +5,7 @@ using VetFlow.Application.Inventory;
 using VetFlow.Application.Purchasing.Commands.ReceivePurchaseInvoice;
 using VetFlow.Domain.Common;
 using VetFlow.Domain.Purchasing;
+using VetFlow.Infrastructure.Catalog;
 using VetFlow.Infrastructure.Persistence;
 
 namespace VetFlow.Infrastructure.Purchasing;
@@ -98,48 +99,38 @@ public sealed class ReceivePurchaseInvoiceCommandHandler(
     }
 
     /// <summary>
-    /// Convert a quantity from the given purchase unit to the product's canonical stock unit using
-    /// the Catalog unit profile's existing conversion factors (BR-CAT-018/019; owner ruling
-    /// 2026-07-22 — no new business rule). The factor-to-smallest of a unit is the product of the
-    /// chain's <c>QuantityInNextUnit</c> values from that unit down to the smallest; the stock
-    /// quantity is <c>quantity × factor(purchaseUnit) ÷ factor(stockUnit)</c>, correct whichever unit
-    /// is the larger. Quantities are not money — the EGP rounding policy (BR-PUR-008) does not apply.
+    /// Convert a quantity from the given purchase unit to the product's canonical stock unit
+    /// through the shared Catalog conversion (<see cref="ProductUnitConversion"/> — BR-CAT-018/019,
+    /// owner ruling 2026-07-22, no new business rule), mapping each failure to this module's error
+    /// code with the same reasons as before. Quantities are not money — the EGP rounding policy
+    /// (BR-PUR-008) does not apply.
+    ///
+    /// The exactness signal is deliberately <b>not</b> acted on here. BR-INV-058 states the
+    /// exact-conversion rule governs receiving as well as consumption, but enforcing it at
+    /// receiving would add a rejection path to an already-approved, implemented slice that the
+    /// Sprint 7 brief does not name — reported to the owner instead of widened into silently.
     /// </summary>
     private static decimal ConvertToStockUnit(ProductDetailsDto product, Guid purchaseUnitId, decimal quantity)
     {
-        var chain = product.Units.OrderBy(unit => unit.Position).ToList();
+        var failure = ProductUnitConversion.TryConvertToStockUnit(
+            product,
+            purchaseUnitId,
+            quantity,
+            out var stockQuantity,
+            out _);
 
-        var storageIndex = chain.FindIndex(unit => unit.IsStorageUnit);
-        if (storageIndex < 0)
+        return failure switch
         {
-            throw new BusinessRuleException(
+            UnitConversionFailure.None => stockQuantity,
+            UnitConversionFailure.NoStorageUnit => throw new BusinessRuleException(
                 PurchasingErrorCodes.LineComposition,
-                new Dictionary<string, string> { ["reason"] = "productHasNoStorageUnit" });
-        }
-
-        var purchaseIndex = chain.FindIndex(unit => unit.UnitId == purchaseUnitId);
-        if (purchaseIndex < 0)
-        {
-            throw new BusinessRuleException(
+                new Dictionary<string, string> { ["reason"] = "productHasNoStorageUnit" }),
+            UnitConversionFailure.UnitNotInProfile => throw new BusinessRuleException(
                 PurchasingErrorCodes.LineComposition,
-                new Dictionary<string, string> { ["reason"] = "notPurchaseUnitOfProduct" });
-        }
-
-        return quantity * FactorToSmallest(chain, purchaseIndex) / FactorToSmallest(chain, storageIndex);
-    }
-
-    /// <summary>Product of the chain's conversion factors from <paramref name="index"/> down to the smallest unit (1 for the smallest).</summary>
-    private static decimal FactorToSmallest(IReadOnlyList<ProductUnitDetailsDto> chain, int index)
-    {
-        var factor = 1m;
-        for (var step = index; step < chain.Count - 1; step++)
-        {
-            factor *= chain[step].QuantityInNextUnit
-                ?? throw new BusinessRuleException(
-                    PurchasingErrorCodes.LineComposition,
-                    new Dictionary<string, string> { ["reason"] = "missingConversionFactor" });
-        }
-
-        return factor;
+                new Dictionary<string, string> { ["reason"] = "notPurchaseUnitOfProduct" }),
+            _ => throw new BusinessRuleException(
+                PurchasingErrorCodes.LineComposition,
+                new Dictionary<string, string> { ["reason"] = "missingConversionFactor" }),
+        };
     }
 }

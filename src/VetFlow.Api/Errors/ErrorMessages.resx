@@ -165,4 +165,31 @@
   <data name="error.methodNotAllowed" xml:space="preserve">
     <value>الطريقة غير مسموح بها على هذا المسار.</value>
   </data>
+  <data name="validation.saleDate.required" xml:space="preserve">
+    <value>تاريخ البيع إجباري.</value>
+  </data>
+  <data name="validation.line.saleUnit.required" xml:space="preserve">
+    <value>وحدة البيع إجبارية.</value>
+  </data>
+  <data name="VTF-SAL-003" xml:space="preserve">
+    <value>لا يمكن تعديل البنود أو الإثبات إلا لفاتورة بيع مسودة.</value>
+  </data>
+  <data name="VTF-SAL-004" xml:space="preserve">
+    <value>بند البيع غير صالح. راجع المنتج ووحدة البيع والكمية وسعر البيع المعرَّف في الكتالوج.</value>
+  </data>
+  <data name="VTF-SAL-009" xml:space="preserve">
+    <value>لا يمكن إثبات فاتورة بيع بلا بنود. أضِف بندًا واحدًا على الأقل قبل الإثبات.</value>
+  </data>
+  <data name="VTF-SAL-012" xml:space="preserve">
+    <value>تعذّر تحويل كمية أحد البنود إلى وحدة المخزون تحويلًا تامًّا. لم تُقرَّب الكمية ولم تُبتَر، والإثبات مرفوض.</value>
+  </data>
+  <data name="VTF-INV-046" xml:space="preserve">
+    <value>طلب استهلاك المخزون غير صالح.</value>
+  </data>
+  <data name="VTF-INV-052" xml:space="preserve">
+    <value>المخزون المتاح القابل للبيع لا يكفي. لم يتغيّر أيّ رصيد ولم تُخفَّض أيّ دفعة.</value>
+  </data>
+  <data name="VTF-INV-056" xml:space="preserve">
+    <value>تغيّر المخزون أثناء إتمام البيع. لم يُحفظ أيّ تغيير. حاول مرة أخرى.</value>
+  </data>
 </root>

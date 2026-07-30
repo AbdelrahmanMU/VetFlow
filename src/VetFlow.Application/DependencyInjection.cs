@@ -13,6 +13,8 @@ using VetFlow.Application.Catalog.Queries.UnitOptions;
 using VetFlow.Application.Categories.Commands.CreateCategory;
 using VetFlow.Application.Categories.Commands.RenameCategory;
 using VetFlow.Application.Categories.Queries.CategoryList;
+using VetFlow.Application.Inventory.Queries.BatchViewer;
+using VetFlow.Application.Inventory.Queries.ExpiryMonitoring;
 using VetFlow.Application.Inventory.Queries.InventoryProjection;
 using VetFlow.Application.Purchasing.Commands.AddPurchaseLineItem;
 using VetFlow.Application.Purchasing.Commands.CreatePurchaseInvoice;
@@ -20,6 +22,11 @@ using VetFlow.Application.Purchasing.Commands.ReceivePurchaseInvoice;
 using VetFlow.Application.Purchasing.Queries.PurchaseDetails;
 using VetFlow.Application.Purchasing.Queries.PurchaseLineItems;
 using VetFlow.Application.Purchasing.Queries.PurchaseList;
+using VetFlow.Application.Sales.Commands.AddSalesLineItem;
+using VetFlow.Application.Sales.Commands.CommitSalesInvoice;
+using VetFlow.Application.Sales.Commands.CreateSalesInvoice;
+using VetFlow.Application.Sales.Queries.SalesDetails;
+using VetFlow.Application.Sales.Queries.SalesLineItems;
 
 namespace VetFlow.Application;
 
@@ -52,6 +59,13 @@ public static class DependencyInjection
         services.AddSingleton<IValidator<AddPurchaseLineItemCommand>, AddPurchaseLineItemCommandValidator>();
         services.AddSingleton<IValidator<ReceivePurchaseInvoiceCommand>, ReceivePurchaseInvoiceCommandValidator>();
         services.AddSingleton<IValidator<InventoryProjectionQuery>, InventoryProjectionQueryValidator>();
+        services.AddSingleton<IValidator<BatchViewerQuery>, BatchViewerQueryValidator>();
+        services.AddSingleton<IValidator<ExpiryMonitoringQuery>, ExpiryMonitoringQueryValidator>();
+        services.AddSingleton<IValidator<SalesDetailsQuery>, SalesDetailsQueryValidator>();
+        services.AddSingleton<IValidator<SalesLineItemsQuery>, SalesLineItemsQueryValidator>();
+        services.AddSingleton<IValidator<CreateSalesInvoiceCommand>, CreateSalesInvoiceCommandValidator>();
+        services.AddSingleton<IValidator<AddSalesLineItemCommand>, AddSalesLineItemCommandValidator>();
+        services.AddSingleton<IValidator<CommitSalesInvoiceCommand>, CommitSalesInvoiceCommandValidator>();
         return services;
     }
 }

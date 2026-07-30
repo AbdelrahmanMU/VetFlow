@@ -35,7 +35,8 @@ public static class CatalogSeeder
         bool hasExpiration = false,
         decimal? boxPrice = null,
         string? boxBarcode = null,
-        string? stripBarcode = null)
+        string? stripBarcode = null,
+        decimal? stripPrice = null)
     {
         var units = new List<ProductUnit>
         {
@@ -44,7 +45,7 @@ public static class CatalogSeeder
             new(Guid.NewGuid(), SeededCatalogIds.BoxUnit, position: 1, quantityInNextUnit: 10,
                 isPurchaseUnit: false, isSaleUnit: true, barcode: boxBarcode, sellingPrice: boxPrice),
             new(Guid.NewGuid(), SeededCatalogIds.StripUnit, position: 2, quantityInNextUnit: null,
-                isPurchaseUnit: false, isSaleUnit: true, barcode: stripBarcode),
+                isPurchaseUnit: false, isSaleUnit: true, barcode: stripBarcode, sellingPrice: stripPrice),
         };
 
         var product = new Product(

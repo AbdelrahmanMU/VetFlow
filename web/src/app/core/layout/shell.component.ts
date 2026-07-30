@@ -64,16 +64,40 @@ import { TranslationService } from '../i18n/translation.service';
               {{ t.t('nav.purchases') }}
             </a>
           </li>
+          <!-- The entry point is the create screen: there is no sales list (DEC-SAL-005 — open). -->
+          <li class="nav-module">{{ t.t('nav.sales') }}</li>
+          <li>
+            <a
+              class="nav-link"
+              routerLink="/sales/new"
+              routerLinkActive="nav-link--active"
+              [routerLinkActiveOptions]="{ exact: true }"
+            >
+              <i class="pi pi-shopping-cart nav-icon" aria-hidden="true"></i>
+              {{ t.t('nav.newSale') }}
+            </a>
+          </li>
           <li class="nav-module">{{ t.t('nav.inventory') }}</li>
           <li>
             <a
               class="nav-link"
               routerLink="/inventory"
               routerLinkActive="nav-link--active"
-              [routerLinkActiveOptions]="{ exact: false }"
+              [routerLinkActiveOptions]="{ exact: true }"
             >
               <i class="pi pi-inbox nav-icon" aria-hidden="true"></i>
               {{ t.t('nav.inventory') }}
+            </a>
+          </li>
+          <li>
+            <a
+              class="nav-link"
+              routerLink="/inventory/expiry"
+              routerLinkActive="nav-link--active"
+              [routerLinkActiveOptions]="{ exact: true }"
+            >
+              <i class="pi pi-clock nav-icon" aria-hidden="true"></i>
+              {{ t.t('nav.expiryMonitoring') }}
             </a>
           </li>
         </ul>

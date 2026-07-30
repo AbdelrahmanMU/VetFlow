@@ -16,7 +16,7 @@ namespace VetFlow.Infrastructure.Inventory;
 /// left-joined, so filters and sorting act on real columns: no N+1, no per-row
 /// lookups (BR-INV-017, DEC-INV-006). The projection owns no state (BR-INV-006).
 /// </summary>
-public sealed class InventoryProjectionQueryHandler(VetFlowDbContext dbContext, TimeProvider timeProvider)
+public sealed class InventoryProjectionQueryHandler(VetFlowDbContext dbContext, IClinicClock clinicClock)
     : IQueryHandler<InventoryProjectionQuery, PagedResult<InventoryProjectionItemDto>>
 {
     private const string LikeEscapeCharacter = "\\";
@@ -25,9 +25,10 @@ public sealed class InventoryProjectionQueryHandler(VetFlowDbContext dbContext, 
         InventoryProjectionQuery query,
         CancellationToken cancellationToken)
     {
-        // "Expiring soon" is measured from today; the cutoff is computed in C# from the
-        // injected clock and captured, never evaluated inside the translated query.
-        var today = DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime);
+        // "Expiring soon" is measured from the <b>clinic local date</b> — never UTC, never server
+        // or device time (BR-INV-059/060, AC-INV-049) — computed in C# and captured, never
+        // evaluated inside the translated query.
+        var today = clinicClock.Today;
         var expiringSoonCutoff = today.AddDays(InventoryProjectionQuery.ExpiringSoonHorizonDays);
 
         var products = ApplyProductFilters(dbContext.Products.AsNoTracking(), query);

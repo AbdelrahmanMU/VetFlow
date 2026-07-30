@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
+using VetFlow.Application.Common;
 using VetFlow.Infrastructure.Persistence;
 
 namespace VetFlow.IntegrationTests;
@@ -20,6 +21,14 @@ public sealed class ApiFixture : IAsyncLifetime
     private HttpClient? _client;
 
     public HttpClient Client => _client ?? throw new InvalidOperationException("Fixture not initialized.");
+
+    /// <summary>
+    /// The container's connection string, for the few tests that need their own
+    /// <see cref="VetFlowDbContext"/> — a second connection to prove per-batch concurrency
+    /// detection (BR-INV-056), or one with a command interceptor to count the queries an
+    /// operation issues (BR-INV-053).
+    /// </summary>
+    public string ConnectionString => _container.GetConnectionString();
 
     public async Task InitializeAsync()
     {
@@ -81,6 +90,26 @@ public sealed class ApiFixture : IAsyncLifetime
         await dbContext.SaveChangesAsync();
         await whileUncommitted();
         await transaction.RollbackAsync();
+    }
+
+    /// <summary>
+    /// Today at the clinic, resolved through the API's own <see cref="IClinicClock"/> — the exact
+    /// basis every expiry decision uses (BR-INV-059/060). A test must never derive it from
+    /// <c>DateTime.UtcNow</c>: whenever the clinic's date and the UTC date differ, every
+    /// 30-day-horizon boundary case would be measured against the wrong day.
+    /// </summary>
+    public DateOnly ClinicToday
+    {
+        get
+        {
+            if (_factory is null)
+            {
+                throw new InvalidOperationException("Fixture not initialized.");
+            }
+
+            using var scope = _factory.Services.CreateScope();
+            return scope.ServiceProvider.GetRequiredService<IClinicClock>().Today;
+        }
     }
 
     public async Task<TResult> QueryDbAsync<TResult>(Func<VetFlowDbContext, Task<TResult>> query)

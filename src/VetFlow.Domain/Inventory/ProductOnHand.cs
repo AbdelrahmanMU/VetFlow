@@ -34,4 +34,20 @@ public sealed class ProductOnHand
 
         OnHandQuantity += quantity;
     }
+
+    /// <summary>
+    /// Decrease the on-hand quantity by a consumed amount in the stock unit (BR-INV-047) — the
+    /// mirror of <see cref="Increase"/>, and the second and last inventory movement (BR-INV-055).
+    /// The amount must equal exactly the total decremented from the product's batches, which keeps
+    /// the BR-INV-005 invariant true (BR-INV-049). Consumption never drives the balance negative:
+    /// sufficiency is checked against the saleable batches before anything is written
+    /// (BR-INV-052), so a negative result here is a programmer error, not a business failure.
+    /// </summary>
+    public void Decrease(decimal quantity)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(quantity, OnHandQuantity);
+
+        OnHandQuantity -= quantity;
+    }
 }

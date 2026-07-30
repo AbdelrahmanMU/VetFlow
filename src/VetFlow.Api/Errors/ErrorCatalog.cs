@@ -1,6 +1,8 @@
 using VetFlow.Domain.Catalog;
 using VetFlow.Domain.Common;
+using VetFlow.Domain.Inventory;
 using VetFlow.Domain.Purchasing;
+using VetFlow.Domain.Sales;
 
 namespace VetFlow.Api.Errors;
 
@@ -86,6 +88,48 @@ public static class ErrorCatalog
                 Code = PurchasingErrorCodes.ExpiryRequired,
                 Status = StatusCodes.Status400BadRequest,
                 Title = "This product requires an expiry date at receiving",
+            },
+            new()
+            {
+                Code = SalesErrorCodes.InvoiceNotDraft,
+                Status = StatusCodes.Status409Conflict,
+                Title = "Only a draft sales invoice may change or be committed",
+            },
+            new()
+            {
+                Code = SalesErrorCodes.LineComposition,
+                Status = StatusCodes.Status400BadRequest,
+                Title = "The sales line is invalid",
+            },
+            new()
+            {
+                Code = SalesErrorCodes.InvoiceHasNoLines,
+                Status = StatusCodes.Status409Conflict,
+                Title = "A sales invoice with no lines cannot be committed",
+            },
+            new()
+            {
+                Code = SalesErrorCodes.InexactUnitConversion,
+                Status = StatusCodes.Status400BadRequest,
+                Title = "The quantity does not convert into the stock unit exactly",
+            },
+            new()
+            {
+                Code = InventoryErrorCodes.ConsumptionRequestInvalid,
+                Status = StatusCodes.Status400BadRequest,
+                Title = "The inventory consumption request is invalid",
+            },
+            new()
+            {
+                Code = InventoryErrorCodes.InsufficientStock,
+                Status = StatusCodes.Status409Conflict,
+                Title = "Saleable stock is not sufficient",
+            },
+            new()
+            {
+                Code = InventoryErrorCodes.ConcurrencyConflict,
+                Status = StatusCodes.Status409Conflict,
+                Title = "Inventory changed while the sale was being committed; retry",
             },
         }.ToDictionary(entry => entry.Code);
 

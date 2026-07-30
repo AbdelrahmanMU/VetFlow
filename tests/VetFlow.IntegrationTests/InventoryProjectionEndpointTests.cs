@@ -244,7 +244,8 @@ public sealed class InventoryProjectionEndpointTests(ApiFixture fixture)
 
     private static string Marker() => Guid.NewGuid().ToString("N")[..8];
 
-    private static DateOnly Today() => DateOnly.FromDateTime(DateTime.UtcNow);
+    /// <summary>Today at the clinic — the same basis the server uses (BR-INV-059/060), never UTC.</summary>
+    private DateOnly Today() => fixture.ClinicToday;
 
     private async Task<ProductSeed> SeedProductAsync(string name, decimal onHand, params decimal[] batchQuantities)
     {

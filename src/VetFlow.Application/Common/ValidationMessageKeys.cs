@@ -63,4 +63,10 @@ public static class ValidationMessageKeys
     public const string LinePurchaseUnitRequired = "validation.line.purchaseUnit.required";
     public const string LineQuantityPositive = "validation.line.quantity.positive";
     public const string LineUnitPriceNonNegative = "validation.line.unitPrice.nonNegative";
+
+    // Sales (REQ-SAL-001 / AC-SAL-002 / AC-SAL-003 / BR-SAL-001 / BR-SAL-004). The sale date is
+    // the only required header field — the customer name is optional (DEC-SAL-002). The sale unit
+    // gets its own key: it is a different constraint from the purchase unit (BR-SAL-004).
+    public const string SaleDateRequired = "validation.saleDate.required";
+    public const string LineSaleUnitRequired = "validation.line.saleUnit.required";
 }

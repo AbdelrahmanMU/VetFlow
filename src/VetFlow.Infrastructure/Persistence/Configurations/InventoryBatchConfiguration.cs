@@ -24,6 +24,16 @@ public sealed class InventoryBatchConfiguration : IEntityTypeConfiguration<Inven
         builder.Property(batch => batch.ExpiryDate);
         builder.Property(batch => batch.ReceivedAt).IsRequired();
 
+        // Concurrency detection at exactly the scope the owner ruled — <b>per batch</b>
+        // (BR-INV-056, DEC-INV-023, R6). PostgreSQL's system column `xmin` is used as the row
+        // version: EF adds it to the WHERE clause of every UPDATE it issues for a batch, so a sale
+        // whose *allocated* batch changed between allocation and commit fails instead of
+        // overwriting inventory silently. Two sales on *different* batches of the same product
+        // never collide — the false-failure storm a per-product scope would cause. It is a system
+        // column: no new field, no DDL, and receiving is unaffected because it only inserts
+        // batches (DEC-INV-002 stays as ruled).
+        builder.Property<uint>("xmin").IsRowVersion();
+
         builder.HasIndex(batch => batch.ProductId);
         builder.HasIndex(batch => batch.PurchaseLineId);
     }
