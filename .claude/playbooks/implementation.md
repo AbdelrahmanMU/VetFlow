@@ -60,7 +60,7 @@ above is identical for all of them.
 | Mode | Context (beyond Stage 1) | Validation | Stop conditions |
 |---|---|---|---|
 | **New Module** | Stages 2–4 for every layer the module needs; the module's full doc set | Full gate + module scaffolded per ADR-0014 boundaries; `Contracts` namespace exists; row added to `docs/modules/_INDEX.md` | Module docs not Approved · no owner-approved module name in `GLOSSARY.md` · budget > Large |
-| **New Feature** | Stage 2 (backend + frontend + API as touched); target module docs | Full gate + every `BR-*` in the slice has a test naming its ID | DoR fails · slice spans more than one module · budget > Medium |
+| **New Feature** | Stage 2 (backend + frontend + API as touched); target module docs | Full gate + every `BR-*` in the slice has a test naming its ID | DoR fails · slice spans more than one module **(outside an Epic — see below)** · budget > Medium |
 | **API Only** | `api-standards.md`, `backend-standards.md`; module docs | Full gate + contract tests + error codes registered | Endpoint has no `REQ-*` · resource term missing from `GLOSSARY.md` |
 | **Frontend Page** | `frontend-standards.md`; module `ui.md` | Full gate + all four data-view states present (`STD-FE-030`) + UI Kit only | `ui.md` missing or Draft · design token needed that `docs/ui/` does not define |
 | **Backend Change** | `backend-standards.md`, `csharp-coding-standards.md`; module docs | Full gate + architecture tests | Change alters a documented behavior with no `DEC`/ADR to justify it |
@@ -69,6 +69,18 @@ above is identical for all of them.
 | **Documentation** | The docs being changed | Traceability intact · IDs unchanged · statuses untouched · **incremental edit only, never a rewrite** | Would create a **new governance artifact** without implementation evidence → **STOP** (Governance Change Policy) |
 | **Review** | The diff + the standards it touches | Findings reported; nothing fixed silently | — |
 | **Release** | `STATUS.md`, `CHANGELOG.md` | Push gate + all module docs Approved | Any Draft document that the released code depends on |
+
+**Continuous Capability Mode (owner ruling, 2026-07-31 — ADR-0017 §11/§11a).**
+The stop conditions above are **per capability**. Inside an **approved Epic**
+they no longer hand work back to the owner: *"slice spans more than one module"*
+becomes a **splitting instruction, not a stop** — split the Epic into per-module
+capabilities and keep going, verifying after each. The owner is waited for only
+at the Epic's seven conditions, then for **Epic Commit Approval**. Outside an
+approved Epic the conditions above apply exactly as written.
+
+**Unchanged, and never traded for momentum:** a **failing gate stops
+everything** · the Definition of Ready gates every capability · nothing is
+invented to keep moving · `budget > Medium` still means **split**, never widen.
 
 ## Self review — before Commit, answer all nine
 

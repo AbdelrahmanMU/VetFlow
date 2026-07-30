@@ -70,4 +70,11 @@ correction. Never weaken the gate, never proceed past it, never hide it.
 ## Review checkpoints — stop for the owner at
 
 A new ADR · a new library · a module boundary change · any deviation from a
-standard · a governance wave · completion of a feature slice.
+standard · a governance wave · **completion of an approved Epic**.
+
+**Continuous Capability Mode (owner ruling, 2026-07-31).** The unit of work is
+the **Epic**. Inside one, continue automatically between capabilities —
+verifying after each, fixing immediately — and never wait for the owner between
+them. Stop at the Epic's seven conditions, then wait for **Epic Commit
+Approval**; do not commit, do not push. **A failing gate still stops
+everything.** Rule: `.claude/rules/workflow.md` · enumeration: ADR-0017 §11/§11a.

@@ -153,7 +153,38 @@ gate.**
 ### 11. Review checkpoints — the AI stops for the owner at
 
 A new ADR · a new library · a module boundary change · any deviation from a
-standard · a governance wave · completion of a feature slice.
+standard · a governance wave · **completion of an approved Epic**.
+
+> **Amended 2026-07-31 (owner ruling) — Continuous Capability Mode.** The
+> previous clause read *"completion of a feature slice"*. That clause is
+> **superseded**: the unit of work is the **Epic**, not the slice, the screen, or
+> the capability. Within an approved Epic the AI **continues automatically**
+> between capabilities — verifying after each one and fixing what it finds
+> immediately — and does **not** wait for the owner between them.
+>
+> This changes **when** the AI stops, and nothing else. Section 9 is untouched:
+> **a failing gate still stops everything**, and "continue without waiting" never
+> means continue past a red gate. Sections 2 (No Speculation), 4 (Definition of
+> Ready) and 6–8 (the gates) apply unchanged to every capability inside the Epic.
+
+### 11a. Epic stop conditions — all seven, or the Epic is not finished
+
+The AI stops and hands back only when **every** one holds:
+
+1. The complete Epic is implemented.
+2. All tests pass.
+3. Architecture tests pass.
+4. Browser verification passes.
+5. Performance verification passes.
+6. Self review is complete (§7's nine questions).
+7. An **Epic Owner Report** is ready.
+
+Then: **do not commit, do not push — wait for Epic Commit Approval.** The commit
+gate (§6) and push gate (§7) are unchanged; Epic Commit Approval is the owner
+authorization they already require, named at the Epic's granularity.
+
+**Escape hatch (owner-only):** the owner may request a design review at any
+point, which returns that piece of work to slice-by-slice review.
 
 ## Alternatives Considered
 
