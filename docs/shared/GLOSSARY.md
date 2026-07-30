@@ -39,7 +39,7 @@
 | Pricing | التسعير | Setting and changing product prices (Catalog capability, not a module). |
 | Inventory / Stock | المخزون | Quantities of products held by the clinic. |
 | Stock adjustment | تعديل المخزون | A recorded correction/change of stock. Exact rules TODO (Inventory module docs). |
-| Batch | دفعة | A received lot of a product with its own expiry date. Exact definition TODO (Batch module docs). |
+| Batch | دفعة | A received lot of a product (`InventoryBatch`), with its own quantity, unit cost snapshot, and optional expiry; an Inventory-owned domain entity created on receiving (BR-INV-001, DEC-INV-008). |
 | Expiry date | تاريخ الصلاحية | The date after which a batch must not be sold. |
 | Monitoring | المراقبة | Watching stock levels and expiry dates and raising alerts. |
 | Low-stock threshold | الحد الأدنى للمخزون | Level below which an alert is raised. Exact behavior TODO (Monitoring module docs). |
@@ -50,6 +50,12 @@
 | Nearest expiry | أقرب صلاحية | The earliest expiry date among a product's active batches (BR-INV-010). |
 | Expiring soon | قرب انتهاء الصلاحية | A product whose nearest expiry falls within 30 calendar days (BR-INV-013, DEC-INV-005). |
 | Out of stock | نفاد المخزون | On-hand quantity equals zero (BR-INV-011). |
+| Batch viewer | عارض الدفعات | Read-only per-product screen listing all of a product's inventory batches; an Inventory read screen, not a separate module (REQ-INV-003, DEC-INV-008). |
+| Batch identifier | معرّف الدفعة | A batch's existing stable identity, shown read-only; no human Batch Code, generated number, or new field (BR-INV-025, DEC-INV-009). |
+| Batch status | حالة الدفعة | Derived Active (`RemainingQuantity > 0`) / Depleted (`== 0`) only, never stored; Expired is never a status (BR-INV-021, DEC-INV-011). |
+| Depleted batch | دفعة مستنفدة | An inventory batch whose `RemainingQuantity == 0` (BR-INV-021). |
+| Expired batch | دفعة منتهية الصلاحية | A batch whose `ExpiryDate` is before today — a filter, never a status; a batch can be Active and Expired at once (BR-INV-026, DEC-INV-012). |
+| Purchase reference | المرجع الشرائي | The owning purchase-invoice number of a batch's source line; a navigation link to Purchase Invoice Details (BR-INV-024, DEC-INV-010). |
 | Reorder level | حد إعادة الطلب | Future per-product Catalog capability that will define Low Stock; not yet in the model (DEC-INV-004, BR-INV-012). |
 
 ## Trading — الحركة التجارية

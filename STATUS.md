@@ -3,7 +3,330 @@
 > The single mutable state file. Update it before ending any significant
 > session. Stable knowledge does NOT belong here — it goes in `docs/`.
 
-**Updated:** 2026-07-29 (**Inventory Slice 1 «Inventory Projection» IMPLEMENTED, owner-APPROVED, COMMITTED** (feat + docs-sync), **NOT pushed**. Read-only projection over the write-kernel state; module-wide terminology fully synced in `write-kernel.md` (Option B). Prior: DoR owner-APPROVED 2026-07-22; Slice 5 Purchase Receiving + Inventory Write Kernel COMMITTED `fbc55e6`.)
+**Updated:** 2026-07-31 (**Sprint 7 «Sales MVP» — THE FRONTEND SLICE IS FINISHED AND THE WHOLE SPRINT NOW PASSES EVERY GATE FOR REAL: build 0/0 · format clean · Domain 126 · Architecture 92 · Integration 182 · no pending model changes · ESLint + Stylelint clean · frontend 177 · `ng build` exit 0 · live-browser verification done at 1440 and 390 with zero overflow and zero console errors.** Two gates failed first and were **corrected, never bypassed**: `dotnet format` (LF endings across every Sprint 7 file) and three 30-day-boundary integration tests that still derived «today» from UTC while the handlers use `IClinicClock` — the tests were wrong, the production code was right, and the clinic time-zone id now lives in exactly one place. **Nothing committed, nothing pushed. CORRECTION to the previous handoff: the tree is TWO change sets, not three — Sprint 6 can no longer be committed alone because its handlers and tests now depend on `IClinicClock`, a Sprint 7 type, so a Sprint-6-only commit would not compile.** **The owner's five answers arrived unfilled, so no action was taken on any of them — all five remain open.** **Sprint 7 module docs are still `Draft`, which blocks the push gate (ADR-0017 §7), not the commit gate.** Prior line: **IMPLEMENTATION STARTED under owner approval and STOPPED MID-SLICE at the owner's `/close-session`. BACKEND COMPLETE AND FULLY GREEN; FRONTEND INCOMPLETE AND THE `ng build` IS RED.** Docker became available this session, so **every backend gate ran for real**: build 0/0 · Domain **126** · Architecture **92** · Integration **182** (including the **18 Sprint 6 tests that had never been executed**) · `has-pending-model-changes` none. **Nothing committed, nothing pushed.** The five slices exist end-to-end on the server side — Sales aggregate + draft lines + commit, the Inventory consumption contract, FEFO allocation with expired-batch exclusion, sale-line-level traceability, and per-batch concurrency detection. The **Angular sales feature is half-written**: models, API services, stores and the create page exist; **the details page and its three components do not**, no i18n keys, no nav entry, no route registration — the frontend therefore **does not compile**. See the session section immediately below for the exact remaining file list. Prior line: **ALL OWNER DECISIONS APPLIED; NO BLOCKING DECISION REMAINS. Documentation-only, NO CODE, owner STOP.** Final four closed: customer = optional free text (DEC-SAL-002) · money rounding Sales-scoped, quantities never rounded (DEC-SAL-004) · clinic local date from **one configured system-wide time zone**, UTC/server/device forbidden (**BR-INV-060**) · **`BR-CAT-020` AMENDED — stock unit must be the smallest measurable unit, reversing its previous "not required to be smallest" clause (DEC-CAT-033)**. Flagged: existing product configs may violate the amended rule and need correction; BR-INV-059 still invalidates UTC date logic in three implemented handlers. Decision-log audit at close found **one gap and closed it: `DEC-INV-026`** now records the R4 expiry-boundary/Clinic-Local-Date ruling, which had existed only as business rules. **Sprint 7 documentation is IMPLEMENTATION READY; nothing committed; owner STOP in force.** Prior line: architecture review rulings applied (11). New: **BR-INV-058** (stock unit = smallest measurable unit, exact conversion, **no quantity rounding**) · **BR-INV-059** (**Clinic Local Date** is the business date basis, UTC prohibited; `ExpiryDate` = last saleable day — also governs BR-INV-013/022/033/036) · traceability raised to **Sale Line level** · concurrency scoped **per Batch** · R5/R7/R9/R10/R11 accepted and recorded. **Flagged: BR-INV-059 invalidates the UTC date logic in the already-implemented Projection/Batch Viewer/Expiry Monitoring handlers, and no clinic-timezone source is documented.** Prior line: **Sprint 7 owner review applied, documentation-only.** 8 rulings applied across 17 docs: expired stock excluded from FEFO (DEC-INV-021) · concurrency-conflict detection required, mechanism left to implementation (DEC-INV-023) · DEC-INV-024 removed → **REQ-INV-008** traceability · isolation boundary approved (DEC-SAL-006/DEC-INV-019) · price snapshot only (DEC-SAL-003) · IsSplittable honored (DEC-SAL-007) · open package out (DEC-SAL-008) · Inventory History still deferred, roadmap note only (DEC-INV-025). New: REQ-INV-008 · BR-INV-056/057 · AC-INV-045/046/047 · TS-INV-050..053 · AC-SAL-012 · TS-SAL-014. **6 owner decisions still open (DEC-SAL-002/004/005/009 · DEC-INV-020/022).** Prior: DoR drafted, 8 Sales docs from placeholders. Prior line: **Sprint 6 — DoR APPROVED + Batch Viewer & Expiry Monitoring IMPLEMENTED (code-complete), Inventory History DEFERRED.** Non-Docker gates green (build 0/0 · arch 76 · domain 101 · frontend 156 · format/ESLint/Stylelint clean · no schema change). **Docker unavailable → integration tests (18, written+compiling, UNRUN), live-browser & performance capture NOT done → commit gate NOT yet satisfiable.** **NOTHING committed, NOT pushed.** Prior: Batch Viewer DoR approved 2026-07-30; Slice 1 Projection COMMITTED, not pushed.)
+
+## Governance ruling (2026-07-31) — **Continuous Capability Mode** adopted by the owner
+
+**The unit of implementation is now the approved Epic — not the slice, the screen, or the capability.** Inside an Epic the AI continues automatically between capabilities, verifying after each and fixing immediately, and never waits for the owner between them. It stops only at the Epic's **seven conditions** (Epic implemented · all tests · architecture tests · browser verification · performance verification · self review · **Epic Owner Report**), then waits for **Epic Commit Approval** — no commit, no push.
+
+**Recorded in four places, because conversation history is never a source of truth:**
+- **ADR-0017 §11 amended in place** — *"completion of a feature slice"* **superseded** by *"completion of an approved Epic"*, with the supersession recorded (the BR-CAT-020 precedent; not annulled, not renumbered). New **§11a** enumerates the seven stop conditions. ADR-0017 was **`Proposed`**, not Accepted, so this is an ordinary amendment, not a governance breach.
+- **`.claude/rules/workflow.md`** — new Continuous Capability Mode section (loaded every session).
+- **`.claude/rules/ai-governance.md`** — review-checkpoint line updated, pointing at the rule and the ADR.
+- **`.claude/playbooks/implementation.md`** — *"slice spans more than one module"* is now a **splitting instruction inside an approved Epic, and still a stop outside one**. (The owner had to authorize this edit explicitly; the first two attempts were refused by the permission classifier as gate-weakening.)
+
+**What did NOT change, stated explicitly in all four so it cannot be misread later:** a **failing gate still stops everything** — "continue without waiting" never means continue past red · the Definition of Ready still gates every capability · nothing is invented to preserve momentum · `budget > Medium` still means **split**, never widen. **Owner escape hatch:** an explicit request for a design review returns that work to slice-by-slice review.
+
+## Session close (2026-07-31) — Sprint 7 «Sales MVP»: **frontend slice FINISHED · every gate executed green · nothing committed**
+
+**Owner directed the frontend to completion and a satisfiable commit gate, without stopping between steps. Done.** The seven missing pieces from the previous handoff exist, `ng build` exits 0, and **every gate in the sweep ran for real** — no gate was downgraded to "verified by inspection".
+
+**The owner's five answers arrived as unfilled `[YES / NO]` placeholders.** None of them gates the frontend, so nothing was assumed: items 1 (flip doc statuses), 2 (BR-INV-058 at receiving), 4 (promote a mechanism to DEC/ADR) and 5 (BR-CAT-020 audit) each require a YES to act and **no action was taken on any of them**; item 3 (commit Sprint 6 separately) is a **proposal** in the report, since nothing may be committed without approval anyway. **All five remain open.**
+
+### Delivered
+
+- **`sale-details-page.component.ts`** — the frozen BR-SAL-008 order (number + badge → invoice facts → line items → notes), four view states with a distinct not-found, actions by status (draft: add/remove/commit, commit disabled with zero lines; committed: none). **No «back to list» action** — DEC-SAL-005 is open and no list was invented; the not-found state offers «إنشاء فاتورة بيع».
+- **`components/sale-line-items.component.ts`** — table ↔ stacked cards, server-derived total, draft-only add/remove.
+- **`components/add-sale-line-dialog.component.ts`** — product picker → sale units with the default auto-selected, **price displayed read-only** (DEC-SAL-003 — the payload carries no price), quantity, line-total preview, and a **field-level rejection of a fractional quantity for a non-splittable product** (DEC-SAL-007 — the one place mirroring purchasing was not enough; nothing is rounded).
+- **`components/commit-sale-dialog.component.ts`** — mandatory confirmation carrying `ui.md`'s exact sentence, and a per-reason refusal message: retry offered **only** on concurrency conflict; insufficient stock names the products and **never says the balance is zero** (DEC-INV-021); inexact conversion names the line.
+- **~90 `sales.*` / `saleCreate.*` / `saleDetails.*` / `nav.*` keys** in `core/i18n/ar.ts`; the `sales` route in `app.routes.ts`; a «المبيعات» nav group pointing at `/sales/new`.
+- **29 frontend specs** (5 details store · 11 lines store · 5 create page · **8 add-line dialog**). Frontend total **156 → 185**.
+  The dialog specs were added after the first Owner Report closed the one gap it declared: the splittability rejection was wired but never executed by a test. They now cover the **auto-selected default sale unit**, **sale-role units only**, **fractional quantity rejected for a non-splittable product with nothing emitted**, the same product accepting a whole quantity, a **splittable** product accepting 2.5, zero/negative rejection, the two-decimal line-total preview, and clearing the product.
+- **One small correction to `sale-lines.store.ts`:** `classify` now falls back to `metadata['product']`, because the commit handler names an inexact conversion under `product` (singular) while insufficient stock uses `products`. Without it AC-SAL-013's message could never name the line.
+
+### Gates — every one executed, all green
+
+`dotnet build` **0 warnings / 0 errors** (Release) · `dotnet format --verify-no-changes` **clean** · **Domain 126** · **Architecture 92** · **Integration 182** · `ef migrations has-pending-model-changes` **none** · ESLint **clean** · Stylelint **clean** · frontend unit **185/185** · `ng build` **exit 0** (539.77 kB) · live-browser verification **done**.
+
+**Two gates failed first and were corrected, not bypassed:**
+
+1. **`dotnet format` failed on ~3 575 findings** — every Sprint 7 file had been written with LF endings against a CRLF repository. Fixed by **running the formatter**; whitespace only, no logic touched.
+2. **Three integration tests failed** — `InventoryProjection`/`ExpiryMonitoring`/`BatchViewer` 30-day-boundary tests. **A real defect of the same family this sprint exists to fix:** they still derived `Today()` from `DateTime.UtcNow` while the handlers now use `IClinicClock`. Once Cairo rolled past midnight and UTC had not, the boundary was measured against the wrong day. **The production code was correct and was not touched.** `ApiFixture.ClinicToday` now resolves the date through the API's own `IClinicClock`, and all four call sites use it — including `SalesCommitEndpointTests`, which had been carrying its own hard-coded `"Africa/Cairo"`. **The time-zone id now exists in exactly one place.** This is a latent-failure class the tests could not have caught on any day when UTC and Cairo agreed.
+
+### Live-browser verification (headless Chrome over CDP, real stack: db :5434 · API :5080 · ng :4200)
+
+`/sales/new` and `/sales/:id` at **1440×900** and **390×844**: `dir=rtl`, **horizontal overflow 0 px everywhere**, **zero console errors** across every screen, dialog and transition. Verified end-to-end through the UI: frozen header order · «—» for an absent customer and «لا توجد ملاحظات» for absent notes · add-line dialog auto-selecting the default sale unit with the price shown and **no price input in the DOM** · the commit dialog's exact sentence · **commit → badge flips to «مُثبَّتة» and every action disappears** (AC-SAL-010) · a missing invoice reaching the not-found state. **BR-SAL-013 checked with a scoped scan of the Sales page and its dialogs: zero occurrences of دفعة/دفعات/صلاحية/FEFO/تخصيص.**
+
+**Dev-database note:** verification created two sales invoices and **committed one**, which consumed one unit of dev stock. Pre-existing and unrelated: the dev seed products' Arabic names are stored as `????` (an encoding fault at seed time) — every other Arabic string renders correctly.
+
+### Repository state — and a correction to the previous handoff
+
+**Nothing committed, nothing pushed.** The previous section calls the tree **three separable change sets**. **That is no longer true, and the reason is not cosmetic.**
+
+**Sprint 6 can no longer be committed on its own — it would not compile.** `BatchViewerQueryHandler` and `ExpiryMonitoringQueryHandler` take `IClinicClock` (last session's BR-INV-059 correction), and as of today their integration tests resolve the date through it too. `IClinicClock`, `ClinicClock`, `ClinicTimeOptions`, the `Clinic:TimeZone` setting, its startup validation and its DI registration are **all Sprint 7 files**. No hunk-splitting fixes a missing type. (`web/src/app/core/i18n/ar.ts`, `shell.component.ts` and `problem-details.ts` are also touched by both, but that is the lesser obstacle.)
+
+**So the tree is two change sets:** documentation (22 modified `docs/…` paths + `GLOSSARY.md`) and code (**Sprint 6 + Sprint 7, atomic**). Splitting the code would mean reverting a correction BR-INV-059 requires. **Owner question 3 is therefore answered by fact rather than by preference.**
+
+**R10 discharged:** the isolation architecture test now covers Sales in both directions — `AssertModuleIsIsolated("Sales")`, `ConventionTests.cs:167`.
+
+### Doc statuses — **flipped to Approved (2026-07-31) by explicit owner ruling**
+
+The push gate had been blocked by ADR-0017 §7 (no Draft document the implementation depends on). **The owner approved the flip and named the date.** Applied:
+
+- **Sales — all 8 files** flipped to **`Approved (2026-07-31)`**.
+- **Inventory** — `workflow.md` flipped; the six already-Approved Slice-1 headers (`overview` · `requirements` · `business-rules` · `acceptance` · `test-scenarios` · `ui`) **annotated, not overwritten**, so the 2026-07-22 Slice-1 approval survives alongside the Sprint 7 one. The Sprint 7 section header inside `overview.md` flipped too.
+- **Catalog** — the four amended files annotated with the Sprint 7 amendment approval (DEC-CAT-033 / BR-CAT-020 / AC-CAT-049 / TS-CAT-038); their 2026-07-14 approval is untouched.
+- **`_INDEX.md`** — Sales row **Draft → Implemented**, and the Inventory row's Sprint 7 marker likewise. **Zero occurrences of «ينتظر اعتماد المالك الصريح» remain.**
+
+**Re-verified after the flip, all green:** build **0/0** · format **clean** · Domain **126** · Architecture **92** · Integration **182** · frontend **185** · ESLint **clean** · Stylelint **clean** · `ng build` **exit 0** (539.77 kB).
+
+TD-107 unchanged: initial bundle **539.77 kB** against a 500 kB budget — a **warning**, not raised.
+
+### Epic 1 — committed, **PUSH BLOCKED, NOT CLOSED**
+
+The owner approved the push and every push-gate condition now passes. **The push did not happen** — a blocking external dependency, not a gate failure:
+
+`git push origin main` **hangs indefinitely** (killed at 10 min, then again at 60 s with `GIT_TERMINAL_PROMPT=0`). `credential.helper = manager` — Git Credential Manager opens its own authentication window, which no automated session can see or answer, so `GIT_TERMINAL_PROMPT=0` does not make it fail fast either. `gh` is **not installed**. Read access works: `git ls-remote origin main` returns in seconds.
+
+**Local state: 3 commits ready, `main` ahead of `origin/main` by 16.** `origin/main` is still at `6263b43`. Nothing was lost and nothing is half-pushed.
+
+**The owner must authenticate.** Running `git push origin main` in their own shell — completing the credential prompt once — is enough; GCM will then cache it for later sessions. **An AI session must not enter credentials, so this cannot be worked around here.**
+
+**Epic 1 is therefore NOT closed.** It closes the moment the push lands.
+
+## Session close (2026-07-30) — Sprint 7 «Sales MVP» IMPLEMENTATION: **backend complete & green · frontend incomplete & RED · nothing committed**
+
+**Owner approved Sprint 7 and directed implementation without stopping between phases; the session was ended by `/close-session` while the Angular slice was half-written.** This section is the handoff.
+
+### What is DONE and verified
+
+**Backend — all five slices, end to end.**
+- **Sales domain** (`Domain/Sales/`): `SalesInvoice` aggregate (draft-born, derived total owned solely by the aggregate — BR-SAL-005), `SalesLineItem` (three snapshots: product name, sale-unit name, **catalog sale price** — BR-SAL-006/DEC-SAL-003; splittability enforced — DEC-SAL-007; line total rounded once, half away from zero — BR-SAL-007), `SalesInvoiceStatus` (Draft/Committed only — no «ملغاة», DEC-SAL-009 untouched), `SalesErrorCodes`.
+- **Application** (`Application/Sales/`): create / add-line / remove-line / commit commands + validators, sale-details and sale-line-items queries. **Primitive-only** — no Catalog or Inventory type crosses into it.
+- **Inventory consumption** (`Application/Inventory/` + `Infrastructure/Inventory/InventoryConsumptionWriter.cs`): the public contract `IInventoryConsumptionWriter` (mirror of `IInventoryReceiptWriter`), aggregation per product with per-line attribution preserved (BR-INV-046), **one ordered candidate query** with expired stock excluded **in the WHERE clause** (DEC-INV-021), sufficiency measured on saleable batches only, in-memory FEFO, staged decrements + on-hand decrease + traceability rows, no commit (BR-INV-048).
+- **Commit path** (`Infrastructure/Sales/CommitSalesInvoiceCommandHandler.cs`): resolves products through the sanctioned Catalog read, converts each line **exactly** into the stock unit, calls the contract, transitions the aggregate, one `SaveChanges`. **Sales never sees a batch** (BR-SAL-013).
+- **API**: `GET/POST /api/v1/sales-invoices`, `…/{id}`, `…/{id}/lines`, `DELETE …/lines/{lineId}`, `POST …/{id}/commit`. **No list endpoint** — not one of the five slices, not invented (DEC-SAL-005 still open).
+- **Migration** `20260730201949_SalesAndInventoryConsumption`: `sales_invoices`, `sales_line_items`, `inventory_consumptions`, the `sales_invoice_number_seq` sequence. **Hand-edited deliberately** to drop the scaffolder's `AddColumn/DropColumn` for `xmin` — a PostgreSQL *system* column that cannot be created or dropped; the model snapshot still carries the property, so `has-pending-model-changes` is clean.
+- **The three UTC handlers are corrected** (the carried-forward defect): Projection, Batch Viewer and Expiry Monitoring now take `IClinicClock`, not `TimeProvider`. **UTC no longer decides any business date** (BR-INV-059/060).
+
+**Gates executed — all green.** `dotnet build` 0 warnings / 0 errors (Release) · **Domain 126** (+25) · **Architecture 92** (+16) · **Integration 182** (+58, zero failures) · `ef migrations has-pending-model-changes` = none.
+
+**Docker came up this session** (Docker Desktop started without admin), which cleared the Sprint 6 blocker: **the 18 Batch Viewer / Expiry Monitoring integration tests ran for the first time.** 17 passed as written; **one was defective and was fixed** — see below.
+
+### Implementation mechanisms chosen (the owner reserved these for implementation; recorded here, none invented as business rules)
+
+1. **Concurrency detection = PostgreSQL `xmin` as a row-version token on `InventoryBatch`.** Scope is exactly **per batch** as ruled (R6): EF puts `xmin` in the WHERE of every batch UPDATE, so only a change to an **allocated** batch fails the sale; a concurrent sale on another batch of the same product does not. No new field, no DDL. `DbUpdateConcurrencyException` → `VTF-INV-056` → 409 + retry.
+2. **Traceability model = a new Inventory-owned entity `InventoryConsumption`** (batch, product, **sale line**, quantity, timestamp), written inside the same unit of work. `SaleLineId` is a plain `Guid` with no cross-module FK — the exact precedent of `InventoryBatch.PurchaseLineId`. **It is not a movement ledger** (no movement type, no source module, no screen); DEC-INV-015 stays deferred.
+3. **Clinic local date = `IClinicClock` over one configured time zone.** `Clinic:TimeZone` in `appsettings.json`, seeded `Africa/Cairo`, **validated on start** — an absent or unresolvable zone refuses to boot; **there is no UTC fallback path in the code** (BR-INV-060).
+4. **Exactness test for the conversion = multiply-back** (`converted × factor(stockUnit) == quantity × factor(saleUnit)`). Chosen over a remainder test, which would wrongly reject 2.5 units of a *splittable* product sold in the stock unit and so contradict DEC-SAL-007.
+5. **Problem Details gained a `metadata` extension member** so a rejection can name the products that fell short (AC-INV-041 / AC-SAL-009 require naming them) without putting UI copy in the domain.
+6. **`ProductUnitConversion` extracted** into `Infrastructure/Catalog/` and now shared by receiving and the sale commit — the conversion lives once, in the module that owns unit profiles. Receiving's behaviour is unchanged.
+
+**None of these was written into a module `decisions.md` and no ADR was created** — every one is a mechanism the owner explicitly assigned to implementation ("الآلية تخصّ التنفيذ ولا تُقرَّر في التوثيق"). **Owner question 4 below asks whether any should now be promoted to a DEC or an ADR.**
+
+### What is NOT done — the frontend, precisely
+
+**Written:** `sales.routes.ts` · `sale-create/` (models, forms, api service, page) · `sale-details/` (models, `sale-lines.models`, both api services, `sale-details.store`, `sale-lines.store` incl. commit-rejection classification) · `components/sale-status-badge.component.ts`.
+
+**Missing — the build fails on these:**
+1. `sale-details/sale-details-page.component.ts` (referenced by `sales.routes.ts` → **TS2307**).
+2. `sale-details/components/sale-line-items.component.ts`.
+3. `sale-details/components/add-sale-line-dialog.component.ts` (product picker → sale units with the default auto-selected, **read-only price**, quantity, line-total preview).
+4. `sale-details/components/commit-sale-dialog.component.ts` (**mandatory** confirmation; retry on concurrency conflict).
+5. **All `sales.*` i18n keys** in `core/i18n/ar.ts` → **TS2345** on `sales.status.draft` today, and every other key after it.
+6. The `sales` route in `app.routes.ts` and a nav entry in `shell.component.ts`.
+7. Frontend unit specs for the two stores and the create page.
+
+**`npx ng build` currently exits 1.** Frontend unit tests, ESLint, Stylelint and `dotnet format` were **not run** this session. Live-browser verification and the performance capture were **not done** — though `TS-INV-048` (constant query count) *is* covered by a real SQL-command-counting integration test, and the FEFO/atomicity/traceability behaviour is covered by the 182 green integration tests.
+
+### Findings the owner must see
+
+1. **`BR-INV-058` is not enforced at receiving.** The rule says it governs **both** movements, but enforcing it there would add a new rejection path to an approved, implemented slice the Sprint 7 brief does not name. The shared converter already computes the exactness flag and receiving deliberately ignores it, with a comment saying so. **Owner ruling needed** (question 2).
+2. **A Sprint 6 test was defective**, found only because Docker finally allowed it to run: `BatchViewerEndpointTests.Default_order_is_receive_date_descending_tie_broken_by_batch_id_BR_INV_031` assumed three batches shared one receive instant, but the seeder stamped `DateTimeOffset.UtcNow` per call, so nothing ever tied and the tie-break was never exercised. **Fixed by pinning the instant** (a new optional `receivedAt` on `InventorySeeder.AddBatchWithProvenanceAsync`) — the test now actually tests BR-INV-031. **The production handler was correct and was not touched.**
+3. **Residual risk — on-hand drift under one specific race.** Two sales committing concurrently against **different** batches of the same product can lose one on-hand decrement, because `ProductOnHand` carries no concurrency token — deliberately, since one would produce exactly the false failures R6 forbids. **This cannot cause overselling:** sufficiency is measured on `Σ RemainingQuantity` of saleable batches (BR-INV-052), never on `OnHandQuantity`, so the consequence is a display inaccuracy in the projection. It sits inside the accepted-risk table (R5: no BR-INV-005 reconciliation in Sprint 7).
+4. **The Sprint 7 module docs are still marked `Draft`.** The owner declared documentation approved in the implementation brief, but no doc status line was flipped and `_INDEX.md` still reads Draft for Sales. **Not done unasked** (question 1).
+5. **GLOSSARY sync remains deferred** and «المبيعات» is still not a GLOSSARY module name — unchanged from before this session.
+6. Pre-existing and unrelated: the `_INDEX.md` **Purchasing** row still calls Slice 5 "not yet implemented".
+7. **Two choices were made conservatively where a decision is still open, and neither was invented into a rule.** (a) **DEC-INV-022** — the insufficient-stock rejection names **only the products** that fell short; it does **not** report available-versus-required, because that detail is precisely what is unresolved. (b) **DEC-SAL-005** — with no sales list, `/sales` simply **redirects to `/sales/new`**, and the planned nav entry points at the create screen; **no list was built and no list route exists**. The navigational gap the decision describes is therefore real and visible, not papered over.
+
+### Repository state
+
+**Nothing was committed and nothing was pushed.** The tree now carries **three** distinct change sets: Sprint 7 documentation (from earlier sessions), **Sprint 6's Batch Viewer + Expiry Monitoring code — whose verification is now GREEN and which is therefore committable for the first time**, and this session's Sprint 7 implementation. A docs-only or Sprint-6-only commit must be staged path by path.
+
+### Next — resume here
+
+1. Write the four missing Angular files, the `sales.*` i18n keys, the route and the nav entry; then re-run `ng build`.
+2. Frontend specs, then the full gate sweep: `dotnet format`, ESLint, Stylelint, frontend unit tests, `ng build`.
+3. Live-browser verification of `/sales/new` and `/sales/:id` at desktop and mobile widths (RTL, zero horizontal overflow, no console errors).
+4. Then, and only then, the commit gate.
+
+### Open questions for the owner
+
+1. **Flip the Sprint 7 doc statuses Draft → Approved** now (Sales/Inventory/Catalog headers + `_INDEX.md`), since the brief declared documentation approved?
+2. **`BR-INV-058` at receiving** — enforce it now (it would reject receipts for products misconfigured against the amended BR-CAT-020), or keep it Sales-only this sprint?
+3. **Sprint 6 is now verifiable and green.** Commit it as its own change set immediately, or hold everything until Sprint 7's frontend is finished?
+4. **Should any of the six implementation mechanisms above be promoted** to a module `DEC` or an ADR — the concurrency token and the traceability entity are the two candidates — or do they stay implementation detail as ruled?
+5. **DEC-CAT-033 follow-up:** existing product configurations still have not been audited against the amended BR-CAT-020. The commit path now **rejects** an inexact conversion at sale time, so a misconfigured product will surface as a failed sale rather than silently rounding. Audit now or on first failure?
+
+## Final readiness rulings applied (2026-07-30) — Sprint 7 «Sales MVP»: **last 4 blockers CLOSED — documentation only, ZERO code, owner STOP**
+
+**Owner ruled the four remaining blockers; all applied. Documentation only — no code, no migration, no DB change, no endpoint, no UI. Nothing committed.**
+
+**Rulings applied (4):**
+1. **Customer optional — `DEC-SAL-002` APPROVED.** Sales invoice carries an **optional free-text customer name**, mirroring the free-text supplier (BR-PUR-001). Invoice identity stays the system number (BR-SAL-002), so a future Customers module can replace the field without changing it. No new module, table, or migration. BR-SAL-001 / AC-SAL-002 already matched; markers flipped.
+2. **Money rounding — `DEC-SAL-004` APPROVED (option A).** `BR-SAL-007` stands as a **Sales-scoped** rule: Round Half Away From Zero to exactly 2 dp, banker's rounding forbidden. **Scope narrowed explicitly to monetary values** — cross-module promotion recorded as a future item. **Quantities are never rounded** (BR-INV-058 / DEC-CAT-033); the two rules no longer overlap.
+3. **Clinic Local Date source — `BR-INV-060` NEW** (+ AC-INV-050, TS-INV-056). The clinic local date derives from **one system-wide configured time zone** — a single value for the whole system (single-clinic deployment, same basis as DEC-INV-002). **Explicitly forbidden:** UTC, server/OS time, browser or device time, or anything varying per machine or session; **silent fallback to UTC is prohibited**. Storage/configuration mechanism left to implementation, and **no Settings screen is designed** — the Settings module stays undocumented and may surface the value later without changing the rule (same shape as free-text supplier pending a Suppliers module).
+4. **Catalog Stock Unit rule — `DEC-CAT-033` APPROVED; `BR-CAT-020` AMENDED** (+ AC-CAT-049, TS-CAT-038). **This was not an addition — it was a reversal.** BR-CAT-020 previously stated the stock unit *"is not required to be the mathematically smallest, but rather the operationally most suitable"*, the direct opposite of R1. That clause is now **superseded** and the rule requires the **smallest measurable unit**, making every purchase/sale conversion exact. Amended in place with the supersession recorded — **BR-CAT-020 was not annulled or renumbered**, and no competing rule was added on the same subject. This is the **enforcement source** for BR-INV-058: a non-exact configuration can no longer be saved.
+
+**IDs added (6):** `BR-INV-060` · `AC-INV-050` · `TS-INV-056` · `AC-CAT-049` · `TS-CAT-038` · `DEC-CAT-033`.
+**IDs modified:** `BR-CAT-020` (amended, clause superseded) · `BR-SAL-001` / `BR-SAL-007` (markers + scope) · `DEC-SAL-002` / `DEC-SAL-004` (Draft → Approved) · `BR-INV-059` (source now points to BR-INV-060) · range references across both modules.
+**Totals:** Inventory BR-INV-046..060 · AC-INV-037..050 · TS-INV-037..056. Sales AC-SAL-001..013 · TS-SAL-001..015. Catalog BR-CAT-054+ unused; new IDs are AC-CAT-049 / TS-CAT-038 / DEC-CAT-033.
+
+**Implementation consequence recorded (not solved here):** **existing product configurations may violate the amended BR-CAT-020.** Any product whose stock unit is not the smallest unit — including dev seed data — must be found and corrected. **No migration or remediation path was designed**; DEC-CAT-033 records the obligation only.
+
+**Carried forward, unchanged:** BR-INV-059 still invalidates the UTC date logic in the committed Projection and the code-complete Batch Viewer / Expiry Monitoring handlers (`InventoryProjectionQueryHandler.cs:30`, `BatchViewerQueryHandler.cs:29`, `ExpiryMonitoringQueryHandler.cs:31`) — correcting them is Sprint 7 implementation scope.
+
+**No blocking decision remains.** Still open but **non-blocking, scope-widening only:** DEC-SAL-005 (Sales List) · DEC-SAL-009 (Cancelled state) · DEC-INV-020 (NULL-expiry placement, carried as nulls-last) · DEC-INV-022 (insufficient-stock message detail).
+
+### Session close (2026-07-30) — decision-log audit + handoff
+
+**Decision-log audit performed at close.** Every ruling made this session was checked against the decision-routing rule (module-scoped → that module's `decisions.md`). **One gap found and closed:** the **R4 ruling** (expiry boundary = last saleable day · Clinic Local Date · its source) had been captured **only as business rules** BR-INV-059/060 with **no decision record**, even though it changed the reference date of four already-Approved rules. Recorded as **`DEC-INV-026`** (new, contiguous after DEC-INV-025). All other rulings verified already recorded: DEC-SAL-001..009 · DEC-INV-019..026 (024 tombstoned) · DEC-CAT-033 · the accepted-risk table (R5/R7/R9/R10/R11) in `inventory/decisions.md`. **No ADR was created and none is owed** — every Sprint 7 decision is module-scoped, and the two candidates that could have required one (concurrency mechanism, traceability persistence model) were explicitly reserved for implementation by owner ruling.
+
+**Final ID state.** Sales: REQ-SAL-001..003 · BR-SAL-001..013 · AC-SAL-001..013 · TS-SAL-001..015 · DEC-SAL-001..009. Inventory: REQ-INV-006..008 · BR-INV-046..060 · AC-INV-037..050 · TS-INV-037..056 · DEC-INV-019..026 (**024 tombstoned, reserved**). Catalog: BR-CAT-020 **amended** · AC-CAT-049 · TS-CAT-038 · DEC-CAT-033. **Validated mechanically: all ranges contiguous, zero duplicates, no Approved ID renumbered.**
+
+**Repository state — read carefully, the tree is not clean.** **This session wrote documentation only**: 3 modules (`sales/` 8 files, `inventory/` 7, `catalog/` 4) plus `_INDEX.md` and this file. **Zero production code, zero migrations, zero schema changes, zero endpoints, zero UI written this session.**
+
+**However the working tree ALSO still carries the uncommitted Sprint 6 code** — Batch Viewer + Expiry Monitoring (backend queries/handlers/endpoints, frontend features, 18 integration tests, DI + routing + i18n edits, `InventorySeeder`). **Untouched by this session**, unchanged since the Docker-blocked session, and **still uncommitted because its verification never ran**. So a `git status` shows modified/untracked `src/`, `tests/`, and `web/` paths that are **Sprint 6's, not Sprint 7's**. **Nothing was committed or pushed this session.** Do not mistake that code for Sprint 7 work, and do not commit it as part of Sprint 7.
+
+**Next — do NOT start without explicit owner approval:**
+1. **Owner approval to implement Sprint 7.** Documentation is Implementation Ready; the STOP is the only thing holding it.
+2. When approved, the sprint **spans two modules**, exceeding the single-module New-Feature stop condition — **split per slice**.
+3. **Three corrections belong to Sprint 7 implementation, not to a separate sprint:** (a) fix the UTC date logic in the three implemented handlers per DEC-INV-026; (b) audit and correct existing product configurations against the amended BR-CAT-020; (c) extend the isolation architecture test to cover Sales in both directions.
+
+**Open questions for the owner:**
+1. **Sprint 6 verification is still outstanding and unaffected by all of this** — the 18 integration tests, live-browser run, and performance capture remain unrun because Docker was unavailable. Do you want that cleared before Sprint 7 implementation starts, or folded into it?
+2. **GLOSSARY sync** has been deferred since Sprint 6 and Sprint 7 added ~11 more terms, including **«المبيعات» — which is still not a GLOSSARY module name** while the New-Module pattern expects one. Sync before implementing, or keep deferring?
+3. **DEC-SAL-005 / DEC-SAL-009 / DEC-INV-020 / DEC-INV-022** remain open. None blocks, but DEC-SAL-005 (no Sales List) leaves the details screen without a navigational entry point — worth a conscious yes/no.
+4. **Should the Sprint 7 documentation be committed now** (docs-only commit, nothing to build), or held until implementation lands alongside it? **Note the coupling:** the Sprint 6 code sitting uncommitted in the tree is a *separate* change set — if you want a docs-only Sprint 7 commit, it must be staged path-by-path so Sprint 6's unverified code does not ride along.
+
+## Architecture review rulings applied (2026-07-30) — Sprint 7 «Sales MVP»: **11 rulings APPLIED — documentation only, ZERO code, owner STOP**
+
+**Owner reviewed the Architecture Readiness Review and ruled on all 11 findings; applied this session. Documentation only — no code, no migration, no DB change, no endpoint, no UI. Nothing committed.**
+
+**Rulings applied:**
+- **R1 (business rule) — `BR-INV-058` NEW.** Inventory must never rely on quantity rounding. **Stock Unit is always the smallest measurable unit**; purchase and sale units convert **exactly**; **no fractional residue**; **no quantity rounding policy exists**. Non-exact conversion is **rejected, never rounded** (BR-SAL-010/012, AC-SAL-013, TS-SAL-015). This removes the cumulative-drift risk against BR-INV-005 at its root. **+ AC-INV-048, TS-INV-055.**
+- **R4 (approved) — `BR-INV-059` NEW.** `ExpiryDate` = **the last saleable day**; expired **iff `ExpiryDate < Clinic Local Date`**; **UTC is prohibited for business decisions**. Scoped as the module's single date-basis rule, so it also governs **BR-INV-013 / BR-INV-022 / BR-INV-033 / BR-INV-036** — their meaning is unchanged, only the reference date. **+ AC-INV-049, TS-INV-050 boundary case.**
+- **R3 + R8 — traceability is a requirement, at Line level.** REQ-INV-008 / BR-INV-057 / AC-INV-047 / TS-INV-053 raised from sale-level to **Sale Line level**, so future Returns can identify which line consumed which batch. BR-INV-046 now states that **sufficient traceability information is a precondition of accepting a consumption request**, and that product aggregation for allocation **must not dissolve line attribution**. **+ TS-INV-054.** No persistence model prescribed.
+- **R6 (approved) — concurrency validation scoped per Batch.** BR-INV-056 / AC-INV-046 / TS-INV-052 now state that only a change to an **allocated batch** fails the sale; a concurrent sale on a different batch of the same product does **not**. Prevents false-failure retry storms. Mechanism still undocumented per the earlier ruling.
+- **R2 — recorded only.** DEC-INV-025 and both overviews now record that **Inventory History must be redesigned before implementation when it returns to the roadmap**, because the preserved design (BR-INV-040, projection over batches) cannot represent Consume. **No redesign performed, feature not reintroduced.**
+- **R5 · R7 · R9 · R10 · R11 — accepted, recorded.** New **accepted-risk table** in `inventory/decisions.md`: R5 (no reconciliation in Sprint 7 → future Inventory Adjustments; note that BR-INV-058 removes the largest drift source) · R7 (Catalog conversion-read N+1 accepted as tech debt) · R9 (stranded expired stock expected until Write-Off exists → roadmap debt) · R10 (semantic coupling invisible to arch tests; isolation test must still be extended to Sales at implementation) · R11 (no change).
+
+**IDs added (7):** `BR-INV-058` · `BR-INV-059` · `AC-INV-048` · `AC-INV-049` · `TS-INV-054` · `TS-INV-055` · `AC-SAL-013` · `TS-SAL-015`.
+**IDs modified (no renumbering):** BR-INV-013 (date basis note) · BR-INV-046 · BR-INV-050 · BR-INV-056 · BR-INV-057 · REQ-INV-006 · REQ-INV-008 · AC-INV-045/046/047 · TS-INV-050/052/053 · BR-SAL-010/012 · AC-SAL-012 · TS-SAL-014 · REQ-SAL-003 · DEC-INV-025.
+**Totals:** Inventory REQ-INV-006..008 · BR-INV-046..059 · AC-INV-037..049 · TS-INV-037..055 · DEC-INV-019..025 (024 tombstoned). Sales REQ-SAL-001..003 · BR-SAL-001..013 · AC-SAL-001..013 · TS-SAL-001..015 · DEC-SAL-001..009.
+
+**Two consequences the owner must see before implementation:**
+1. **R4 invalidates existing implemented behaviour.** The committed Inventory Projection and the code-complete Batch Viewer / Expiry Monitoring all compute `today` as `DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime)` (`InventoryProjectionQueryHandler.cs:30`, `BatchViewerQueryHandler.cs:29`, `ExpiryMonitoringQueryHandler.cs:31`). BR-INV-059 makes that **wrong for all three**. Correcting them is **Sprint 7 implementation scope**, not a Sprint 6 defect to re-open separately.
+2. **Clinic timezone has no documented source.** The Settings module is `Not documented`, so nothing defines the clinic's local date. **No source and no default were invented.** This must be settled before BR-INV-059 can be implemented.
+3. **R1 imposes a constraint whose source is Catalog.** "Stock Unit = smallest measurable unit" constrains the Catalog **unit profile**. The canonical rule is recorded in Inventory (the module the invariant protects); **the corresponding rule was NOT added to Catalog's Approved docs** — doing so unilaterally would allocate a new BR-CAT ID in a closed module. Recommended as a follow-up owner decision.
+
+**Still open from the previous review (4, unchanged):** DEC-SAL-002 (customer field) · DEC-SAL-004 (Sales rounding — **money only**; quantity rounding is now settled by BR-INV-058) · DEC-SAL-005 (Sales List) · DEC-SAL-009 (Cancelled state). **DEC-INV-020** (NULL-expiry placement) and **DEC-INV-022** (message detail) also remain.
+
+## Owner review applied (2026-07-30) — Sprint 7 «Sales MVP»: **8 owner rulings APPLIED across 17 docs — documentation only, ZERO code, owner STOP**
+
+**Owner reviewed the Sprint 7 DoR and issued rulings; all applied this session. Documentation only — no implementation code, no migration, no DB change, no endpoint, no UI. Nothing committed.** Docs remain **Draft** pending explicit owner approval to implement.
+
+**Rulings applied (8):**
+1. **DEC-INV-021 — APPROVED.** **Expired inventory is not saleable.** FEFO **excludes expired batches before allocation begins**; allocation operates on **saleable batches only** (active **and** not expired). Ordering fixed: **Expiry ASC · Receive Date ASC · Batch Identifier ASC**. Applied to BR-INV-050/051/052/053/054, AC-INV-038/041/**045**, TS-INV-038/041/**050**/**051**, both workflows, Sales BR-SAL-010/012 + edge cases. **No fourth batch state created** — DEC-INV-011/012 stay intact; "expired" remains **derived**, and *saleable* is an **allocation predicate**. **Consequence recorded, not hidden:** stock can read positive in the Projection yet be unsellable, and with no write-off/adjustment path it stays **stranded**.
+2. **DEC-INV-023 — REPLACED per owner.** Consumption **must detect concurrency conflicts**; **silent overwrite prohibited**; if inventory changes **between allocation and commit** the sale **fails and requires retry**. Written as **business outcome only** — **no RowVersion, no concurrency token, no locking strategy anywhere in the docs**, per the explicit instruction that mechanism belongs to implementation. New **BR-INV-056**, **AC-INV-046**, **TS-INV-052**, Sales **AC-SAL-012**, **TS-SAL-014(ب)**, retry message in `sales/ui.md`. DEC-INV-002 left **unmodified** and still governs *receiving* — divergence recorded as intentional.
+3. **DEC-INV-024 — REMOVED, converted to a Requirement.** Now **REQ-INV-008 — Consumption Traceability** («Sale → Consumed Batch», with per-batch quantity), plus **BR-INV-057 · AC-INV-047 · TS-INV-053**. **No persistence model prescribed** — no ledger, no allocation table, no new entity. **DEC-INV-024 is tombstoned** (repo precedent REQ-CAT-026): ID reserved, never reused, **DEC-INV-025 NOT renumbered**.
+4. **DEC-SAL-006 / DEC-INV-019 — APPROVED.** Architectural boundary recorded verbatim: **Sales expresses intent · Inventory performs execution · Sales never performs FEFO · Inventory owns allocation.** Applied to BR-SAL-013, both overviews, both workflows.
+5. **DEC-SAL-003 — APPROVED.** **Price Snapshot only**; Price Override **deferred**. **No discounts, no override reason, no audit, no permissions** introduced anywhere. **Catalog requirements left intact** — REQ-CAT-028 / BR-CAT-029 / AC-CAT-028 remain **Approved and unfulfilled**, now recorded in an explicit **Deferred Capabilities** table in `sales/decisions.md`.
+6. **DEC-SAL-007 — APPROVED.** Sales honors **`Product.IsSplittable`** (enforcing existing REQ-CAT-030 / BR-CAT-032). **No additional rules** — no auto-rounding, no coercion, no exception path.
+7. **DEC-SAL-008 — APPROVED.** Open Package tracking **out of scope**; **no new model, no new requirements**. REQ-CAT-031..033 / BR-CAT-033..036 stay Approved and unfulfilled, listed as deferred.
+8. **Inventory History — unchanged, roadmap reference only.** DEC-INV-015 **stays Approved and unmodified**; all its IDs preserved. **DEC-INV-025 now records that after Sprint 7 (Receive + Consume) the original reopen condition is satisfied** — feature **not** reintroduced, no REQ/BR/AC/TS added. Roadmap refs updated in `inventory/overview.md`, `sales/overview.md`, `_INDEX.md`, here. Distinction stated explicitly: **REQ-INV-008 is data traceability, not the History screen.**
+
+**IDs created:** **REQ-INV-008** · **BR-INV-056, BR-INV-057** · **AC-INV-045, AC-INV-046, AC-INV-047** · **TS-INV-050..053** · **AC-SAL-012** · **TS-SAL-014**.
+**IDs removed:** **DEC-INV-024** (tombstoned — converted to REQ-INV-008; reserved, never reused).
+**Totals now:** Sales REQ-SAL-001..003 · BR-SAL-001..013 · AC-SAL-001..012 · TS-SAL-001..014 · DEC-SAL-001..009. Inventory REQ-INV-006..008 · BR-INV-046..057 · AC-INV-037..047 · TS-INV-037..053 · DEC-INV-019..025 (024 tombstoned).
+
+**Still awaiting owner ruling (6, not invented around):** **DEC-SAL-002** (customer field) · **DEC-SAL-004** (Sales rounding rule — BR-PUR-008 scopes itself to Purchasing) · **DEC-SAL-005** (Sales List in/out) · **DEC-SAL-009** (Cancelled state) · **DEC-INV-020** (**NULL-expiry placement** — the three ordering keys were ruled, but nulls-last was not stated explicitly; carried from the proposal, marked unconfirmed) · **DEC-INV-022** (insufficient-stock message detail; full-rejection principle itself is settled).
+
+**Documentation debt unchanged:** GLOSSARY sync still deferred from Sprint 6; **«المبيعات» still not a GLOSSARY module name**. Not fixed unasked.
+
+**Next (NOT started — owner STOP).** Await explicit owner approval before any code. When approved, note the sprint **spans two modules**, exceeding the single-module New-Feature stop condition — split per slice. Sprint 6's Docker-blocked verification remains outstanding and untouched.
+
+## Doc session (2026-07-30) — Sprint 7 «Sales MVP»: **Sprint DoR DRAFTED — documentation only, NOTHING approved, ZERO code, owner STOP**
+
+**Documentation-First DoR session.** Drafted the whole Sprint 7 DoR across **two modules** (Sales + Inventory). **No implementation code, no migration, no DB change, no endpoint, no UI — none written, none started.** Nothing committed. **All new/changed docs are `Draft`**; approval is the owner's step.
+
+**Sprint scope (5 slices, owner-specified — DEC-SAL-001):** 1 فاتورة البيع · 2 التفاصيل · 3 إثبات البيع (Sales) · 4 استهلاك المخزون · 5 تخصيص FEFO (**Inventory**). Introduces the **second and only new inventory movement: Consume** (alongside Receive).
+
+**Docs written/updated (17).** **Sales (8, all were placeholders → drafted):** `overview` · `requirements` · `business-rules` · `workflow` · `ui` · `acceptance` · `test-scenarios` · `decisions`. **Inventory (7):** `overview` (Sprint 7 section) · `requirements` (REQ-INV-006/007) · `business-rules` (BR-INV-046..055) · `acceptance` (AC-INV-037..044) · `test-scenarios` (TS-INV-037..049) · `decisions` (DEC-INV-019..025) · **`workflow` filled** (was Placeholder — first inventory *write* flow). **Plus:** `docs/modules/_INDEX.md` (Sales + Inventory rows) · this `STATUS.md`. **Untouched:** all Catalog/Purchasing docs, `write-kernel.md`, `GLOSSARY.md`, every ADR.
+
+**New IDs (contiguous, nothing renumbered, nothing reused).** Sales: **REQ-SAL-001..003 · BR-SAL-001..013 · AC-SAL-001..011 · TS-SAL-001..013 · DEC-SAL-001..009**. Inventory (continuing after the verified maxima REQ-005/BR-045/AC-036/TS-036/DEC-018): **REQ-INV-006..007 · BR-INV-046..055 · AC-INV-037..044 · TS-INV-037..049 · DEC-INV-019..025**.
+
+**Central architectural proposal (needs owner ruling — DEC-SAL-006 / DEC-INV-019):** Sales states **business intent** («استهلك N من P») via a **public contract**; **Inventory owns batch selection and FEFO**. Mirrors the receiving contract exactly (BR-PUR-010 / DEC-PUR-008 / DEC-INV-001) and keeps the **module-isolation architecture test** green — putting FEFO in Sales would make it depend on Inventory internals and break that test. **No new field/table/migration/abstraction/ADR** for the base design: `RemainingQuantity` already exists **for this exact purpose** (BR-INV-001).
+
+**Gaps REPORTED, not invented around (as the brief directed):**
+1. **No Movement Ledger → post-sale traceability is unrecoverable.** If consumption only decrements, *which sale consumed which batch* is never stored — the Sprint-6 traceability chain stops at the sale. Options laid out in **DEC-INV-024** (nothing / allocation rows owned by Inventory / full ledger). **No structure invented.**
+2. **No «open package» concept in the inventory model.** Approved Catalog docs REQ-CAT-031..033 / BR-CAT-033..036 (one open package per product, second-open exception + audit, post-open expiry) have **no representation** in `InventoryBatch` and would need new structure + an undocumented Audit Log. **Recommended out of scope** — DEC-SAL-008.
+
+**Architectural risks reported:** (a) **DEC-INV-023 — overselling.** DEC-INV-002 knowingly accepted optimistic overwrite for *receiving* (worst case: a lost increment). Under *consumption* the same gap means **selling stock that isn't there** and silently breaking BR-INV-005, **with no returns or adjustments to correct it**. Options include optimistic concurrency / row versioning — **which would change a ruled decision and likely needs an ADR; none written, owner rules first.** (b) **DEC-INV-021 — FEFO picks expired batches first by construction** (earliest-expiry-first). A **veterinary safety** question, not a preference; recommended exclusion, with the honest cost that excluded stock becomes **stranded** (no write-off path exists). (c) **BR-INV-049** — consumption is the first operation able to break the BR-INV-005 invariant; kept documentation-only per the owner's earlier ruling but now covered by an explicit test (TS-INV-044).
+
+**Documented conflict with Approved Catalog docs (DEC-SAL-003 — blocking).** Sprint 7 excludes «Discounts», but **REQ-CAT-028 / BR-CAT-029 / AC-CAT-028** are **Approved** and say the cashier may override the sale price, the invoice keeping original + actual price + discount + optional reason, explicitly **«التنفيذ في وحدة المبيعات»** and «متطلب أساسي». **Resolved as deferral, not denial** — Sprint 7 prices are Catalog snapshots and those Catalog IDs stay **Approved and unfulfilled**. **No approved document was edited.** Owner must confirm it is a deferral. Also flagged: price override drags in **audit** (REQ-CAT-027), and Audit Log is undocumented (DEC-CAT-028).
+
+**Other open owner decisions:** DEC-SAL-002 (customer = optional free text, mirroring supplier) · DEC-SAL-004 (**Sales needs its own rounding rule — BR-PUR-008 scopes itself to Purchasing**; silent reuse rejected) · DEC-SAL-005 (**no Sales List in the 5 named slices** — navigational gap flagged, list NOT invented) · DEC-SAL-007 (enforce REQ-CAT-030 partial-selling; `Product.IsSplittable` **already exists** so it is cheap) · DEC-SAL-009 (Cancelled state — not in the brief, not invented) · DEC-INV-020 (FEFO ordering: expiry asc, **nulls last**, then received-at, then batch id — each key matching an existing implemented pattern) · DEC-INV-022 (insufficient stock = full rejection).
+
+**Rescan of DEC-INV-015 (DEC-INV-025 — recorded, not changed):** History was deferred because **only one movement type existed**. Sprint 7 adds the second, so **the stated deferral condition is nearly met**. Per the brief, History **stays out of scope and DEC-INV-015 stays Approved and unmodified**, all its IDs preserved. Recorded so the two Approved docs do not silently contradict.
+
+**Read-side integration:** Projection · Batch Viewer · Expiry Monitoring get **no doc or code change**; consumption only moves their numbers. Because this is the **first real source of Depleted batches**, integration is evidenced by **AC-INV-044 + TS-INV-045/046** rather than asserted.
+
+**Known documentation debt (not fixed this session, deliberately):** **`GLOSSARY.md` sync remains deferred from Sprint 6**; Sprint 7 adds ~11 terms staged in `sales/ui.md` the same way. **«المبيعات» is not yet a GLOSSARY module name** — and the New-Module pattern expects an approved Arabic module name there. Owner to decide: sync GLOSSARY before implementing Sprint 7, or keep deferring. **Scope was not widened to fix it unasked.**
+
+**Next (NOT started — owner STOP).** Owner rules on **DEC-SAL-002..009 + DEC-INV-019..025** → apply rulings → flip docs Draft→Approved → only then implement. **Do NOT write code, migrations, endpoints, or UI.** Note for implementation planning: the sprint **spans two modules**, which exceeds the single-module New-Feature stop condition — expect to split it per slice. Pre-existing untracked, intentionally not committed: `docs/releases/`, `docs/ui/product-editor-ux-architecture.md`. **Sprint 6's Docker-blocked verification below is still outstanding and unaffected by this session.**
+
+## Session close (2026-07-30) — Sprint 6 Inventory Read Experience: DoR APPROVED, Batch Viewer + Expiry Monitoring IMPLEMENTED — **verification Docker-blocked, NOTHING committed, owner STOP for commit**
+
+**Two-phase session (owner-directed).** **Phase A — DoR rulings applied**, Sprint 6 DoR flipped Draft→**Approved**. **Phase B — implemented Batch Viewer + Expiry Monitoring** (Inventory History **deferred**, not built). **Nothing committed; STATUS updated at owner's `/close-session` direction; commit still awaiting owner approval per standing instruction.**
+
+**Owner rulings applied (2026-07-30):**
+1. **DEC-INV-014 (Approved)** — Expiry Monitoring scope = **active batches with a non-null expiry, clinic-wide** (excludes depleted & no-expiry).
+2. **DEC-INV-017 (Approved)** — Expiry Monitoring belongs to **Inventory** (visibility); **Monitoring** module = alerts/notifications/background-jobs/escalations only (roadmap, out of scope).
+3. **DEC-INV-018 (Approved — NEW this session)** — Expiry Monitoring is a **projection owning no expiry state**; expiry computed from `InventoryBatch.ExpiryDate` at query time — **no cached values / materialized tables / scheduled refresh / duplicated state**.
+4. **DEC-INV-015 (Approved → DEFER)** — **Inventory History removed from Sprint 6.** Reason: **no Movement Ledger** and only **one committed movement type (Receive)** — no Consume/Adjustment/Transfer/Return — so it would not represent true movements. **All IDs preserved** (REQ-INV-005 / BR-INV-039..045 / AC-INV-031..036 / TS-INV-031..036 / DEC-INV-016), marked **Deferred** until multiple movement types exist. DEC-INV-016 deferred with it.
+
+**Implemented (code-complete, builds clean):**
+- **Batch Viewer** (REQ-INV-003): `GET /api/v1/inventory/{productId}/batches` → per-product 9-field batch list, derived Active/Depleted, Purchase Reference nav-link, status/expired/expiring filters, sort + deterministic default (receive-date desc, batch-id asc), 404 not-found vs empty. Frontend `features/inventory/batch-viewer/` + route `/inventory/:productId`.
+- **Expiry Monitoring** (REQ-INV-004): `GET /api/v1/inventory/expiry` → clinic-wide 4-field list of active batches with a real expiry, search/category/expired/expiring filters, deterministic expiry-asc order, no sort/alerts. Frontend `features/inventory/expiry-monitoring/` + route `/inventory/expiry` (static-before-`:productId`) + shell nav «مراقبة الصلاحية».
+- **Architecture:** CQRS-lite projections (ADR-0014 §5); cross-module reads (Catalog unit, Purchasing invoice for the reference via 2-hop plain-Guid join) confined to Infra handlers; **Application DTOs primitive-only (isolation arch test green)**. **No new module/service/abstraction; no migration; no schema change** (`ef has-pending-model-changes` = none). Mirrored the two screens, did NOT extract a shared batch abstraction (rule-of-three not met).
+
+**Gates — executed & green:** build 0/0 Release · `dotnet format` clean · **Architecture 76** · **Domain 101** · **Frontend unit 156** (+12 new store specs) · ESLint + Stylelint clean · `ng build` exit 0 (529.55 kB — **TD-107** warning, not raised) · `ef migrations has-pending-model-changes` = none.
+**Gates — NOT executed (environment-blocked):** **18 integration tests** (`BatchViewerEndpointTests` 11 + `ExpiryMonitoringEndpointTests` 7 — written, **compile clean**, UNRUN) · **live-browser verification** · **performance SQL capture**. All require Postgres via **Testcontainers/Docker, whose daemon is unavailable here** (service start denied without admin). Backend query SQL (2-hop join; expiry WHERE-clauses) is therefore **build- and pattern-verified only** (structured to mirror the already-tested projection handler), **not execution-verified**. **The commit gate is not yet satisfiable** until these run green where Docker is available.
+
+**Known characteristics / TD:** (a) **Batch Viewer is not literally one query** — one O(1) product-existence/header lookup **+** one batch projection SELECT **+** COUNT; the header lookup is **required by AC-INV-022** (not-found vs empty). Expiry Monitoring **is** single SELECT + COUNT. (b) Batch identifier shown truncated (first GUID segment; full in `title`) — display choice, no new field. (c) **TD-107** unchanged. (d) **Verification debt** (the 18 unrun tests + browser + perf) is the gating item for commit.
+
+**Docs synchronized (9, drift-swept):** `overview.md` · `requirements.md` · `business-rules.md` · `acceptance.md` · `test-scenarios.md` · `ui.md` · `decisions.md` (DEC-INV-014..018) · `_INDEX.md` · this `STATUS.md`. `GLOSSARY.md` sync still deferred (Expiry-monitoring terms staged in `ui.md`; History terms deferred with the slice). `workflow.md` untouched (read-only screens).
+
+**Proposed commits (NOT executed — gated on the unrun integration/browser/perf passing green):**
+1. `feat(inventory): Batch Viewer + Expiry Monitoring (Sprint 6)` — backend + frontend + tests.
+2. `docs(inventory): approve Sprint 6 DoR, defer Inventory History, synchronize` — rulings + `_INDEX` + this STATUS.
+
+**Open questions for the owner:**
+1. **Commit gate:** run the 18 integration tests + live-browser + performance SQL capture in a **Docker-enabled** environment before committing. Can you start Docker Desktop (needs admin) so I run them, or will you run them?
+2. **Expiry Monitoring default view (non-blocking):** with no filter it lists **all** active batches with any expiry (even far-future), soonest-first, Expired/Expiring as optional filters — per approved DEC-INV-014. If you intended the **base view** = *expired ∪ expiring-soon(30d)* only, that's a one-line rule change.
+3. **GLOSSARY sync** (Expiry-monitoring terms) — do at commit-time or a follow-up?
+
+**Next:** owner runs/enables the blocked verification → if green, commit the two commits above → (do not push, standing rule). Do NOT build Inventory History (deferred). Pre-existing untracked, intentionally not committed: `docs/releases/`, `docs/ui/product-editor-ux-architecture.md`.
+
+## Doc-approval session (2026-07-30) — Inventory Slice 2 (Batch Viewer): DoR owner-APPROVED, rulings applied — **NO CODE, nothing committed, owner STOP**
+
+**Documentation-only session.** The owner reviewed the Batch Viewer DoR and issued rulings; all applied and the DoR flipped **Draft→Approved (2026-07-30)**. **Zero implementation** — no code, migration, endpoint, or UI; **nothing committed** (owner directed STOP for implementation approval).
+
+**Owner rulings applied (2026-07-30):**
+1. **DEC-INV-008 (Approved w/ clarification):** Batch Viewer is an **Inventory read screen**; `InventoryBatch` is an **Inventory-owned domain entity** — **NOT a new Batch module**. DEC-INV-007 stays Approved & unchanged in meaning — its "Batch module" reference is the **future navigation target only, not module ownership**. Supersedes **only** the ownership ambiguity. (Planned Batch module stays a roadmap item — `overview.md` 3-module split + `_INDEX` Batch row untouched.)
+2. **DEC-INV-009 (Approved):** display the **existing stable Batch Identifier** only — **no human Batch Code, no new field, no generated number, no business logic.**
+3. **DEC-INV-010 (Approved):** Purchase Reference = **navigation link** opening Purchase Invoice Details; viewer stays read-only.
+4. **DEC-INV-011/012 (Approved):** batch status is **derived, Active/Depleted only**; **Expired is never a status — filter only.**
+5. **BR-INV-031 (new rule):** deterministic default ordering — **Receive Date desc, tie-break Batch Identifier asc** — for stable pagination. (Tie-break key = the same stable identity `Id` already used in BR-INV-027 — written as one key, not two.)
+6. **BR-INV-030 (strengthened):** **single projection query — no per-row lookups, no N+1, no lazy loading.** (Folded the "no lazy loading / single projection query" constraint into the existing performance rule rather than a duplicate ID — flagged for owner.)
+7. **GLOSSARY synced:** 7 genuinely-new Batch-Viewer concept terms added (Batch viewer, Batch identifier, Batch status, Depleted batch, Expired batch, Purchase reference; Active defined inline). Field-display labels (Receive/Original/Remaining/Unit-cost) left out as non-new (write-kernel field labels). **Pre-existing drift fixed & flagged:** the «دفعة» row's stale "TODO (Batch module docs)" corrected to Inventory ownership (BR-INV-001, DEC-INV-008) — predates this slice (write-kernel defined `InventoryBatch` 2026-07-22).
+
+**Final ID set (contiguous, none reused/renumbered).** REQ-INV-003 · **BR-INV-018..031** · **AC-INV-014..024** · **TS-INV-014..024** · **DEC-INV-008..013**. (BR-INV-031 / AC-INV-024 / TS-INV-024 are the deterministic-ordering rule + its traceability additions — the AC/TS are mine for coverage, not owner-specified.)
+
+**Docs updated (11):** `overview.md` · `requirements.md` · `business-rules.md` · `acceptance.md` · `test-scenarios.md` · `ui.md` · `decisions.md` · `docs/shared/GLOSSARY.md` · `docs/modules/_INDEX.md` · this `STATUS.md`. (`workflow.md` intentionally left as-is — a read-only screen has no workflow, mirroring Slice 1.)
+
+**Remaining owner decisions: none** — DEC-INV-008/009 were the only two open; both ruled. **Next (NOT started — owner STOP):** implement Batch Viewer per the Approved docs only after implementation approval. Do NOT begin code/migration/endpoint/UI. Pre-existing untracked, intentionally not committed: `docs/releases/`, `docs/ui/product-editor-ux-architecture.md`.
 
 ## Current sprint
 
