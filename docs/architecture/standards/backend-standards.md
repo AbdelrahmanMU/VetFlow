@@ -75,6 +75,16 @@ the register below.
 | STD-BE-048 | Configuration uses validated typed options; invalid configuration fails startup | Mandatory | Error | Automatic | Integration test | CI | [ADR-0014](../decisions/ADR-0014-backend-architecture.md) |
 | STD-BE-049 | Logging goes through `Microsoft.Extensions.Logging` abstractions; the sink (Serilog) is wired only in Infrastructure | Mandatory | Error | Automatic | Architecture test | Architecture test | [ADR-0011](../decisions/ADR-0011-caching-architecture.md) |
 | STD-BE-050 | No personal data (client names, phone numbers, addresses) in logs — log identifiers | Mandatory | Error | Semi-Automatic | Analyzer + review | Review | [P9](../principles.md) |
+| STD-BE-051 | **Once real pilot or production data exists**, no migration may destroy data — no dropped table or column, no narrowing that truncates values, no row deletion — **unless an explicit owner-approved migration plan has been approved beforehand**. Otherwise the change carries its data across or does not ship | Mandatory | Error | Manual | Owner approval (the plan); engineering review | Review | [ADR-0020](../decisions/ADR-0020-schema-evolution-safety.md) |
+
+> **On `STD-BE-051` being `Manual`.** It is deliberately not automated *yet*:
+> the rule is dormant until real operational data exists, and a check for a
+> condition that has not occurred would sit permanently inert or falsely red in
+> the gate sweep. **It becomes Semi-Automatic when the Pilot Transition Checklist
+> (ADR-0020) is executed** — a `DropTable`/`DropColumn`/narrowing-`AlterColumn`
+> scan over the migrations folder, failing unless an owner-approved migration
+> plan is recorded. Recorded in ADR-0020 §Consequences so the obligation is not
+> lost.
 
 ## Testing
 

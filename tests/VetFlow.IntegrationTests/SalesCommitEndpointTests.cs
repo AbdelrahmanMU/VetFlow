@@ -312,9 +312,12 @@ public sealed class SalesCommitEndpointTests(ApiFixture fixture)
 
         (await CommitAsync(invoice)).EnsureSuccessStatusCode();
 
-        var trace = await fixture.QueryDbAsync(db => db.InventoryConsumptions
-            .Where(consumption => consumption.SaleLineId == lineId)
-            .ToListAsync());
+        var trace = (await fixture.QueryDbAsync(db => db.InventoryMovements
+                .Where(movement => movement.ReferenceId == lineId
+                    && movement.Type == InventoryMovementType.Consume)
+                .ToListAsync()))
+            .Select(ToTrace)
+            .ToList();
 
         trace.Count.ShouldBe(2);                       // 20 from the nearest, 30 from the next
         trace.Sum(entry => entry.Quantity).ShouldBe(50m);
@@ -687,10 +690,24 @@ public sealed class SalesCommitEndpointTests(ApiFixture fixture)
     private Task<InventoryBatch> ReloadAsync(InventoryBatch batch) =>
         fixture.QueryDbAsync(dbContext => dbContext.InventoryBatches.SingleAsync(item => item.Id == batch.Id));
 
-    private Task<List<InventoryConsumption>> ConsumptionsAsync(Guid productId) =>
-        fixture.QueryDbAsync(dbContext => dbContext.InventoryConsumptions
-            .Where(consumption => consumption.ProductId == productId)
-            .ToListAsync());
+    /// <summary>
+    /// Sale-line-level consumption traceability (REQ-INV-008, BR-INV-057), read from the unified
+    /// movement ledger that absorbed the Sprint 7 InventoryConsumption record (DEC-INV-027). The
+    /// requirement is unchanged — only where it is stored. Ledger quantities are signed
+    /// (BR-INV-064), so the magnitude is projected here and the assertions stay in business terms.
+    /// </summary>
+    private sealed record Trace(Guid BatchId, Guid ProductId, Guid SaleLineId, decimal Quantity);
+
+    private async Task<List<Trace>> ConsumptionsAsync(Guid productId) =>
+        (await fixture.QueryDbAsync(dbContext => dbContext.InventoryMovements
+            .Where(movement => movement.ProductId == productId
+                && movement.Type == InventoryMovementType.Consume)
+            .ToListAsync()))
+        .Select(ToTrace)
+        .ToList();
+
+    private static Trace ToTrace(InventoryMovement movement) =>
+        new(movement.BatchId, movement.ProductId, movement.ReferenceId!.Value, -movement.Quantity);
 
     /// <summary>
     /// Today at the clinic — the same basis the server uses (BR-INV-059/060). Resolved through the

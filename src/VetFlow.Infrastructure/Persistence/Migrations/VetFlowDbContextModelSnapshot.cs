@@ -505,19 +505,24 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                     b.ToTable("inventory_batches");
                 });
 
-            modelBuilder.Entity("VetFlow.Domain.Inventory.InventoryConsumption", b =>
+            modelBuilder.Entity("VetFlow.Domain.Inventory.InventoryMovement", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<string>("ActorName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("actor_name");
+
                     b.Property<Guid>("BatchId")
                         .HasColumnType("uuid")
                         .HasColumnName("batch_id");
 
-                    b.Property<DateTimeOffset>("ConsumedAt")
+                    b.Property<DateTimeOffset>("OccurredAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("consumed_at");
+                        .HasColumnName("occurred_at");
 
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uuid")
@@ -528,20 +533,43 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .HasColumnType("numeric(18,3)")
                         .HasColumnName("quantity");
 
-                    b.Property<Guid>("SaleLineId")
+                    b.Property<int?>("Reason")
+                        .HasColumnType("integer")
+                        .HasColumnName("reason");
+
+                    b.Property<string>("ReasonNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("reason_note");
+
+                    b.Property<Guid?>("ReferenceId")
                         .HasColumnType("uuid")
-                        .HasColumnName("sale_line_id");
+                        .HasColumnName("reference_id");
+
+                    b.Property<int>("Source")
+                        .HasColumnType("integer")
+                        .HasColumnName("source");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer")
+                        .HasColumnName("type");
 
                     b.HasKey("Id")
-                        .HasName("pk_inventory_consumptions");
+                        .HasName("pk_inventory_movements");
 
                     b.HasIndex("BatchId")
-                        .HasDatabaseName("ix_inventory_consumptions_batch_id");
+                        .HasDatabaseName("ix_inventory_movements_batch_id");
 
-                    b.HasIndex("SaleLineId")
-                        .HasDatabaseName("ix_inventory_consumptions_sale_line_id");
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_inventory_movements_product_id");
 
-                    b.ToTable("inventory_consumptions");
+                    b.HasIndex("ReferenceId")
+                        .HasDatabaseName("ix_inventory_movements_reference_id");
+
+                    b.HasIndex("OccurredAt", "Id")
+                        .HasDatabaseName("ix_inventory_movements_occurred_at_id");
+
+                    b.ToTable("inventory_movements");
                 });
 
             modelBuilder.Entity("VetFlow.Domain.Inventory.ProductOnHand", b =>
@@ -698,6 +726,115 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                     b.ToTable("purchase_line_items");
                 });
 
+            modelBuilder.Entity("VetFlow.Domain.Purchasing.PurchaseReturn", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("notes");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("number");
+
+                    b.Property<Guid>("PurchaseInvoiceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("purchase_invoice_id");
+
+                    b.Property<DateOnly>("ReturnDate")
+                        .HasColumnType("date")
+                        .HasColumnName("return_date");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("SupplierName")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("supplier_name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_purchase_returns");
+
+                    b.HasIndex("Number")
+                        .IsUnique()
+                        .HasDatabaseName("ix_purchase_returns_number");
+
+                    b.HasIndex("PurchaseInvoiceId")
+                        .HasDatabaseName("ix_purchase_returns_purchase_invoice_id");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_purchase_returns_status");
+
+                    b.ToTable("purchase_returns");
+                });
+
+            modelBuilder.Entity("VetFlow.Domain.Purchasing.PurchaseReturnLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("AddedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("added_at");
+
+                    b.Property<Guid>("BatchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("batch_id");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("product_name");
+
+                    b.Property<Guid>("PurchaseLineItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("purchase_line_item_id");
+
+                    b.Property<Guid>("PurchaseReturnId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("purchase_return_id");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("quantity");
+
+                    b.HasKey("Id")
+                        .HasName("pk_purchase_return_lines");
+
+                    b.HasIndex("BatchId")
+                        .HasDatabaseName("ix_purchase_return_lines_batch_id");
+
+                    b.HasIndex("PurchaseLineItemId")
+                        .HasDatabaseName("ix_purchase_return_lines_purchase_line_item_id");
+
+                    b.HasIndex("PurchaseReturnId")
+                        .HasDatabaseName("ix_purchase_return_lines_purchase_return_id");
+
+                    b.ToTable("purchase_return_lines");
+                });
+
             modelBuilder.Entity("VetFlow.Domain.Sales.SalesInvoice", b =>
                 {
                     b.Property<Guid>("Id")
@@ -817,6 +954,108 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                     b.ToTable("sales_line_items");
                 });
 
+            modelBuilder.Entity("VetFlow.Domain.Sales.SalesReturn", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CustomerName")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("customer_name");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("notes");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("number");
+
+                    b.Property<DateOnly>("ReturnDate")
+                        .HasColumnType("date")
+                        .HasColumnName("return_date");
+
+                    b.Property<Guid>("SalesInvoiceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sales_invoice_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sales_returns");
+
+                    b.HasIndex("Number")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sales_returns_number");
+
+                    b.HasIndex("SalesInvoiceId")
+                        .HasDatabaseName("ix_sales_returns_sales_invoice_id");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_sales_returns_status");
+
+                    b.ToTable("sales_returns");
+                });
+
+            modelBuilder.Entity("VetFlow.Domain.Sales.SalesReturnLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("AddedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("added_at");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("product_name");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)")
+                        .HasColumnName("quantity");
+
+                    b.Property<Guid>("SalesLineItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sales_line_item_id");
+
+                    b.Property<Guid>("SalesReturnId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sales_return_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sales_return_lines");
+
+                    b.HasIndex("SalesLineItemId")
+                        .HasDatabaseName("ix_sales_return_lines_sales_line_item_id");
+
+                    b.HasIndex("SalesReturnId")
+                        .HasDatabaseName("ix_sales_return_lines_sales_return_id");
+
+                    b.ToTable("sales_return_lines");
+                });
+
             modelBuilder.Entity("VetFlow.Domain.Catalog.Product", b =>
                 {
                     b.HasOne("VetFlow.Domain.Categories.Category", null)
@@ -889,6 +1128,16 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_purchase_line_items_purchase_invoices_purchase_invoice_id");
                 });
 
+            modelBuilder.Entity("VetFlow.Domain.Purchasing.PurchaseReturnLine", b =>
+                {
+                    b.HasOne("VetFlow.Domain.Purchasing.PurchaseReturn", null)
+                        .WithMany("Lines")
+                        .HasForeignKey("PurchaseReturnId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_purchase_return_lines_purchase_returns_purchase_return_id");
+                });
+
             modelBuilder.Entity("VetFlow.Domain.Sales.SalesLineItem", b =>
                 {
                     b.HasOne("VetFlow.Domain.Sales.SalesInvoice", null)
@@ -897,6 +1146,16 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_sales_line_items_sales_invoices_sales_invoice_id");
+                });
+
+            modelBuilder.Entity("VetFlow.Domain.Sales.SalesReturnLine", b =>
+                {
+                    b.HasOne("VetFlow.Domain.Sales.SalesReturn", null)
+                        .WithMany("Lines")
+                        .HasForeignKey("SalesReturnId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_sales_return_lines_sales_returns_sales_return_id");
                 });
 
             modelBuilder.Entity("VetFlow.Domain.Catalog.Product", b =>
@@ -909,7 +1168,17 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                     b.Navigation("Lines");
                 });
 
+            modelBuilder.Entity("VetFlow.Domain.Purchasing.PurchaseReturn", b =>
+                {
+                    b.Navigation("Lines");
+                });
+
             modelBuilder.Entity("VetFlow.Domain.Sales.SalesInvoice", b =>
+                {
+                    b.Navigation("Lines");
+                });
+
+            modelBuilder.Entity("VetFlow.Domain.Sales.SalesReturn", b =>
                 {
                     b.Navigation("Lines");
                 });

@@ -18,14 +18,29 @@ public sealed class InventoryReceiptWriter(VetFlowDbContext dbContext) : IInvent
     {
         foreach (var line in lines)
         {
-            dbContext.InventoryBatches.Add(new InventoryBatch(
+            var batch = new InventoryBatch(
                 Guid.NewGuid(),
                 line.ProductId,
                 line.PurchaseLineId,
                 line.StockQuantity,
                 line.UnitCost,
                 line.ExpiryDate,
-                line.ReceivedAt));
+                line.ReceivedAt);
+            dbContext.InventoryBatches.Add(batch);
+
+            // Every stock change writes exactly one ledger row, in the same unit of work as the
+            // change itself (REQ-INV-009, BR-INV-062). Receiving is the movement that creates the
+            // batch, so the reference is the purchase line and the source is Purchasing
+            // (BR-INV-064/065, the preserved BR-INV-043 shape).
+            dbContext.InventoryMovements.Add(InventoryMovement.Increase(
+                Guid.NewGuid(),
+                line.ProductId,
+                batch.Id,
+                InventoryMovementType.Receive,
+                InventoryMovementSource.Purchasing,
+                line.StockQuantity,
+                line.ReceivedAt,
+                referenceId: line.PurchaseLineId));
 
             // One on-hand row per product: reuse a row already tracked in this unit of work (the same
             // product appearing on two lines) before hitting the store, so it is incremented once per

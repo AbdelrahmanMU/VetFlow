@@ -26,15 +26,29 @@ public sealed class VetFlowDbContext(DbContextOptions<VetFlowDbContext> options)
 
     public DbSet<PurchaseLineItem> PurchaseLineItems => Set<PurchaseLineItem>();
 
+    public DbSet<PurchaseReturn> PurchaseReturns => Set<PurchaseReturn>();
+
+    public DbSet<PurchaseReturnLine> PurchaseReturnLines => Set<PurchaseReturnLine>();
+
     public DbSet<InventoryBatch> InventoryBatches => Set<InventoryBatch>();
 
     public DbSet<ProductOnHand> ProductOnHands => Set<ProductOnHand>();
 
-    public DbSet<InventoryConsumption> InventoryConsumptions => Set<InventoryConsumption>();
+    /// <summary>
+    /// The unified movement ledger (REQ-INV-009). It records history and never calculates
+    /// inventory — the authoritative quantities stay in <see cref="InventoryBatches"/> and
+    /// <see cref="ProductOnHands"/> (BR-INV-063). It absorbed the Sprint 7 InventoryConsumption
+    /// record rather than duplicating that state (DEC-INV-027).
+    /// </summary>
+    public DbSet<InventoryMovement> InventoryMovements => Set<InventoryMovement>();
 
     public DbSet<SalesInvoice> SalesInvoices => Set<SalesInvoice>();
 
     public DbSet<SalesLineItem> SalesLineItems => Set<SalesLineItem>();
+
+    public DbSet<SalesReturn> SalesReturns => Set<SalesReturn>();
+
+    public DbSet<SalesReturnLine> SalesReturnLines => Set<SalesReturnLine>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -48,11 +62,15 @@ public sealed class VetFlowDbContext(DbContextOptions<VetFlowDbContext> options)
         modelBuilder.ApplyConfiguration(new CategoryConfiguration());
         modelBuilder.ApplyConfiguration(new PurchaseInvoiceConfiguration());
         modelBuilder.ApplyConfiguration(new PurchaseLineItemConfiguration());
+        modelBuilder.ApplyConfiguration(new PurchaseReturnConfiguration());
+        modelBuilder.ApplyConfiguration(new PurchaseReturnLineConfiguration());
         modelBuilder.ApplyConfiguration(new InventoryBatchConfiguration());
         modelBuilder.ApplyConfiguration(new ProductOnHandConfiguration());
-        modelBuilder.ApplyConfiguration(new InventoryConsumptionConfiguration());
+        modelBuilder.ApplyConfiguration(new InventoryMovementConfiguration());
         modelBuilder.ApplyConfiguration(new SalesInvoiceConfiguration());
         modelBuilder.ApplyConfiguration(new SalesLineItemConfiguration());
+        modelBuilder.ApplyConfiguration(new SalesReturnConfiguration());
+        modelBuilder.ApplyConfiguration(new SalesReturnLineConfiguration());
 
         SnakeCaseNames.Apply(modelBuilder);
     }

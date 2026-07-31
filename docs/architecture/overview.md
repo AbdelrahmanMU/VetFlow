@@ -62,6 +62,7 @@ status in the repository is the authority, not this table.
 | Testing & enforcement | Integration-first; architecture tests mandatory in CI | ADR-0016 |
 | AI execution | Gates, context budgets, playbooks | ADR-0017 |
 | Business failures | Business exceptions + Error Catalog (`Result<T>` rejected) | ADR-0018 |
+| Schema evolution safety | No destructive migration once real data exists, absent an owner-approved plan; Pilot start defined | ADR-0020 |
 
 ## Engineering Decision Matrix
 

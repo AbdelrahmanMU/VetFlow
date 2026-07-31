@@ -458,6 +458,189 @@ export const AR = {
   'expiry.error.body': 'تحقق من الاتصال ثم أعد المحاولة.',
   'expiry.error.retry': 'إعادة المحاولة',
 
+  // Inventory movement history — Epic 2 / C2 — inventory/ui.md, REQ-INV-005, BR-INV-039..045
+  'nav.movementHistory': 'تاريخ الحركة',
+
+  'history.title': 'تاريخ حركة المخزون',
+  'history.subtitle': 'سجلّ زمنيّ للقراءة فقط بكل حركات المخزون، الأحدث أوّلًا.',
+  'history.loading': 'جارٍ تحميل الحركات…',
+  'history.table.label': 'حركات المخزون',
+
+  'history.column.date': 'التاريخ',
+  'history.column.type': 'نوع الحركة',
+  'history.column.product': 'المنتج',
+  'history.column.batch': 'الدفعة',
+  'history.column.quantity': 'الكمية',
+  'history.column.reference': 'المرجع',
+  'history.column.source': 'الوحدة المصدر',
+
+  // The closed set of movement types (BR-INV-065) — the owner's terms, verbatim.
+  'history.type.receive': 'استلام',
+  'history.type.consume': 'استهلاك',
+  'history.type.adjustment': 'تسوية',
+  'history.type.writeOff': 'إهلاك',
+  'history.type.purchaseReturn': 'مرتجع شراء',
+  'history.type.salesReturn': 'مرتجع بيع',
+
+  'history.source.purchasing': 'المشتريات',
+  'history.source.sales': 'المبيعات',
+  'history.source.inventory': 'المخزون',
+
+  'history.row.openPurchase': 'فتح فاتورة الشراء {reference}',
+  'history.row.openSale': 'فتح فاتورة البيع {reference}',
+
+  'history.empty.title': 'لا توجد حركات مخزون بعد.',
+  'history.empty.body': 'تظهر هنا كل حركة تمسّ المخزون فور حدوثها — استلامًا أو بيعًا أو تسويةً أو إهلاكًا.',
+  'history.error.title': 'تعذّر تحميل الحركات.',
+  'history.error.body': 'تحقق من الاتصال ثم أعد المحاولة.',
+  'history.error.retry': 'إعادة المحاولة',
+
+  // Inventory adjustments — Epic 2 / C3 — inventory/ui.md, REQ-INV-010, BR-INV-061..068
+  'nav.adjustment': 'تسوية مخزون',
+
+  'adjustment.title': 'تسوية مخزون',
+  'adjustment.subtitle': 'تصحيح كمية دفعة بالزيادة أو النقص بسبب مسجَّل. لا تُعدَّل الحركات بعد حفظها.',
+
+  'adjustment.field.product': 'المنتج',
+  'adjustment.field.productPlaceholder': 'اختر منتجًا…',
+  'adjustment.field.batch': 'الدفعة',
+  'adjustment.field.batchPlaceholder': 'اختر دفعة…',
+  'adjustment.field.batchPickProduct': 'اختر المنتج أولًا',
+  'adjustment.field.batchLoading': 'جارٍ تحميل الدفعات…',
+  'adjustment.field.direction': 'الاتجاه',
+  'adjustment.field.quantity': 'المقدار',
+  'adjustment.field.reason': 'السبب',
+  'adjustment.field.reasonPlaceholder': 'اختر سببًا…',
+  'adjustment.field.note': 'ملاحظة (اختيارية)',
+  'adjustment.field.actor': 'اسم المنفِّذ (اختياريّ)',
+  'adjustment.field.actorPlaceholder': 'مثل: الطبيب · المساعد · الكاشير',
+  'adjustment.field.actorHint': 'حقل نصّيّ حرّ للتسجيل فقط — لا تحقّق من الهوية، ويمكن تركه فارغًا.',
+
+  'adjustment.direction.increase': 'زيادة',
+  'adjustment.direction.decrease': 'نقص',
+
+  // The adjustment list only — «منتهي الصلاحية» و«ملوَّث» للإهلاك وحده (DEC-INV-031).
+  'adjustment.reason.countCorrection': 'تصحيح جرد',
+  'adjustment.reason.initialBalance': 'رصيد افتتاحيّ',
+  'adjustment.reason.damaged': 'تالف',
+  'adjustment.reason.found': 'موجود',
+  'adjustment.reason.lost': 'مفقود',
+  'adjustment.reason.other': 'أخرى',
+
+  'adjustment.action.save': 'حفظ التسوية',
+  'adjustment.saved': 'تمّت التسوية وسُجِّلت حركتها.',
+  'adjustment.saved.link': 'عرضها في تاريخ حركة المخزون',
+
+  'adjustment.error.productRequired': 'اختر المنتج.',
+  'adjustment.error.batchRequired': 'اختر الدفعة.',
+  'adjustment.error.quantityPositive': 'المقدار يجب أن يكون أكبر من صفر.',
+  'adjustment.error.reasonRequired': 'اختر سبب التسوية.',
+  'adjustment.error.belowZero': 'الكمية المطلوب خصمها تتجاوز المتبقّي في الدفعة. لم تُنفَّذ العملية ولم يتغيّر أيّ رصيد.',
+  'adjustment.error.conflict': 'تغيّرت الدفعة أثناء الحفظ. لم يُحفظ أيّ تغيير. أعد المحاولة.',
+  'adjustment.error.reason': 'هذا السبب لا يخصّ التسوية. اختر سببًا من قائمة التسوية.',
+  'adjustment.error.notFound': 'الدفعة غير موجودة.',
+  'adjustment.error.unknown': 'تعذّر حفظ التسوية. أعد المحاولة.',
+
+  // Purchase returns — Epic 2 / C5 — purchasing/ui.md, REQ-PUR-006, DEC-PUR-010.
+  // No reason key anywhere: returns carry no reason code (BR-INV-067).
+  // No amount/total key either: a return has no financial effect (DEC-INV-035).
+  'purchaseReturn.open': 'إرجاع إلى المورد',
+  'purchaseReturn.title': 'مرتجع مشتريات جديد',
+  'purchaseReturn.subtitle': 'إرجاع بضاعة مستلَمة إلى المورد. المرتجع حركة مخزون فقط، ولا أثر ماليّ له.',
+
+  'purchaseReturn.field.originalInvoice': 'الفاتورة الأصليّة',
+  'purchaseReturn.field.supplier': 'المورّد',
+  'purchaseReturn.field.returnDate': 'تاريخ المرتجع',
+  'purchaseReturn.field.notes': 'ملاحظات (اختياري)',
+
+  'purchaseReturn.column.product': 'المنتج',
+  'purchaseReturn.column.originalQuantity': 'الكمّية الأصليّة',
+  'purchaseReturn.column.returnable': 'المتبقّي القابل للإرجاع',
+  'purchaseReturn.column.returnQuantity': 'الكمّية المرتجَعة',
+
+  'purchaseReturn.save': 'تثبيت المرتجع',
+  'purchaseReturn.saving': 'جارٍ التثبيت…',
+  'purchaseReturn.cancel': 'إلغاء',
+  'purchaseReturn.confirm': 'تثبيت المرتجع نهائيّ ولا يمكن التراجع عنه. هل تريد المتابعة؟',
+  'purchaseReturn.saved': 'تمّ تثبيت المرتجع',
+  'purchaseReturn.savedNumber': 'رقم المرتجع',
+  'purchaseReturn.backToInvoice': 'العودة إلى الفاتورة',
+
+  'purchaseReturn.loading': 'جارٍ تحميل بنود الفاتورة…',
+  'purchaseReturn.empty': 'لا توجد بنود قابلة للإرجاع في هذه الفاتورة.',
+  'purchaseReturn.unavailable': 'لا يمكن إنشاء مرتجع لهذه الفاتورة. الإرجاع متاح للفواتير المستلَمة فقط.',
+
+  'purchaseReturn.error.noLines': 'أدخل كمّية مرتجَعة لبند واحد على الأقل.',
+  'purchaseReturn.error.exceedsReturnable': 'الكمّية المرتجَعة تتجاوز المتبقّي القابل للإرجاع. لم يُحفظ أيّ تغيير.',
+  'purchaseReturn.error.invoiceNotReceived': 'الإرجاع متاح للفواتير المستلَمة فقط.',
+  'purchaseReturn.error.notDraft': 'هذا المرتجع مثبَّت ولا يمكن تعديله.',
+  'purchaseReturn.error.belowZero': 'الكمّية المرتجَعة تتجاوز المتبقّي في الدفعة. لم تُنفَّذ العملية ولم يتغيّر أيّ رصيد.',
+  'purchaseReturn.error.conflict': 'تغيّرت الدفعة أثناء الحفظ. لم يُحفظ أيّ تغيير. أعد المحاولة.',
+  'purchaseReturn.error.notFound': 'الفاتورة أو البند غير موجود.',
+  'purchaseReturn.error.unknown': 'تعذّر تثبيت المرتجع. أعد المحاولة.',
+
+  // Sales returns — Epic 2 / C6 — sales/ui.md, REQ-SAL-004, DEC-SAL-010.
+  // No reason key anywhere: returns carry no reason code (BR-INV-067).
+  // No amount/total/refund key either: a return is a stock movement only (DEC-INV-035) and cash
+  // refunds are out of scope (DEC-SAL-001) — the temptation is real here, because the sale line the
+  // user is looking at does carry a price.
+  'salesReturn.open': 'إرجاع من العميل',
+  'salesReturn.title': 'مرتجع مبيعات جديد',
+  'salesReturn.subtitle': 'إرجاع بضاعة من العميل إلى المخزون. المرتجع حركة مخزون فقط، ولا أثر ماليّ له.',
+
+  'salesReturn.field.originalInvoice': 'فاتورة البيع الأصليّة',
+  'salesReturn.field.customer': 'العميل',
+  'salesReturn.field.returnDate': 'تاريخ المرتجع',
+  'salesReturn.field.notes': 'ملاحظات (اختياري)',
+
+  'salesReturn.column.product': 'المنتج',
+  'salesReturn.column.soldQuantity': 'الكمّية المباعة',
+  'salesReturn.column.returnable': 'المتبقّي القابل للإرجاع',
+  'salesReturn.column.returnQuantity': 'الكمّية المرتجَعة',
+
+  'salesReturn.save': 'تثبيت المرتجع',
+  'salesReturn.saving': 'جارٍ التثبيت…',
+  'salesReturn.cancel': 'إلغاء',
+  'salesReturn.confirm': 'تثبيت المرتجع نهائيّ ولا يمكن التراجع عنه. هل تريد المتابعة؟',
+  'salesReturn.saved': 'تمّ تثبيت المرتجع',
+  'salesReturn.savedNumber': 'رقم المرتجع',
+  'salesReturn.backToInvoice': 'العودة إلى الفاتورة',
+
+  'salesReturn.loading': 'جارٍ تحميل بنود الفاتورة…',
+  'salesReturn.empty': 'لا توجد بنود قابلة للإرجاع في هذه الفاتورة.',
+  'salesReturn.unavailable': 'لا يمكن إنشاء مرتجع لهذه الفاتورة. الإرجاع متاح للفواتير المثبَّتة فقط.',
+
+  'salesReturn.error.noLines': 'أدخل كمّية مرتجَعة لبند واحد على الأقل.',
+  'salesReturn.error.exceedsReturnable': 'الكمّية المرتجَعة تتجاوز المتبقّي القابل للإرجاع. لم يُحفظ أيّ تغيير.',
+  'salesReturn.error.invoiceNotCommitted': 'الإرجاع متاح للفواتير المثبَّتة فقط.',
+  'salesReturn.error.lineComposition': 'الكمّية المرتجَعة غير صالحة. يجب أن تكون أكبر من صفر، وعددًا صحيحًا للمنتج غير القابل للتجزئة.',
+  'salesReturn.error.notDraft': 'هذا المرتجع مثبَّت ولا يمكن تعديله.',
+  'salesReturn.error.traceUnusable': 'تعذّر تحديد الدفعات التي خرجت منها الكمّية. لم يُحفظ أيّ تغيير ولم يتغيّر أيّ رصيد.',
+  'salesReturn.error.belowZero': 'تعذّر تنفيذ العملية على الدفعة. لم يُحفظ أيّ تغيير ولم يتغيّر أيّ رصيد.',
+  'salesReturn.error.conflict': 'تغيّرت الدفعة أثناء الحفظ. لم يُحفظ أيّ تغيير. أعد المحاولة.',
+  'salesReturn.error.notFound': 'الفاتورة أو البند غير موجود.',
+  'salesReturn.error.unknown': 'تعذّر تثبيت المرتجع. أعد المحاولة.',
+
+  // Inventory write-off — Epic 2 / C4 — inventory/ui.md, REQ-INV-011 (closes R9)
+  'nav.writeOff': 'إهلاك مخزون',
+
+  'writeOff.title': 'إهلاك مخزون',
+  'writeOff.subtitle': 'إخراج كمية غير صالحة من دفعة بسبب مسجَّل. الإهلاك يُنقِص دائمًا ولا يزيد.',
+  'writeOff.field.quantity': 'الكمية المُهلَكة',
+
+  // The write-off list only — «تصحيح جرد» و«رصيد افتتاحيّ» و«موجود» للتسوية وحدها (DEC-INV-031).
+  'writeOff.reason.expired': 'منتهي الصلاحية',
+  'writeOff.reason.damaged': 'تالف',
+  'writeOff.reason.lost': 'مفقود',
+  'writeOff.reason.contaminated': 'ملوَّث',
+  'writeOff.reason.other': 'أخرى',
+
+  'writeOff.action.save': 'حفظ الإهلاك',
+  'writeOff.saved': 'تمّ الإهلاك وسُجِّلت حركته.',
+  'writeOff.error.belowZero': 'الكمية المطلوب إهلاكها تتجاوز المتبقّي في الدفعة. لم تُنفَّذ العملية ولم يتغيّر أيّ رصيد.',
+  'writeOff.error.reason': 'هذا السبب لا يخصّ الإهلاك. اختر سببًا من قائمة الإهلاك.',
+  'writeOff.error.unknown': 'تعذّر حفظ الإهلاك. أعد المحاولة.',
+
   // Sales — Sprint 7 «Sales MVP» — sales/ui.md, REQ-SAL-001..003, BR-SAL-001..013
   'nav.sales': 'المبيعات',
   'nav.newSale': 'فاتورة بيع جديدة',

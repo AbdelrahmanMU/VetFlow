@@ -12,6 +12,12 @@ export const SALES_ROUTES: Routes = [
     loadComponent: () => import('./sale-create/sale-create-page.component').then((m) => m.SaleCreatePageComponent),
   },
   {
+    // Registered before ':id' so the more specific route wins (REQ-SAL-004, sales/ui.md).
+    path: ':id/returns/new',
+    loadComponent: () =>
+      import('./sales-return/sales-return-page.component').then((m) => m.SalesReturnPageComponent),
+  },
+  {
     path: ':id',
     loadComponent: () => import('./sale-details/sale-details-page.component').then((m) => m.SaleDetailsPageComponent),
   },

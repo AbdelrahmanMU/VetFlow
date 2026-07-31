@@ -91,6 +91,38 @@ public static class ErrorCatalog
             },
             new()
             {
+                Code = PurchasingErrorCodes.ReturnOriginalInvoiceNotReceived,
+                Status = StatusCodes.Status409Conflict,
+                Title = "A purchase return requires a received purchase invoice",
+            },
+            new()
+            {
+                Code = PurchasingErrorCodes.ReturnQuantityExceedsReturnable,
+                Status = StatusCodes.Status409Conflict,
+                Title = "Returned quantity exceeds what remains returnable on this line",
+            },
+            new()
+            {
+                // 400, not 409: a non-positive quantity is a malformed request, not a state
+                // conflict — the LineComposition precedent.
+                Code = PurchasingErrorCodes.ReturnLineComposition,
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Purchase return line composition is invalid",
+            },
+            new()
+            {
+                Code = PurchasingErrorCodes.ReturnNotDraft,
+                Status = StatusCodes.Status409Conflict,
+                Title = "Only a draft purchase return may change or be committed",
+            },
+            new()
+            {
+                Code = PurchasingErrorCodes.ReturnHasNoLines,
+                Status = StatusCodes.Status409Conflict,
+                Title = "A purchase return with no lines cannot be committed",
+            },
+            new()
+            {
                 Code = SalesErrorCodes.InvoiceNotDraft,
                 Status = StatusCodes.Status409Conflict,
                 Title = "Only a draft sales invoice may change or be committed",
@@ -115,6 +147,46 @@ public static class ErrorCatalog
             },
             new()
             {
+                Code = SalesErrorCodes.ReturnOriginalInvoiceNotCommitted,
+                Status = StatusCodes.Status409Conflict,
+                Title = "A sales return requires a committed sales invoice",
+            },
+            new()
+            {
+                Code = SalesErrorCodes.ReturnQuantityExceedsReturnable,
+                Status = StatusCodes.Status409Conflict,
+                Title = "Returned quantity exceeds what remains returnable on this line",
+            },
+            new()
+            {
+                // 400, not 409: a malformed quantity is a bad request, not a state conflict — the
+                // LineComposition precedent.
+                Code = SalesErrorCodes.ReturnLineComposition,
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Sales return line composition is invalid",
+            },
+            new()
+            {
+                Code = SalesErrorCodes.ReturnNotDraft,
+                Status = StatusCodes.Status409Conflict,
+                Title = "Only a draft sales return may change or be committed",
+            },
+            new()
+            {
+                Code = SalesErrorCodes.ReturnHasNoLines,
+                Status = StatusCodes.Status409Conflict,
+                Title = "A sales return with no lines cannot be committed",
+            },
+            new()
+            {
+                // 409: the document and the recorded consumption disagree, so the return cannot be
+                // placed. Not a field the user can correct, but a state that blocks the operation.
+                Code = SalesErrorCodes.ReturnConsumptionTraceUnusable,
+                Status = StatusCodes.Status409Conflict,
+                Title = "The sale's recorded consumption cannot support this return",
+            },
+            new()
+            {
                 Code = InventoryErrorCodes.ConsumptionRequestInvalid,
                 Status = StatusCodes.Status400BadRequest,
                 Title = "The inventory consumption request is invalid",
@@ -130,6 +202,24 @@ public static class ErrorCatalog
                 Code = InventoryErrorCodes.ConcurrencyConflict,
                 Status = StatusCodes.Status409Conflict,
                 Title = "Inventory changed while the sale was being committed; retry",
+            },
+            new()
+            {
+                Code = InventoryErrorCodes.QuantityBelowZero,
+                Status = StatusCodes.Status409Conflict,
+                Title = "The operation would drive the batch quantity below zero",
+            },
+            new()
+            {
+                Code = InventoryErrorCodes.ReasonNotAllowed,
+                Status = StatusCodes.Status400BadRequest,
+                Title = "The reason code does not belong to this operation",
+            },
+            new()
+            {
+                Code = InventoryErrorCodes.OperationConcurrencyConflict,
+                Status = StatusCodes.Status409Conflict,
+                Title = "The batch changed while the operation was being written; retry",
             },
         }.ToDictionary(entry => entry.Code);
 

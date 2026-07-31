@@ -74,8 +74,10 @@ app.MapProductNatureEndpoints();
 app.MapUnitEndpoints();
 app.MapCategoryEndpoints();
 app.MapPurchaseInvoiceEndpoints();
+app.MapPurchaseReturnEndpoints();
 app.MapInventoryEndpoints();
 app.MapSalesInvoiceEndpoints();
+app.MapSalesReturnEndpoints();
 
 await VetFlow.Infrastructure.DependencyInjection.ApplyMigrationsIfConfiguredAsync(app.Services);
 await VetFlow.Infrastructure.DependencyInjection.SeedDevelopmentDataIfConfiguredAsync(app.Services);

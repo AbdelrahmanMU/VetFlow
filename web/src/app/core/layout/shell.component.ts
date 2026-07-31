@@ -100,6 +100,39 @@ import { TranslationService } from '../i18n/translation.service';
               {{ t.t('nav.expiryMonitoring') }}
             </a>
           </li>
+          <li>
+            <a
+              class="nav-link"
+              routerLink="/inventory/history"
+              routerLinkActive="nav-link--active"
+              [routerLinkActiveOptions]="{ exact: true }"
+            >
+              <i class="pi pi-history nav-icon" aria-hidden="true"></i>
+              {{ t.t('nav.movementHistory') }}
+            </a>
+          </li>
+          <li>
+            <a
+              class="nav-link"
+              routerLink="/inventory/adjustments/new"
+              routerLinkActive="nav-link--active"
+              [routerLinkActiveOptions]="{ exact: true }"
+            >
+              <i class="pi pi-sliders-h nav-icon" aria-hidden="true"></i>
+              {{ t.t('nav.adjustment') }}
+            </a>
+          </li>
+          <li>
+            <a
+              class="nav-link"
+              routerLink="/inventory/write-offs/new"
+              routerLinkActive="nav-link--active"
+              [routerLinkActiveOptions]="{ exact: true }"
+            >
+              <i class="pi pi-trash nav-icon" aria-hidden="true"></i>
+              {{ t.t('nav.writeOff') }}
+            </a>
+          </li>
         </ul>
       </nav>
       <main class="content">

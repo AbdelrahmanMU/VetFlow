@@ -67,6 +67,13 @@
 - **Source(s):** `docs/shared/events.md` (Draft)
 - **Related Module:** Cross-module
 
+### BD-PRD-008 — No new capabilities before the Pilot (owner ruling, 2026-07-31)
+- **Status:** Decided (owner, 2026-07-31)
+- **Decision:** بعد اكتمال Epic 2، الاتجاه هو التحضير لجاهزية التجربة الأولى لا توسيع النطاق؛ **لا قدرة جديدة قبل التجربة الأولى إلا إذا كانت لازمة للتشغيل الناجح** — ويحكم بذلك المالك وحده.
+- **Reason:** حكم المالك: الأولوية لتشغيل ناجح للتجربة الأولى قبل أيّ توسّع.
+- **Source(s):** `docs/shared/roadmap/ROADMAP.md` (§Pre-Pilot direction) — القرار يعيش هناك؛ تعريف بدء التجربة في `ADR-0020`.
+- **Related Module:** Product-wide
+
 ## Catalog
 
 ### BD-CAT-001 — Products module renamed to Catalog
@@ -108,9 +115,9 @@
 
 ### BD-PUR-002 — Purchase returns exist
 - **Status:** Draft
-- **Decision:** إرجاع المشتريات إلى المورد حدث عمل معترف به (`PurchaseReturned`)؛ قواعده تُوثَّق لاحقًا.
-- **Reason:** وارد في القائمة الأولية لأحداث العمل.
-- **Source(s):** `docs/shared/events.md` (Draft)
+- **Decision:** إرجاع المشتريات إلى المورد حدث عمل معترف به (`PurchaseReturned`). **قواعده صارت موثَّقة (2026-07-31)** — لم تعد مؤجَّلة: مستند «مرتجع المشتريات» محسوم في `DEC-PUR-010` وموثَّق بـ `REQ-PUR-006` وما يتبعه.
+- **Reason:** وارد في القائمة الأولية لأحداث العمل؛ وحُسمت قواعده في Epic 2 · C5.
+- **Source(s):** `docs/shared/events.md` (Draft), `docs/modules/purchasing/decisions.md` (**DEC-PUR-010**), `docs/modules/purchasing/requirements.md`
 - **Related Module:** `purchasing`
 
 ## Sales
@@ -124,9 +131,9 @@
 
 ### BD-SAL-002 — Sale refunds exist
 - **Status:** Draft
-- **Decision:** استرجاع البيع حدث عمل معترف به (`SaleRefunded`)؛ قواعده تُوثَّق لاحقًا.
-- **Reason:** وارد في القائمة الأولية لأحداث العمل.
-- **Source(s):** `docs/shared/events.md` (Draft)
+- **Decision:** استرجاع البيع حدث عمل معترف به (`SaleRefunded`). **قواعد المرتجع صارت موثَّقة (2026-07-31)** — مستند «مرتجع المبيعات» محسوم في `DEC-SAL-010` وموثَّق بـ `REQ-SAL-004` وما يتبعه. **تنبيه: الموثَّق هو المرتجع (حركة مخزون فقط — DEC-INV-035)، أمّا الاسترجاع النقديّ فيبقى خارج النطاق** (DEC-SAL-001).
+- **Reason:** وارد في القائمة الأولية لأحداث العمل؛ وحُسمت قواعد المرتجع في Epic 2 · C6.
+- **Source(s):** `docs/shared/events.md` (Draft), `docs/modules/sales/decisions.md` (**DEC-SAL-010**), `docs/modules/sales/requirements.md`
 - **Related Module:** `sales`
 
 ### BD-SAL-003 — Customer data is minimal in MVP

@@ -69,4 +69,24 @@ public static class ValidationMessageKeys
     // gets its own key: it is a different constraint from the purchase unit (BR-SAL-004).
     public const string SaleDateRequired = "validation.saleDate.required";
     public const string LineSaleUnitRequired = "validation.line.saleUnit.required";
+
+    // Inventory adjustments (REQ-INV-010 / AC-INV-051..054 / BR-INV-061/066/067). The batch, the
+    // direction, a positive magnitude and a reason are each required in their own right, so a
+    // rejection names the field the form must highlight. The reason's *membership* of the
+    // adjustment list is a business rule, not a validation key — it raises VTF-INV-067.
+    public const string AdjustmentBatchRequired = "validation.adjustment.batch.required";
+    public const string AdjustmentDirectionRequired = "validation.adjustment.direction.required";
+    public const string AdjustmentQuantityPositive = "validation.adjustment.quantity.positive";
+    public const string AdjustmentReasonRequired = "validation.adjustment.reason.required";
+
+    // Returns (Epic 2 · C5/C6 — REQ-PUR-006, REQ-SAL-004). The original invoice, the return date,
+    // the original line and a positive quantity are each required in their own right, so a
+    // rejection names the field the form must highlight. Deliberately absent: a reason key —
+    // returns carry no reason at all (BR-INV-067) — and a batch key, because the batch is derived
+    // from the original line, never submitted (BR-PUR-017 / BR-SAL-017). The returnable *ceiling*
+    // is a business rule, not a validation key: it raises VTF-PUR-016.
+    public const string ReturnOriginalInvoiceRequired = "validation.return.originalInvoice.required";
+    public const string ReturnDateRequired = "validation.return.date.required";
+    public const string ReturnOriginalLineRequired = "validation.return.originalLine.required";
+    public const string ReturnQuantityPositive = "validation.return.quantity.positive";
 }

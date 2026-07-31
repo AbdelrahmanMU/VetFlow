@@ -25,6 +25,125 @@ public sealed class ConventionTests
     ];
 
     [Fact]
+    public void Movement_contract_enums_mirror_their_domain_enums_BR_INV_065()
+    {
+        // The history DTO mirrors the domain enums so the wire contract is not pinned to a domain
+        // type (the SalesInvoiceStatusDto precedent), and the handler casts between them. A cast is
+        // only safe while the two agree exactly — so the agreement is asserted, not assumed. Adding
+        // a movement type or source on one side alone fails here rather than silently mislabelling
+        // a row on the history screen.
+        AssertMirrors<Domain.Inventory.InventoryMovementType, Application.Inventory.Queries.InventoryHistory.InventoryMovementTypeDto>();
+        AssertMirrors<Domain.Inventory.InventoryMovementSource, Application.Inventory.Queries.InventoryHistory.InventoryMovementSourceDto>();
+    }
+
+    [Fact]
+    public void A_return_carries_no_reason_and_no_money_BR_INV_067_DEC_INV_035()
+    {
+        // Two rules that are easiest to break by adding a "harmless" field later, so they are
+        // asserted at the shape of the contract rather than trusted to review:
+        //   • returns carry no reason code at all (BR-INV-067) — «مستندها هو سياقها»;
+        //   • a return has no financial effect whatsoever (DEC-INV-035), so no amount belongs on
+        //     the document, its lines, or the wire contract the screen binds to.
+        // A reason or price field appearing on any of them fails here. Both returns are listed:
+        // the sales side is the more tempting of the two, because its original line does carry a
+        // unit price and a line total, and neither belongs on the return or its screen (ui.md).
+        string[] forbidden = ["reason", "price", "amount", "total", "cost", "money"];
+
+        Type[] returnTypes =
+        [
+            typeof(Domain.Purchasing.PurchaseReturn),
+            typeof(Domain.Purchasing.PurchaseReturnLine),
+            typeof(Application.Purchasing.Commands.CreatePurchaseReturn.CreatePurchaseReturnCommand),
+            typeof(Application.Purchasing.Commands.AddPurchaseReturnLine.AddPurchaseReturnLineCommand),
+            typeof(Application.Purchasing.Queries.PurchaseReturnableLines.PurchaseReturnableLineDto),
+            typeof(Domain.Sales.SalesReturn),
+            typeof(Domain.Sales.SalesReturnLine),
+            typeof(Application.Sales.Commands.CreateSalesReturn.CreateSalesReturnCommand),
+            typeof(Application.Sales.Commands.AddSalesReturnLine.AddSalesReturnLineCommand),
+            typeof(Application.Sales.Queries.SalesReturnableLines.SalesReturnableLineDto),
+        ];
+
+        var offenders = returnTypes
+            .SelectMany(type => type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(property => forbidden.Any(word =>
+                    property.Name.Contains(word, StringComparison.OrdinalIgnoreCase)))
+                .Select(property => $"{type.Name}.{property.Name}"))
+            .ToList();
+
+        offenders.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void A_purchase_return_line_never_accepts_a_batch_from_the_caller_BR_PUR_017()
+    {
+        // The destination batch is a fact of the original purchase line (DEC-PUR-008), never a
+        // choice — BR-PUR-017 and BR-INV-069 forbid selecting one, and FEFO plays no part in a
+        // return. The domain line records a BatchId; the *command* must not accept one, or a caller
+        // could push stock into the wrong batch. This asserts the asymmetry deliberately.
+        typeof(Domain.Purchasing.PurchaseReturnLine)
+            .GetProperty("BatchId").ShouldNotBeNull();
+
+        typeof(Application.Purchasing.Commands.AddPurchaseReturnLine.AddPurchaseReturnLineCommand)
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Any(property => property.Name.Contains("Batch", StringComparison.OrdinalIgnoreCase))
+            .ShouldBeFalse();
+    }
+
+    [Fact]
+    public void A_sales_return_holds_no_batch_reference_anywhere_BR_SAL_013_BR_SAL_017()
+    {
+        // The asymmetry with the purchase return above is deliberate and is asserted rather than
+        // left to review. Purchasing records a BatchId on its line because one purchase line creates
+        // exactly one batch (DEC-PUR-008). Sales records **none**: FEFO may have split the sale line
+        // across several batches (BR-SAL-017), and Sales may not store a batch reference at all
+        // (BR-SAL-013, DEC-SAL-006). The destinations are derived by Inventory at commit and live in
+        // the movement ledger — so a BatchId appearing on any of these three is a boundary breach,
+        // not a convenience.
+        Type[] salesReturnTypes =
+        [
+            typeof(Domain.Sales.SalesReturn),
+            typeof(Domain.Sales.SalesReturnLine),
+            typeof(Application.Sales.Commands.AddSalesReturnLine.AddSalesReturnLineCommand),
+        ];
+
+        var offenders = salesReturnTypes
+            .SelectMany(type => type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(property => property.Name.Contains("Batch", StringComparison.OrdinalIgnoreCase))
+                .Select(property => $"{type.Name}.{property.Name}"))
+            .ToList();
+
+        offenders.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void The_adjustment_contract_reasons_are_exactly_the_adjustment_subset_BR_INV_067()
+    {
+        // The API enum is deliberately narrower than the domain vocabulary: a caller cannot even
+        // express a write-off-only reason on an adjustment (DEC-INV-031). This asserts the two stay
+        // in step — adding a reason to one side alone fails here rather than opening a hole that
+        // only the runtime validator would catch.
+        var contract = Enum.GetValues<Application.Inventory.Commands.AdjustInventory.AdjustmentReason>()
+            .Select(reason => (Domain.Inventory.InventoryMovementReason)(int)reason)
+            .OrderBy(reason => reason)
+            .ToList();
+
+        contract.ShouldBe([.. Domain.Inventory.InventoryMovementReasons.ForAdjustment.OrderBy(reason => reason)]);
+    }
+
+    [Fact]
+    public void The_write_off_contract_reasons_are_exactly_the_write_off_subset_BR_INV_067()
+    {
+        // The mirror of the adjustment guard. «موجود» on a write-off would be a contradiction, and
+        // «منتهي الصلاحية» on an adjustment would merge two lists the owner ruled separately.
+        var contract = Enum.GetValues<Application.Inventory.Commands.WriteOffInventory.WriteOffReason>()
+            .Select(reason => (Domain.Inventory.InventoryMovementReason)(int)reason)
+            .OrderBy(reason => reason)
+            .ToList();
+
+        contract.ShouldBe([.. Domain.Inventory.InventoryMovementReasons.ForWriteOff.OrderBy(reason => reason)]);
+    }
+
+    [Fact]
     public void Query_handler_implementations_live_in_infrastructure_STD_BE_023()
     {
         var offenders = AllAssemblies
@@ -194,6 +313,19 @@ public sealed class ConventionTests
 
         var failing = result.FailingTypeNames ?? [];
         result.IsSuccessful.ShouldBeTrue(string.Join(", ", failing));
+    }
+
+    /// <summary>Asserts two enums carry the identical set of (name, value) pairs.</summary>
+    private static void AssertMirrors<TDomain, TContract>()
+        where TDomain : struct, Enum
+        where TContract : struct, Enum
+    {
+        static string[] Pairs<TEnum>() where TEnum : struct, Enum =>
+            [.. Enum.GetValues<TEnum>()
+                .Select(value => $"{value}={Convert.ToInt32(value, System.Globalization.CultureInfo.InvariantCulture)}")
+                .OrderBy(pair => pair, StringComparer.Ordinal)];
+
+        Pairs<TContract>().ShouldBe(Pairs<TDomain>());
     }
 
     private static bool ImplementsQueryHandler(Type type) =>

@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Shouldly;
+using VetFlow.Domain.Inventory;
 using VetFlow.Domain.Sales;
 
 namespace VetFlow.IntegrationTests;
@@ -21,6 +22,8 @@ public sealed class SalesInvoiceEndpointTests(ApiFixture fixture)
     [Fact]
     public async Task Creating_a_draft_assigns_a_sequential_number_and_a_zero_total_TS_SAL_001()
     {
+        var consumedBefore = await ConsumeMovementCountAsync();
+
         var first = await CreateInvoiceAsync();
         var second = await CreateInvoiceAsync();
 
@@ -34,8 +37,12 @@ public sealed class SalesInvoiceEndpointTests(ApiFixture fixture)
         details.GetProperty("total").GetProperty("currency").GetString().ShouldBe("EGP");
         details.GetProperty("createdAt").GetDateTimeOffset().ShouldNotBe(default);
 
-        // A draft touches no inventory at all (BR-SAL-004/010).
-        (await fixture.QueryDbAsync(db => db.InventoryConsumptions.CountAsync())).ShouldBe(0);
+        // A draft touches no inventory at all (BR-SAL-004/010): no stock was consumed, which the
+        // ledger now records (REQ-INV-009). Measured as the *change* across these two creations
+        // rather than as a global count of zero: the rule is about what creating a draft does, and
+        // asserting that the whole database holds no Consume row was only incidentally true while
+        // no test had ever committed a sale — the sales-return tests legitimately do (C6).
+        (await ConsumeMovementCountAsync()).ShouldBe(consumedBefore);
     }
 
     [Fact]
@@ -298,6 +305,10 @@ public sealed class SalesInvoiceEndpointTests(ApiFixture fixture)
         using var problem = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         return problem.RootElement.GetProperty("errorCode").GetString();
     }
+
+    private Task<int> ConsumeMovementCountAsync() =>
+        fixture.QueryDbAsync(db => db.InventoryMovements
+            .CountAsync(movement => movement.Type == InventoryMovementType.Consume));
 
     private static readonly Uri InvoicesUri = new("/api/v1/sales-invoices", UriKind.Relative);
 

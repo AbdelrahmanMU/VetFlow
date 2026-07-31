@@ -16,6 +16,23 @@ export const INVENTORY_ROUTES: Routes = [
       ),
   },
   {
+    path: 'adjustments/new',
+    loadComponent: () =>
+      import('./adjustments/adjustment-page.component').then((m) => m.AdjustmentPageComponent),
+  },
+  {
+    path: 'write-offs/new',
+    loadComponent: () =>
+      import('./write-offs/write-off-page.component').then((m) => m.WriteOffPageComponent),
+  },
+  {
+    path: 'history',
+    loadComponent: () =>
+      import('./movement-history/movement-history-page.component').then(
+        (m) => m.MovementHistoryPageComponent,
+      ),
+  },
+  {
     path: ':productId',
     loadComponent: () =>
       import('./batch-viewer/batch-viewer-page.component').then((m) => m.BatchViewerPageComponent),

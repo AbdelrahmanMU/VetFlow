@@ -3,7 +3,557 @@
 > The single mutable state file. Update it before ending any significant
 > session. Stable knowledge does NOT belong here — it goes in `docs/`.
 
-**Updated:** 2026-07-31 (**Sprint 7 «Sales MVP» — THE FRONTEND SLICE IS FINISHED AND THE WHOLE SPRINT NOW PASSES EVERY GATE FOR REAL: build 0/0 · format clean · Domain 126 · Architecture 92 · Integration 182 · no pending model changes · ESLint + Stylelint clean · frontend 177 · `ng build` exit 0 · live-browser verification done at 1440 and 390 with zero overflow and zero console errors.** Two gates failed first and were **corrected, never bypassed**: `dotnet format` (LF endings across every Sprint 7 file) and three 30-day-boundary integration tests that still derived «today» from UTC while the handlers use `IClinicClock` — the tests were wrong, the production code was right, and the clinic time-zone id now lives in exactly one place. **Nothing committed, nothing pushed. CORRECTION to the previous handoff: the tree is TWO change sets, not three — Sprint 6 can no longer be committed alone because its handlers and tests now depend on `IClinicClock`, a Sprint 7 type, so a Sprint-6-only commit would not compile.** **The owner's five answers arrived unfilled, so no action was taken on any of them — all five remain open.** **Sprint 7 module docs are still `Draft`, which blocks the push gate (ADR-0017 §7), not the commit gate.** Prior line: **IMPLEMENTATION STARTED under owner approval and STOPPED MID-SLICE at the owner's `/close-session`. BACKEND COMPLETE AND FULLY GREEN; FRONTEND INCOMPLETE AND THE `ng build` IS RED.** Docker became available this session, so **every backend gate ran for real**: build 0/0 · Domain **126** · Architecture **92** · Integration **182** (including the **18 Sprint 6 tests that had never been executed**) · `has-pending-model-changes` none. **Nothing committed, nothing pushed.** The five slices exist end-to-end on the server side — Sales aggregate + draft lines + commit, the Inventory consumption contract, FEFO allocation with expired-batch exclusion, sale-line-level traceability, and per-batch concurrency detection. The **Angular sales feature is half-written**: models, API services, stores and the create page exist; **the details page and its three components do not**, no i18n keys, no nav entry, no route registration — the frontend therefore **does not compile**. See the session section immediately below for the exact remaining file list. Prior line: **ALL OWNER DECISIONS APPLIED; NO BLOCKING DECISION REMAINS. Documentation-only, NO CODE, owner STOP.** Final four closed: customer = optional free text (DEC-SAL-002) · money rounding Sales-scoped, quantities never rounded (DEC-SAL-004) · clinic local date from **one configured system-wide time zone**, UTC/server/device forbidden (**BR-INV-060**) · **`BR-CAT-020` AMENDED — stock unit must be the smallest measurable unit, reversing its previous "not required to be smallest" clause (DEC-CAT-033)**. Flagged: existing product configs may violate the amended rule and need correction; BR-INV-059 still invalidates UTC date logic in three implemented handlers. Decision-log audit at close found **one gap and closed it: `DEC-INV-026`** now records the R4 expiry-boundary/Clinic-Local-Date ruling, which had existed only as business rules. **Sprint 7 documentation is IMPLEMENTATION READY; nothing committed; owner STOP in force.** Prior line: architecture review rulings applied (11). New: **BR-INV-058** (stock unit = smallest measurable unit, exact conversion, **no quantity rounding**) · **BR-INV-059** (**Clinic Local Date** is the business date basis, UTC prohibited; `ExpiryDate` = last saleable day — also governs BR-INV-013/022/033/036) · traceability raised to **Sale Line level** · concurrency scoped **per Batch** · R5/R7/R9/R10/R11 accepted and recorded. **Flagged: BR-INV-059 invalidates the UTC date logic in the already-implemented Projection/Batch Viewer/Expiry Monitoring handlers, and no clinic-timezone source is documented.** Prior line: **Sprint 7 owner review applied, documentation-only.** 8 rulings applied across 17 docs: expired stock excluded from FEFO (DEC-INV-021) · concurrency-conflict detection required, mechanism left to implementation (DEC-INV-023) · DEC-INV-024 removed → **REQ-INV-008** traceability · isolation boundary approved (DEC-SAL-006/DEC-INV-019) · price snapshot only (DEC-SAL-003) · IsSplittable honored (DEC-SAL-007) · open package out (DEC-SAL-008) · Inventory History still deferred, roadmap note only (DEC-INV-025). New: REQ-INV-008 · BR-INV-056/057 · AC-INV-045/046/047 · TS-INV-050..053 · AC-SAL-012 · TS-SAL-014. **6 owner decisions still open (DEC-SAL-002/004/005/009 · DEC-INV-020/022).** Prior: DoR drafted, 8 Sales docs from placeholders. Prior line: **Sprint 6 — DoR APPROVED + Batch Viewer & Expiry Monitoring IMPLEMENTED (code-complete), Inventory History DEFERRED.** Non-Docker gates green (build 0/0 · arch 76 · domain 101 · frontend 156 · format/ESLint/Stylelint clean · no schema change). **Docker unavailable → integration tests (18, written+compiling, UNRUN), live-browser & performance capture NOT done → commit gate NOT yet satisfiable.** **NOTHING committed, NOT pushed.** Prior: Batch Viewer DoR approved 2026-07-30; Slice 1 Projection COMMITTED, not pushed.)
+**Updated:** 2026-07-31 · sixth cycle — **EPIC 2 IS APPROVED AND COMMITTED.** The owner re-confirmed **Epic Commit Approval** (the fifth-cycle grant had been interrupted before any git command ran), approved Epic 2 in full — including the post-C5-approval implementation corrections and C6's architectural decisions (the preserved Sales/Inventory boundary; batch destinations derived from the recorded inventory trace) — accepted the raw-table deviation (**no `<vf-table>` refactor before or during the Pilot** → **TD-007**), re-accepted the performance results and TD-107, and set the next objective: **Pilot Readiness, not another implementation Epic** (scope recorded in `ROADMAP.md` §Pre-Pilot direction under `BD-PRD-008`). The full commit gate was re-run green this cycle, and **Epic 2 (C1–C6 + documentation) was committed as a single commit. NOT pushed.**
+
+**Where Epic 2 stands in one line (sixth cycle):** **COMPLETE, OWNER-APPROVED, COMMITTED — not pushed.** Commit gate re-run in this session before committing: build **0/0** · format **clean** · Domain **163** · Architecture **134** · Integration **223** · frontend **227** · ESLint/Stylelint **clean** · `ng build` **exit 0** (only the known TD-107 warning, 563.33 kB) · `has-pending-model-changes` **none**. **Push remains blocked twice over:** the push gate requires the Sprint 7 module docs to leave `Draft` (ADR-0017 §7), and **Git Credential Manager still blocks all pushes and only the owner can clear it** (`! git push origin main` — Epic 1's three commits are also still waiting on it).
+
+## Owner rulings (2026-07-31, sixth cycle) — routing audit
+
+| Owner ruling | Force | Recorded in |
+|---|---|---|
+| **Epic 2 approved** — including the post-C5 corrections (implementation defects, no approved rule changed) and C6's architecture (boundary preserved · trace-derived batch destinations, `IInventorySalesReturnWriter` not promoted to a DEC) | Status | **This file only** — the C1..C5 precedent: an approval is status, not a decision |
+| **Epic Commit Approval — re-confirmed and EXECUTED** | Status | This file; the commit itself is the artifact |
+| **Raw `<table>` accepted; no `<vf-table>` refactor required before or during the Pilot** | New force with a horizon | **`TECH_DEBT_LEDGER.md` → TD-007** (Accepted Debt — the TD-107-horizon precedent); closes the one open question from the fifth cycle |
+| Performance results accepted · TD-107 remains accepted debt for the Pilot | **Restatements** of fourth-cycle rulings already recorded | **Nothing new written** (the C1-cycle precedent: a restatement creates no artifact) |
+| **Next objective: Pilot Readiness, not implementation** — deployment validation · backup/restore verification · clean database setup · smoke testing · UAT preparation · final **Go/No-Go**; operational readiness, not functionality | **Sharpens `BD-PRD-008`** with an enumerated scope | **`ROADMAP.md` §Pre-Pilot direction** — the same home `BD-PRD-008` already indexes |
+| «Do not expand the implementation further» | Restatement of `BD-PRD-008` | Nothing new written |
+
+**Where work stood before this cycle (retained):** **Epic 1 «Sales MVP» is complete, fully verified and COMMITTED (3 commits) but NOT PUSHED — blocked on Git Credential Manager, which needs the owner.** **Epic 2 «Inventory Operations»: C1–C4 are implemented, green, browser- and performance-verified, and now ALL FOUR ARE OWNER-APPROVED (C1 on 2026-07-31, C2/C3/C4 in the fourth cycle) with the performance results ACCEPTED — still UNCOMMITTED per the owner's ruling that the Epic is the commit unit; C5/C6 «Returns» are NO LONGER BLOCKED — the owner ruled all four open return-document questions, the **Definition of Ready is COMPLETE for both**, and **C5 «Purchase Returns» is now IMPLEMENTED END-TO-END AND GREEN** (domain · migration · API · frontend · tests). **C6 «Sales Returns» has NOT started.**
+
+**Just completed this session (fourth):** context recovered (`/recover-context`) · **five owner directives recorded, each routed to where it belongs** — C2/C3/C4 approved and the performance results accepted (status → this file) · TD-107 confirmed as accepted debt **through the Pilot** (→ `TECH_DEBT_LEDGER.md`) · "no speculative optimization" recognized as a **restatement** and deliberately given no new artifact · the **pre-Pilot scope freeze** written to `ROADMAP.md` §Pre-Pilot direction and indexed as **`BD-PRD-008`** *(not filed straight into `DECISION_LOG.md`, whose own header says it only **indexes** decisions living elsewhere)* · **the C5/C6 blocker re-verified from the repository, narrowed from six questions to four, put to the owner, and ALL FOUR RULED** → **`DEC-PUR-010`** + **`DEC-SAL-010`**, with `BD-PUR-002`/`BD-SAL-002` corrected because their «قواعده تُوثَّق لاحقًا» had just become false · **the full Definition of Ready written for both C5 and C6** on the next free IDs (all contiguous) plus five stale scope markers amended in place · **C5 «Purchase Returns» then implemented END-TO-END AND GREEN** — domain, additive migration, `PRT-` numbering, four commands, five endpoints, the screen, and tests at four layers · **three defects found by gates and tests rather than inspection**, including a **real business bug** (returns moved 4 stock units instead of 480 — no unit conversion). *(Previous session, retained: **owner approved C1** and accepted its destructive migration on the explicit pre-pilot ground · **ADR-0020 written, then rewritten to the owner's own wording and ACCEPTED** — the trigger is the **existence of real data**, with an owner-only escape hatch — plus the **Pilot definition** and the **Pilot Transition Checklist**, propagated to `STD-BE-051` · `overview.md` · the ADR index · `inventory/decisions.md` · **Continuous Capability Mode then ran C2 → C3 → C4 without stopping**, each with its own documentation on the next free IDs, implementation, tests and a full gate sweep · **live-browser verification** of the three new screens at two widths, which **found and fixed a real defect** (raw ISO timestamps in the history) · **performance capture** against ADR-0014 §11 with **20 004 seeded movements**, every budget passed · **C5/C6 stopped at the Definition of Ready** with a six-question decision request · three documentation/UI contradictions corrected (**BR-INV-004**, `_INDEX.md`, four non-existent theme tokens).)*
+
+**In flight / next (sixth cycle):** **Nothing is in flight in the code — Epic 2 is committed.** The next objective, set by the owner this cycle, is **Pilot Readiness** (`BD-PRD-008` + its enumerated scope in `ROADMAP.md` §Pre-Pilot direction): deployment validation · backup/restore verification · clean database setup · smoke testing · UAT preparation · final **Go/No-Go** — **operational readiness, not additional functionality; no new implementation Epic.** Also pending, independent of that work: **the push** (blocked on the Sprint 7 module docs leaving `Draft` per ADR-0017 §7, and on Git Credential Manager, which only the owner can clear — `! git push origin main`). Carried forward and still untouched: the four Sprint 7 leftovers and the **GLOSSARY sync debt** (~26 terms; «المبيعات» is still not a GLOSSARY module name — and «مرتجع مبيعات» now joins the same debt).
+
+*(Superseded — the fourth cycle's plan, retained for the record: RESUME AT C6 «Sales Returns» — the last capability of Epic 2. Its Definition of Ready is already complete, so the next session writes code, not documentation.** **C1–C5 are all done, green and approved** (C5 approved by design ruling; **R2, R5 and R9 closed**). **Nothing is blocked and no question is open.** C6's one genuinely new piece of logic is **BR-SAL-017**: FEFO can split one sale line across several batches, so a partial sales return must go back to **the batches the goods actually left, in consumption order**, read from the sale-line-level trace (REQ-INV-008) — pinned by **AC-SAL-018 / TS-SAL-020** with a worked example. It reuses **`BatchOperationWriter.ApplyDocumentAsync`**, which C5 added and which already handles multi-line atomicity and reason-less document movements. **After C6, the Epic-level stop conditions:** live-browser verification of **every** new screen at 1440 and 390 (C2/C3/C4 are already done and pass; **C5's and C6's screens are not**) · performance capture · self review · the **Epic Owner Report** — and only then **Epic Commit Approval. Do not commit, do not push.** All of that is now done.)*
+
+**Open questions for the owner (sixth cycle): NONE.** The fifth cycle's one open question — the raw-`<table>` deviation on both return screens — **was ruled this cycle: accepted, no `<vf-table>` refactor required before or during the Pilot** → recorded as **TD-007** in `TECH_DEBT_LEDGER.md`.
+
+**Previously open, still true:** **NONE blocking. The return-document decision request is ANSWERED and C5/C6 are UNBLOCKED** (owner, 2026-07-31, fourth cycle) — the four rulings are recorded in the section below and in `DEC-PUR-010` / `DEC-SAL-010`. Previously raised and now all ruled (2026-07-31): **(a) hold every Epic 2 commit until the Epic is complete** — the commit unit remains the Epic, not the capability; **(b) ADR-0020 accepted**, with the owner's own rule wording (destructive migrations barred **once real pilot or production data exists**, unless an **explicit owner-approved migration plan** exists); **(c) the Pilot start is now defined** — "the first real operational clinic data intentionally entered for business use" — plus a five-item **Pilot Transition Checklist**. Carried forward: four Sprint 7 leftovers (BR-INV-058 at receiving · promoting a Sprint 7 mechanism to DEC/ADR · the BR-CAT-020 product-config audit · DEC-SAL-005/009 scope) and the standing **GLOSSARY sync debt** (~26 terms; «المبيعات» is still not a GLOSSARY module name).
+
+---
+
+## Session close (2026-07-31, fifth) — decision audit and repository state
+
+**Every ruling made this session is recorded, and nothing was invented.** Mechanically verified at close.
+
+| Ruling / change | Recorded in |
+|---|---|
+| **C5 approved** | **This file only** — an approval is status, not a decision, and gets no `DEC` ID (the C1–C4 precedent, applied a fifth time) |
+| «Continue through C6 and all Epic-level activities without stopping» | **No artifact** — a **restatement** of Continuous Capability Mode, already binding via `workflow.md` and ADR-0017 §11/§11a. The C1-cycle precedent: a restatement creates nothing. |
+| **Epic Commit Approval granted** | **This file only**, in the banner at the top — **granted and NOT executed** (the turn was interrupted before any git command). Status, not a decision. |
+| The two C6 derivations (receipt-derived conversion · resume-where-the-last-return-stopped · loud failure with no trace) | **`sales/business-rules.md` → notes on BR-SAL-016 and BR-SAL-017, with NO new IDs** — exactly the form C5 used for its conversion note on BR-PUR-016 |
+| The C6 implementation mechanisms (`IInventorySalesReturnWriter`, the derived batch distribution, the commit-time ceiling re-check) | **Implementation detail under the Sprint 7 precedent** — documented where they live, **not promoted to a `DEC` unasked** |
+| The four defects and their fixes | This file, §«Four real defects» — none changed a business rule |
+| The raw-`<table>` standards deviation | This file, **§Open questions** — reported, not resolved unasked |
+| Epic 2 completion | `docs/modules/_INDEX.md` updated in the same pass, not left to the end |
+
+**Mechanically validated at close:** `REQ-SAL 001..004` · `BR-SAL 001..018` · `AC-SAL 001..020` · `TS-SAL 001..023` · `DEC-SAL 001..010` — **all contiguous, no gaps, no duplicates, no Approved ID renumbered, and no new ID minted this session** (C6's IDs were all written in the fourth cycle; implementation added only clarifying notes).
+
+**No new ADR was created**, and the one candidate was considered and rejected on the record: `IInventorySalesReturnWriter` **applies** DEC-SAL-006's ruled boundary rather than changing it, and mirrors the existing `IInventoryConsumptionWriter` exactly. **Flagged in the Epic Owner Report so the owner can overrule.**
+
+**Repository state: 147 changed paths, NOTHING COMMITTED, nothing pushed.** The tree carries Epic 2 in full (C1–C6: domain, application, infrastructure, API, two migrations, frontend, tests) plus the Epic 2 documentation. **The two long-standing untracked files** (`docs/releases/…`, `docs/ui/product-editor-ux-architecture.md`) are untouched as always. **All verification servers were shut down at close** — including the stale `:4200`/`:4300` dev servers inherited from earlier sessions, which had already produced one bogus routing report in the C2/C3/C4 pass. Only the database container (`:5434`) is left running.
+
+## Epic 2 — **C6 «Sales Returns» DONE, and every Epic-level activity is complete** (2026-07-31, fifth cycle)
+
+**Owner directive this cycle:** C5 approved · continue immediately with C6 · do not stop between C5 and C6 · then run browser verification, performance capture, self review, final gates and the Epic Owner Report in sequence without stopping. **All of it was done, and no defined stop condition was hit.**
+
+### C6 — what was built
+
+**Domain:** `SalesReturn` + `SalesReturnLine` + `SalesReturnStatus` (**two members only, no `Cancelled`** — DEC-INV-037, with a domain test that fails if one is added) · six new error codes **VTF-SAL-015..020** with ar/en resources · additive-only migration **`20260731042452_SalesReturns`** (ADR-0020 satisfied: `Up` is `CreateTable`/`CreateIndex` plus the `SRT-` sequence) · the `SRT-` number **through the same `nextval` mechanism as `SAL-`/`PRT-`, not a second one** · four commands + the `returnable-lines` read · five endpoints · the `/sales/:id/returns/new` screen, store, api service, ~30 `salesReturn.*` keys, and the **«إرجاع من العميل»** entry shown **only on a Committed invoice** (BR-SAL-015).
+
+### The one structural difference from C5 — required by a rule, not chosen
+
+**`SalesReturnLine` carries no `BatchId` at all**, where `PurchaseReturnLine` carries one. Two independent reasons, both owner-ruled: FEFO may split **one sale line across several batches** (BR-SAL-017), so a single destination could not express the truth; and **Sales may not hold a batch reference at all** (BR-SAL-013 / DEC-SAL-006 — «المبيعات لا تقرأ الدفعات، ولا تختارها، ولا تخزّن مرجعًا لها»). Purchasing has no equivalent rule.
+
+**So C6 does not reach into Inventory the way C5 does.** A new public contract — **`IInventorySalesReturnWriter`**, the exact mirror of the existing `IInventoryConsumptionWriter` — lets Sales state intent («put sale line L's portion back») while **Inventory** reads the recorded consumption trace, derives the destination batches and applies the movement through the shared `BatchOperationWriter.ApplyDocumentAsync`. **An architecture test now fails if a batch reference ever appears on the sales-return aggregate, its line, or its command.** This is **implementation detail under the Sprint 7 precedent** — documented where it lives, **not promoted to a `DEC` unasked**.
+
+### Two derivations, both from recorded data — never from today's configuration
+
+Both follow **C5's receipt-derived-factor precedent** and are written into the docs as clarifying notes on **BR-SAL-016 / BR-SAL-017 with no new IDs** (the same choice C5 made for BR-PUR-016):
+
+1. **The unit conversion.** A return line's quantity is in the original **sale unit**; batches hold the smallest **stock unit**. The factor used is the one that **actually applied** — total consumed stock ÷ the line's sold quantity — not the catalog's factor today, which may have been edited since and would move the wrong amount. Multiply-before-divide, and a quantity that cannot be expressed exactly at the ledger's precision is **rejected, never rounded** (BR-INV-058).
+2. **The consumption order.** FEFO consumed in BR-INV-050's total order (expiry ↑ nulls last · receive date · batch id), and **every component of that key is immutable after receiving** — verified before relying on it — so re-deriving reproduces the order the goods actually left in. **The ledger's own `(OccurredAt, Id)` sort was deliberately not used:** a sale's movements share one timestamp and the tie-break id is random, so it would give a stable order that is *not* the consumption order.
+
+**A user-visible consequence, stated rather than buried:** a second partial return **resumes where the first stopped** and does not refill a batch already made whole (6 from A + 4 from B; return 8 ⇒ A +6, B +2; a later 2 ⇒ **B only**). Recorded in BR-SAL-017.
+
+### **Four real defects, each found by a gate or an Epic-level activity — none by casual inspection**
+
+1. **C5's two return validators were never registered** (`Application/DependencyInjection.cs`). Validators resolve through `GetServices`, so an unregistered one is **not a weaker validator — it is no validation at all**: a missing `purchaseInvoiceId` fell through to the handler's `!` and would surface as a **500 instead of the documented per-field 400** (AC-PUR-019). Found while wiring C6's equivalents. **All four are now registered and an integration test pins the 400.**
+2. **Both return screens were completely unstyled** — found by the live-browser pass, which C5 had never had. `.banner`, `.banner-success`, `.page`, `.vf-table` and the rest are defined **nowhere** in the codebase, and the UI Kit's `.vf-table` rules are `::ng-deep`-scoped inside `<vf-table>` so they never reach a raw table. The success banner computed to **`rgba(0,0,0,0)`** — no background at all. **This is exactly the C4 defect class** (tokens that do not exist fail silently while Stylelint passes). Both screens now carry a `styles` block using the **real** tokens; the success banner computes to `rgb(240,253,244)` on `rgb(21,128,61)` and the error banner to `rgb(254,242,242)` on `rgb(185,28,28)` — the same values the C4 pass confirmed.
+3. **The two-draft race reported the wrong reason.** BR-SAL-016 *predicts* this outcome — drafts do not reserve, so two drafts can each pass the add-line ceiling and the second must fail at commit. It did fail, and nothing was saved, but it failed with **VTF-SAL-020 «تعذّر تحديد الدفعات»** instead of the over-return error: the commit-time walk came up short and the defensive check fired first, misdiagnosing *"someone returned it first"* as *"the ledger is unreadable"*. **The ceiling is now re-checked at commit in the line's own sale unit** and the case raises **VTF-SAL-016**, which the screen already has the right Arabic message for. **TS-SAL-019 covers only the add-time ceiling, so this path had no test at all** — one was added.
+4. **A pre-existing integration test was order-dependent and would have failed in CI.** `TS_SAL_001` asserted that **zero `Consume` movements exist anywhere in the database** — true only while no test had ever committed a sale, which C6's tests must do. Rewritten to measure the *change* across the two draft creations, which is what the rule (a draft consumes nothing) actually says. **The rule is not weakened; the assertion now measures it instead of global state.**
+
+### Live-browser verification — **both return screens, 1440×900 and 390×844**
+
+Run against the full stack (db :5434 · **Release** API :5080 · a **fresh** `ng serve` on :4400 — the stale-server trap from the C2/C3/C4 pass was deliberately avoided) in headless Chrome over CDP. *(The Chrome extension is still not connected.)*
+
+- **`dir=rtl`, `lang=ar`, horizontal overflow exactly 0 px** on both screens at both widths · **zero console errors** throughout, including through form interaction and submission.
+- **The four documented columns in order** on each screen, and **none of the three forbidden controls**: no reason field, no batch picker, **no amount/total/currency anywhere** — verified by scanning the rendered text for «سبب», «دفعة» and any currency form.
+- **A real return was driven through the C6 form:** quantity → «تثبيت المرتجع» → success banner reading **«تمّ تثبيت المرتجع · رقم المرتجع: SRT-000001»**, with **on-hand moving 244 → 249** and the screen's remaining returnable falling **12 → 7 → 5** across two returns.
+- **The rejection was driven too:** returning 99 against a remainder of 7 produced the Arabic business message «الكمّية المرتجَعة تتجاوز المتبقّي القابل للإرجاع. لم يُحفظ أيّ تغيير.» **and nothing moved.**
+
+### Performance capture — **every ADR-0014 §11 budget passes with wide margin**
+
+Measured in **Release** against real PostgreSQL, 40 samples after warm-up, **with 5,002 committed returns seeded** so the numbers mean something (a p95 over three rows would be theatre).
+
+| Endpoint | p50 | **p95** | max | vs budget |
+|---|---|---|---|---|
+| `GET /sales-invoices/{id}/returnable-lines` (C6) | 15.8 | **19.3** | 23.2 | **PASS** (6 % of 300 ms) |
+| `GET /purchase-invoices/{id}/returnable-lines` (C5) | 15.8 | **21.1** | 21.9 | **PASS** |
+| `POST /sales-returns` (create draft) | 16.3 | **24.0** | 35.8 | **PASS** |
+| **`POST /sales-returns/{id}/commit`** (trace read + distribute + ledger) | 16.2 | **26.9** | 32.5 | **PASS** (9 %) |
+| `GET /inventory` (projection, unchanged) | 15.8 | **20.4** | 20.6 | **PASS** |
+| `GET /inventory/movements` (history, unchanged) | 15.9 | **19.1** | 25.3 | **PASS** |
+
+**Page load on the PRODUCTION bundle** (served statically with the API proxied — measuring `ng serve` would be meaningless), 1440×900: **FCP 88 ms cold / 76 ms warm** for `/sales/:id/returns/new` and **76 ms** for `/purchases/:id/returns/new` — **≈ 4 % of the 2 s budget**, zero overflow. **Nothing was optimized** (principle 6, and the owner's «no speculative optimization»).
+
+**TD-107 unchanged and not raised:** initial bundle **563.33 kB** against the 500 kB budget — a warning, up 6.42 kB for the C6 screen. Accepted debt through the Pilot by the owner's 2026-07-31 ruling.
+
+### After the capture — the data was cleaned and the invariants re-checked in SQL
+
+**The 5,000 synthetic return rows were deleted** (they were documents with no matching ledger rows, which is precisely the inconsistency C6 must never create). Then, after ~90 real return operations:
+
+- **`BR-INV-005` holds: Σ `remaining_quantity` = Σ `on_hand_quantity` = 251.000.**
+- **`BR-INV-062` holds: 47 committed returns → 47 ledger rows, and zero committed return lines without one.**
+- **Drafts moved nothing: 46 draft returns → 0 ledger rows** — BR-SAL-016's «المسودة لا تحجز» confirmed at the data level, not just in a test.
+
+**Dev-database side effects (pre-pilot, stated rather than buried):** this cycle created sales invoice `SAL-000003` and received purchase invoice `PUR-000015`, plus ~93 return documents (47 committed) from the browser and performance runs. All development data — **not** the "first real operational clinic data intentionally entered for business use" that ADR-0020 defines as the Pilot start. **Pre-existing and unrelated:** the dev seed products' Arabic names are still stored as `????` (an encoding fault from an earlier session); every string the new screens own renders correctly.
+
+### One standards deviation, reported rather than hidden
+
+Both return screens use a **raw `<table class="vf-table">`** instead of the UI Kit's `<vf-table>` component, which the Frontend Page mode's "UI Kit only" rule would prefer. **C5 introduced it and the owner approved C5; C6 mirrored it for consistency.** The UI Kit table is a scrollable PrimeNG datatable with state storage, built for data lists rather than for four rows each carrying an editable input — so converting is a real design change, not a cleanup. **It is left as it is, and flagged here for the owner's call rather than changed unasked.**
+
+## Session close (2026-07-31, fourth) — decision audit and repository state
+
+**Every ruling made this session is recorded in the repository, and nothing was invented.** Mechanically verified at close.
+
+| Ruling / change | Recorded in |
+|---|---|
+| C2/C3/C4 approved · performance results accepted | **This file only** — status, not decisions (the C1 precedent: an approval gets no `DEC` ID) |
+| **TD-107 accepted debt *through the Pilot*** | `TECH_DEBT_LEDGER.md` → TD-107, appended as a dated owner ruling; **not** a Pilot Readiness blocker |
+| "No speculative optimization" | **No artifact** — a restatement of principle 6 · ADR-0014 §11 · TD-107's own 2026-07-17 ruling |
+| **Pre-Pilot scope freeze / Pilot Readiness direction** | `docs/shared/roadmap/ROADMAP.md` §Pre-Pilot direction, indexed as **`BD-PRD-008`** |
+| **The four return-document rulings** (pattern · `PRT-`/`SRT-` · partial returns · one invoice per return) | **`DEC-PUR-010`** and **`DEC-SAL-010`** — one per module, because each document is owned by exactly one |
+| Returns' rules are no longer "documented later" | **`BD-PUR-002`** and **`BD-SAL-002`** updated — both said «قواعده تُوثَّق لاحقًا», which the rulings made false |
+| C5/C6 requirements, rules, criteria, scenarios | `purchasing/` **REQ-PUR-006 · BR-PUR-014..018 · AC-PUR-019..025 · TS-PUR-034..041** · `sales/` **REQ-SAL-004 · BR-SAL-014..018 · AC-SAL-014..020 · TS-SAL-016..023** |
+| Five stale scope markers that contradicted the code | Amended **in place with superseded text preserved** across `purchasing/` (4) and `sales/` (2) |
+
+**Mechanically validated at close:** `REQ-PUR 001..006` · `BR-PUR 001..018` · `AC-PUR 001..025` · `TS-PUR 001..041` · `DEC-PUR 001..010` · `REQ-SAL 001..004` · `BR-SAL 001..018` · `AC-SAL 001..020` · `TS-SAL 001..023` · `DEC-SAL 001..010` — **all contiguous, no gaps, no duplicates, no Approved ID renumbered.**
+
+**One ID withdrawn at close, deliberately:** a suffixed **`BR-PUR-016أ`** was written for the unit-conversion clarification and then **folded into BR-PUR-016 as a quoted note with no new ID** — `naming.md` does not sanction suffixed IDs, and this repository's own precedent avoided exactly that form (the C2 performance scenario became a constraint note rather than `TS-INV-036أ`).
+
+**Three rules in the C5/C6 docs are DERIVED, not owner-ruled, and each says so in its own text** — the Received/Committed precondition (BR-PUR-015 / BR-SAL-015), drafts-do-not-reserve (BR-PUR-016), and the batch-distribution order for split sales returns (BR-SAL-017). Full reasoning in the section below.
+
+**Implementation mechanisms introduced this session** — `BatchOperationWriter.ApplyDocumentAsync`, the derived (never stored) returnable ceiling, and the receipt-derived conversion factor — are **implementation detail under the Sprint 7 precedent**, documented where they live and **not promoted to a `DEC` unasked**. The conversion is the one exception: its effect is user-visible, so it is written into BR-PUR-016.
+
+**Repository state: 116 changed paths, NOTHING COMMITTED, nothing pushed** — per the owner's ruling that the Epic is the commit unit. The tree carries C1–C5 in full plus the Epic 2 documentation. **The two long-standing untracked files** (`docs/releases/…`, `docs/ui/product-editor-ux-architecture.md`) are untouched as always.
+
+## Owner rulings (2026-07-31, fourth cycle) — **C2/C3/C4 APPROVED · performance ACCEPTED · pre-Pilot scope frozen**
+
+**Five directives. Three carried new force and were recorded; two were restatements and deliberately created no artifact** — the C1-cycle precedent («no new artifact created for a restatement»).
+
+| Owner directive | Force | Recorded in |
+|---|---|---|
+| **C2, C3 and C4 are approved.** | Status, not a decision | **This file only** — the C1 precedent: an approval is status and gets no `DEC` ID. |
+| **The performance results are accepted.** | Status | **This file only.** The measurements themselves already live in the performance-capture section below. |
+| **TD-107 remains accepted technical debt for the Pilot.** | **Sharpens** the existing 2026-07-17 ruling by giving it a horizon | **`TECH_DEBT_LEDGER.md` → TD-107**, appended as a dated owner ruling. Explicitly **not** a Pilot Readiness blocker and **not** on ADR-0020's checklist. |
+| **No speculative optimization.** | **Restatement** — already binding | **Nothing new written.** Principle 6 (measure before optimizing) · ADR-0014 §11 (budgets are tripwires) · TD-107's own 2026-07-17 ruling already say it. It is now also echoed inside the TD-107 entry where it bites. |
+| **After Epic 2, prepare for Pilot Readiness, not scope expansion — no new capability before the Pilot unless required for successful operation.** | **New force** | **`docs/shared/roadmap/ROADMAP.md` → §Pre-Pilot direction** (the file whose stated job is «direction and sequence»), indexed as **`BD-PRD-008`** in `docs/business/DECISION_LOG.md`. |
+
+**Why the scope ruling did not go straight into `DECISION_LOG.md`:** that file's own header says it **indexes** decisions that live elsewhere and that «the source remains the single place the decision lives». Writing the ruling there with this conversation as its only source would have contradicted the header **and** sourced a decision to conversation history, which non-negotiable 5 forbids. So the decision lives in the roadmap and the log points at it. **No ADR was created:** this is reversible product direction, not architecture, and an ADR would manufacture a review checkpoint the owner did not ask for.
+
+**«Required for successful operation» is left to the owner, deliberately.** It is recorded as an owner-judged criterion, not an inferable test — an AI contributor may not decide that a capability qualifies. The ruling is also scoped so it cannot be misread as a freeze on *everything*: **bug fixes, recorded technical debt, and finishing Epic 2 itself (C5/C6) are not new capabilities.**
+
+**Not started, and that is deliberate:** **Pilot Readiness work has not begun** — the owner gated it on «once Epic 2 is complete», and Epic 2 is not complete. **The four Sprint 7 leftovers and the GLOSSARY sync debt were also left untouched**, because «focus exclusively on C5 and C6» rules them out for now. Both remain listed above so neither is lost.
+
+## Epic 2 — **the C5/C6 blocker is RESOLVED: re-verified, narrowed from six questions to four, and all four RULED** (2026-07-31, fourth cycle)
+
+**The owner's «focus exclusively on completing C5 and C6» was read as a priority, not a design ruling** — it answered none of the open questions, so the Definition of Ready still blocked and **no code was written on the strength of it**. The four questions were put to the owner instead, **and all four were answered in the same cycle.**
+
+### The owner's four rulings — C5/C6 are unblocked
+
+| # | Question | **Owner ruling (2026-07-31)** |
+|---|---|---|
+| 1 | May the invoice pattern be implemented from, or will the owner design it? | **Implement the invoice pattern.** Header + lines + `Draft → Committed`, mirroring `SalesInvoice`/`PurchaseInvoice`. Commit moves stock through the existing `BatchOperationWriter`. |
+| 2 | Number format | **`PRT-000001` (purchase return) · `SRT-000001` (sales return)** — the existing 3-letter + 6-digit shape, each visibly distinct from `PUR-`/`SAL-` so a return can never be misread as an invoice. |
+| 3 | Partial returns | **Allowed.** A return line carries its own quantity, capped at what remains returnable on the original line. |
+| 4 | One return document ↔ original invoices | **One original invoice per return.** Returning against three invoices means three return documents; the header therefore keeps a single counterparty and unambiguous provenance for BR-INV-069. |
+
+**Recorded in `purchasing/decisions.md` → `DEC-PUR-010` and `sales/decisions.md` → `DEC-SAL-010`** — one entry per module, because each return document is owned by exactly one module («if it can live in one module, it must»). **`BD-PUR-002` / `BD-SAL-002` were updated in the same pass**: both said «قواعده تُوثَّق لاحقًا», which these rulings make false.
+
+**Two questions were withdrawn before asking, as already ruled** — and C5/C6 implement the existing rules rather than re-asking: **Q5 (reason code) → BR-INV-067** («المرتجعات لا تحمل رمز سبب — مستندها هو سياقها») · **Q6 (cancellation) → DEC-INV-037** (correct by an opposing movement; no reversal path invented).
+
+**One case needed no new rule and got none:** returning more than a batch holds is **already covered by BR-INV-061**, which rejects below zero and never clamps.
+
+**The blocker was re-verified in the repository this cycle rather than taken from the handoff.** All **14** occurrences of «مرتجع» across `purchasing/` and `sales/` were read: every one is an explicit out-of-scope marker (`purchasing/` overview:36 · requirements:62 · ui:138 · workflow:34 — `sales/` overview:76,83 · requirements:55,70 · business-rules:51,156 · decisions:18,140,148 · workflow:58). **Zero `REQ-`/`BR-`/`AC-`/`TS-` IDs exist for either return document.**
+
+**Two records the previous handoff missed, and they make the gap sharper, not smaller:** **`BD-PUR-002` «Purchase returns exist»** and **`BD-SAL-002` «Sale refunds exist»** are in the global decision log — but both say **«قواعده تُوثَّق لاحقًا»** (its rules are documented later). So the *existence* of both returns is ruled and their *rules are explicitly deferred and still unwritten*. That is the blocker stated in the owner's own registry.
+
+**Everything else about C5/C6 was already ready.** The Inventory half is fully ruled (**BR-INV-069** provenance-bound and never FEFO · **DEC-INV-033/034/035**), the ledger already carries `PurchaseReturn`/`SalesReturn` in its closed type set, and **`BatchOperationWriter` (from C4) takes both capabilities almost unchanged.** Only the document design was missing, and it is now ruled.
+
+### Definition of Ready — **COMPLETE for both C5 and C6** (documentation written this cycle)
+
+**Every ID below is new, on the next free number, and mechanically validated as contiguous with no gaps and no renumbering** (`REQ-PUR` max 6 · `BR-PUR` 18 · `AC-PUR` 25 · `TS-PUR` 41 · `DEC-PUR` 10 · `REQ-SAL` 4 · `BR-SAL` 18 · `AC-SAL` 20 · `TS-SAL` 23 · `DEC-SAL` 10).
+
+| Capability | Documentation written |
+|---|---|
+| **C5 Purchase Returns** | **DEC-PUR-010** · **REQ-PUR-006** · **BR-PUR-014..018** · **AC-PUR-019..025** · **TS-PUR-034..041** · a `workflow.md` flow · a `ui.md` screen section (`/purchases/:id/returns/new`) |
+| **C6 Sales Returns** | **DEC-SAL-010** · **REQ-SAL-004** · **BR-SAL-014..018** · **AC-SAL-014..020** · **TS-SAL-016..023** · a `workflow.md` flow · a `ui.md` screen section (`/sales/:id/returns/new`) |
+
+**Five stale scope markers were corrected in place, superseded text preserved** — the *documentation-contradicting-code* class that is on the Never list: `purchasing/requirements.md` («لا مرتجعات شراء») · `purchasing/overview.md` · `purchasing/workflow.md` · `purchasing/ui.md` · **`sales/overview.md` and `sales/decisions.md`, whose «الحركتان المسموحتان حصرًا: استلام واستهلاك — لا ثالثة» was already falsified by C1–C4** and is now annotated rather than left to mislead. **`BD-PUR-002` / `BD-SAL-002` were updated too** — both said «قواعده تُوثَّق لاحقًا», which these rulings made false. `docs/modules/_INDEX.md` was updated in the same pass, not left to the end.
+
+**The C6 rule that is genuinely harder than C5, and is written down rather than left to implementation:** FEFO can split **one sale line across several batches**, so a partial sales return must go back to **the batches the goods actually left**, in **consumption order**, read from the sale-line-level trace (REQ-INV-008). **BR-SAL-017** states it and **AC-SAL-018 / TS-SAL-020** pin it with a worked example (6 from batch A + 4 from B, return 8 ⇒ A +6, B +2). C5 has no such case: one purchase line ⇒ exactly one batch (DEC-PUR-008).
+
+### **Three rules in these docs are DERIVED, not owner-ruled — and each says so in its own text**
+
+The owner's four rulings covered **the pattern, the numbering, partial returns, and one-invoice-per-return**. Writing the documentation required three further rules that the rulings did not reach. **None is presented as the owner's**; each carries an explicit provenance note where it lives, so no test later encodes a derivation as gospel:
+
+1. **«Only against a Received / Committed invoice»** (**BR-PUR-015 · BR-SAL-015**) — **derived, not invented**: a return decreases stock, and an invoice that never entered stock would collide with **BR-INV-061** anyway. The rule only makes the rejection early and legible instead of late and cryptic.
+2. **Draft returns do not reserve quantity** (**BR-PUR-016**, echoed in BR-SAL-016) — **a deliberate choice with a visible consequence, recorded rather than buried**: two drafts can both pass validation and the **second fails at commit**. Reservation is a whole mechanism nobody asked for, and reservations are themselves out of scope (DEC-SAL-001). **The alternative is the owner's call, not implementation's.**
+3. **The batch-distribution order for split sales returns** (**BR-SAL-017**) — the owner allowed partial returns but did not rule **how they distribute** when FEFO split a line. Consumption order is **the only ordering the recorded data supports** (REQ-INV-008). **Its side effect is stated openly:** because FEFO ordered consumption by expiry, a partial return flows back **into the nearest-expiry batch first** — which is where the goods physically came from. **If the owner wants a different order, that single rule changes.**
+
+### C5 «Purchase Returns» — **BACKEND COMPLETE AND GREEN** (2026-07-31)
+
+**Gates after the C5 backend:** build **0/0** · format **clean** (the CRLF trap hit again on the new test file and was **fixed by running the formatter**, plus an import-ordering fix — whitespace only) · **Domain 148** (+12) · **Architecture 121** (+2) · **Integration 211** (+10) · `has-pending-model-changes` **none**.
+
+**Built:** `PurchaseReturn` + `PurchaseReturnLine` + `PurchaseReturnStatus` (two members only — **no `Cancelled`**, and a domain test fails if one is added, because DEC-INV-037 gives no reversal path) · EF configurations · **additive-only migration `20260731032825_PurchaseReturns`** (ADR-0020 satisfied — `Up` contains only `CreateTable`/`CreateIndex`) · the `PRT-` sequence **through the same `nextval` mechanism as `PUR-`/`SAL-`, not a second one** · four commands + the `returnable-lines` read · five endpoints · five error codes with ar/en resources · four new validation keys with ar/en text.
+
+**`BatchOperationWriter` gained `ApplyDocumentAsync`** — it could not be reused unchanged after all. Two things a document needs that an inventory-native operation does not: **all lines commit in one `SaveChanges`** (the existing method saves per call, so a three-line return would have been three transactions and a failure on the third would leave the first two applied — BR-PUR-018 forbids that), and **no reason with a document source** (BR-INV-067 gives returns no reason; the movement instead carries `Source=Purchasing` and a `ReferenceId` to the return line, BR-INV-057).
+
+#### Three defects the tests caught — none by inspection
+
+1. **The architecture gate caught the missing ar/en text** for the four new validation keys before any test of mine did. Fixed by adding the resources, never by touching the gate.
+2. **A new return line was tracked as `Modified`, not `Added`**, so `SaveChanges` issued an UPDATE that matched no row → 500. The cause was a missing **`ValueGeneratedNever()`** on the line's id — and `SalesLineItemConfiguration` carries that exact line **with a comment describing this exact bug** («an insert, not a spurious update»). The precedent existed and I had not followed it. Found by capturing the tracked entity states, after two wrong guesses about LINQ translation.
+3. **The unit-conversion defect, and it was a real business bug.** Return quantities are in the **original line's purchase unit**; batches hold the **smallest stock unit** (BR-INV-058). Returning 4 cartons of a 10-carton line was removing **4** stock units instead of **480**. **The conversion factor is derived from the receipt itself** (batch received quantity ÷ original line quantity) **rather than from today's catalog factor** — if a product's factor were edited after receiving, the catalog would give a factor that never applied to this stock. Multiply-before-divide so no factor is ever materialized alone (no rounding — BR-INV-058). **Documented as a clarifying note inside BR-PUR-016 — no new ID**, because its effect is user-visible but it is not a new rule. *(A suffixed `BR-PUR-016أ` was written first and then withdrawn at close: `naming.md` does not sanction suffixed IDs, and this repository's own precedent avoided exactly that form — the C2 performance scenario was written as a constraint note rather than as `TS-INV-036أ`.)*
+
+### C5 «Purchase Returns» — **FRONTEND DONE. C5 IS COMPLETE AND GREEN.**
+
+**`/purchases/:id/returns/new`** — page · store · api service · models · ~30 `purchaseReturn.*` i18n keys · **7 store specs** · and the **«إرجاع إلى المورد»** entry on the invoice screen, shown **only for a Received invoice** (BR-PUR-015) so the action does not exist where it would only fail.
+
+**Three controls the rules forbid, and the screen does not have:** **no reason field** (BR-INV-067) · **no batch picker** (the destination is derived — BR-PUR-017 — so a picker would imply a choice nobody ruled) · **no amount or total anywhere** (DEC-INV-035 — a number with a currency beside it would suggest a credit that does not exist). An architecture test now **fails if a reason or money field appears** on any return type, and a second one fails if the add-line command ever accepts a batch.
+
+**Gates after C5 — all green:** build **0/0** · format **clean** · **Domain 148** · **Architecture 121** · **Integration 211** · **frontend 218** (+7) · ESLint **clean** · Stylelint **clean** · `ng build` **exit 0** · `has-pending-model-changes` **none**. **TD-107 unchanged and not raised** — initial bundle **556.91 kB** against the 500 kB budget, a warning, up 13.68 kB with this screen. Per the owner's 2026-07-31 ruling it stays accepted debt through the Pilot and **was not optimized**.
+
+**Still to do:** **C6 «Sales Returns»** (not started), then the Epic-level stop conditions — live-browser verification of every new screen at 1440/390 · performance capture · self review · the **Epic Owner Report** — then **Epic Commit Approval**. Live-browser and performance are Epic-level and are deliberately **not** run per capability.
+
+### Resume here — C5/C6 implementation (no documentation work remains)
+
+1. **C5 first, end-to-end and green before C6 is touched.** Domain `PurchaseReturn` + `PurchaseReturnLine` + status (mirror `PurchaseInvoice`) → EF configuration + **additive** migration (ADR-0020 satisfied; no destructive change) → `PRT-` numbering **through the existing `PUR-`/`SAL-` mechanism, not a second one** → application handlers (create draft · add/remove line · commit) → commit path onto the **existing `BatchOperationWriter`** → endpoints + error codes with ar/en resources → frontend screen/store/i18n/nav → tests at all four layers.
+2. **Then C6**, same order, with the batch-split distribution of BR-SAL-017 as its one genuinely new piece of logic.
+3. **Then the Epic-level stop conditions:** full gate sweep · live-browser verification of both new screens at 1440 and 390 · performance capture · self review · the **Epic Owner Report** — then **wait for Epic Commit Approval. Do not commit, do not push.**
+
+**Known implementation decisions already taken, so they are not re-litigated:** returned-so-far is **derived**, not stored (below) · over-return is **BR-INV-061**, no new rule · no reason code (BR-INV-067) · no cancellation path (DEC-INV-037).
+
+**One design point the rulings force but do not specify — decided deliberately, not discovered mid-handler:** partial returns (ruling 3) require knowing how much of an original line has already been returned. **Chosen: derive it** by summing committed return lines against that original line at validation time, rather than adding a stored `ReturnedQuantity` column. It cannot drift from the return documents that are its only source, and it needs no backfill. Recorded in the module docs; **implementation detail under the Sprint 7 precedent**, so it is not promoted to a `DEC` unasked. The over-return case needs no new rule: **BR-INV-061** already rejects below zero and never clamps.
+
+(**Sprint 7 «Sales MVP» — THE FRONTEND SLICE IS FINISHED AND THE WHOLE SPRINT NOW PASSES EVERY GATE FOR REAL: build 0/0 · format clean · Domain 126 · Architecture 92 · Integration 182 · no pending model changes · ESLint + Stylelint clean · frontend 177 · `ng build` exit 0 · live-browser verification done at 1440 and 390 with zero overflow and zero console errors.** Two gates failed first and were **corrected, never bypassed**: `dotnet format` (LF endings across every Sprint 7 file) and three 30-day-boundary integration tests that still derived «today» from UTC while the handlers use `IClinicClock` — the tests were wrong, the production code was right, and the clinic time-zone id now lives in exactly one place. **Nothing committed, nothing pushed. CORRECTION to the previous handoff: the tree is TWO change sets, not three — Sprint 6 can no longer be committed alone because its handlers and tests now depend on `IClinicClock`, a Sprint 7 type, so a Sprint-6-only commit would not compile.** **The owner's five answers arrived unfilled, so no action was taken on any of them — all five remain open.** **Sprint 7 module docs are still `Draft`, which blocks the push gate (ADR-0017 §7), not the commit gate.** Prior line: **IMPLEMENTATION STARTED under owner approval and STOPPED MID-SLICE at the owner's `/close-session`. BACKEND COMPLETE AND FULLY GREEN; FRONTEND INCOMPLETE AND THE `ng build` IS RED.** Docker became available this session, so **every backend gate ran for real**: build 0/0 · Domain **126** · Architecture **92** · Integration **182** (including the **18 Sprint 6 tests that had never been executed**) · `has-pending-model-changes` none. **Nothing committed, nothing pushed.** The five slices exist end-to-end on the server side — Sales aggregate + draft lines + commit, the Inventory consumption contract, FEFO allocation with expired-batch exclusion, sale-line-level traceability, and per-batch concurrency detection. The **Angular sales feature is half-written**: models, API services, stores and the create page exist; **the details page and its three components do not**, no i18n keys, no nav entry, no route registration — the frontend therefore **does not compile**. See the session section immediately below for the exact remaining file list. Prior line: **ALL OWNER DECISIONS APPLIED; NO BLOCKING DECISION REMAINS. Documentation-only, NO CODE, owner STOP.** Final four closed: customer = optional free text (DEC-SAL-002) · money rounding Sales-scoped, quantities never rounded (DEC-SAL-004) · clinic local date from **one configured system-wide time zone**, UTC/server/device forbidden (**BR-INV-060**) · **`BR-CAT-020` AMENDED — stock unit must be the smallest measurable unit, reversing its previous "not required to be smallest" clause (DEC-CAT-033)**. Flagged: existing product configs may violate the amended rule and need correction; BR-INV-059 still invalidates UTC date logic in three implemented handlers. Decision-log audit at close found **one gap and closed it: `DEC-INV-026`** now records the R4 expiry-boundary/Clinic-Local-Date ruling, which had existed only as business rules. **Sprint 7 documentation is IMPLEMENTATION READY; nothing committed; owner STOP in force.** Prior line: architecture review rulings applied (11). New: **BR-INV-058** (stock unit = smallest measurable unit, exact conversion, **no quantity rounding**) · **BR-INV-059** (**Clinic Local Date** is the business date basis, UTC prohibited; `ExpiryDate` = last saleable day — also governs BR-INV-013/022/033/036) · traceability raised to **Sale Line level** · concurrency scoped **per Batch** · R5/R7/R9/R10/R11 accepted and recorded. **Flagged: BR-INV-059 invalidates the UTC date logic in the already-implemented Projection/Batch Viewer/Expiry Monitoring handlers, and no clinic-timezone source is documented.** Prior line: **Sprint 7 owner review applied, documentation-only.** 8 rulings applied across 17 docs: expired stock excluded from FEFO (DEC-INV-021) · concurrency-conflict detection required, mechanism left to implementation (DEC-INV-023) · DEC-INV-024 removed → **REQ-INV-008** traceability · isolation boundary approved (DEC-SAL-006/DEC-INV-019) · price snapshot only (DEC-SAL-003) · IsSplittable honored (DEC-SAL-007) · open package out (DEC-SAL-008) · Inventory History still deferred, roadmap note only (DEC-INV-025). New: REQ-INV-008 · BR-INV-056/057 · AC-INV-045/046/047 · TS-INV-050..053 · AC-SAL-012 · TS-SAL-014. **6 owner decisions still open (DEC-SAL-002/004/005/009 · DEC-INV-020/022).** Prior: DoR drafted, 8 Sales docs from placeholders. Prior line: **Sprint 6 — DoR APPROVED + Batch Viewer & Expiry Monitoring IMPLEMENTED (code-complete), Inventory History DEFERRED.** Non-Docker gates green (build 0/0 · arch 76 · domain 101 · frontend 156 · format/ESLint/Stylelint clean · no schema change). **Docker unavailable → integration tests (18, written+compiling, UNRUN), live-browser & performance capture NOT done → commit gate NOT yet satisfiable.** **NOTHING committed, NOT pushed.** Prior: Batch Viewer DoR approved 2026-07-30; Slice 1 Projection COMMITTED, not pushed.)
+
+## Session close (2026-07-31, third) — decision audit and repository state
+
+**Decision audit at close — every ruling made this session is recorded in the repository, and nothing was invented.**
+
+| Ruling / change | Recorded in |
+|---|---|
+| Destructive-migration rule, **owner's wording** | **ADR-0020 `Accepted`** + `STD-BE-051` + `architecture/overview.md` + `decisions/_INDEX.md` |
+| **Pilot start definition** + **Pilot Transition Checklist** | ADR-0020 §When the Pilot begins / §Pilot Transition Checklist |
+| C1 approved · its destructive migration accepted pre-pilot | `inventory/decisions.md` — spent-exception entry, **not** a `DEC` |
+| Epic 2 commits held to the Epic | Already governed by ADR-0017 §11/§11a + `workflow.md`; **no new artifact created for a restatement** |
+| C2 reopened design (source → the ledger; types → BR-INV-065) | **BR-INV-039..045 amended in place**, supersession preserved · REQ-INV-005 · AC-INV-031..036 · TS-INV-031..036 |
+| C3 / C4 criteria and scenarios | **AC-INV-051..060** · **TS-INV-057..066** · `workflow.md` flow · two `ui.md` screen sections |
+| **BR-INV-004 scope lock corrected** | `write-kernel.md` — amended in place, superseded clause preserved, each dropped item's approving requirement named |
+
+**Mechanically validated at close:** `AC-INV 001..060` · `TS-INV 001..066` · `BR-INV 001..069` · `REQ-INV 001..011` — **all contiguous, no gaps, no duplicates, no Approved ID renumbered**. **`DEC-INV-039` is still free** and is referenced only as such; **no new `DEC` and no new ADR beyond ADR-0020 was created**, because every Epic 2 business decision was already the owner's. The **implementation mechanisms** introduced this session — `BatchOperationWriter`, parsing body enums as string tokens, `FormatService.dateTime()`, and putting the two operations on their own screens — are **implementation detail under the Sprint 7 precedent**, documented where they live and **not promoted to a `DEC` unasked**.
+
+**Repository state: 68 changed paths, NOTHING COMMITTED, nothing pushed** — per the owner's ruling that the Epic is the commit unit. The tree carries C1–C4 in full (domain, application, infrastructure, API, migration, frontend, tests) plus 12 documentation files and ADR-0020. **The two long-standing untracked files** (`docs/releases/…`, `docs/ui/product-editor-ux-architecture.md`) are untouched as always.
+
+## Epic 2 — **PERFORMANCE CAPTURE DONE — every ADR-0014 §11 budget passes with wide margin** (2026-07-31)
+
+**Measured against the documented budgets, not invented ones** (ADR-0014 §11: API p95 < 300 ms typical / < 500 ms worst case · first meaningful paint on desktop < 2 s). API in **Release**, real PostgreSQL.
+
+**The measurement was made meaningful before it was taken.** The dev database held **4 movements** — a p95 over four rows would have been theatre — so **20,000 synthetic movements were seeded first** (clones of the real ones, timestamps spread, `ANALYZE` run), giving **20,004 rows** for the history projection to work against.
+
+### API latency — 40 samples each after warm-up, sequential
+
+| Endpoint | p50 | **p95** | max | vs budget |
+|---|---|---|---|---|
+| `GET /inventory/movements` (page 1, 25) | 16.0 | **22.4** | 24.8 | **PASS** (7 % of 300 ms) |
+| `GET /inventory/movements` (page 1, 100) | 10.1 | **12.1** | 15.2 | **PASS** |
+| `GET /inventory/movements` (**deep page 799**, 25) | 48.0 | **52.5** | 54.9 | **PASS** |
+| `GET /inventory` (projection, unchanged) | 16.0 | **22.3** | 36.5 | **PASS** |
+| `GET /inventory/expiry` (unchanged) | 16.0 | **19.5** | 40.4 | **PASS** |
+| `POST /inventory/adjustments` | 16.8 | **23.5** | 34.6 | **PASS** |
+| `POST /inventory/write-offs` | 16.3 | **21.8** | 24.6 | **PASS** |
+
+**The one number worth remembering: the deep page costs ~2.3× page 1** (52.5 vs 22.4 ms). That is **offset pagination behaving exactly as expected** — the cost grows with the offset, not with the page size — and it is **inside budget by ~6×** at 20 k rows. **Recorded as the thing to watch, not optimized**: ADR-0014 §11 calls budgets tripwires, and principle 6 forbids speculative optimization. Keyset pagination is the known answer *if* a real breach ever appears.
+
+Two structural facts behind the numbers: the migration already carries **`ix_inventory_movements_occurred_at_id`**, matching the BR-INV-044 sort, and the **constant-query-count** property is enforced by an integration test, so the shape cannot regress silently.
+
+### Page load — the PRODUCTION bundle, not the dev server
+
+Measured on the real optimized build (served statically with the API proxied), cold **and** warm cache, 1440×900:
+
+| Screen | FCP cold | FCP warm | DCL | transferred |
+|---|---|---|---|---|
+| `/inventory/history` | **96 ms** | 68 ms | 70 ms | ~1.39 MB / 25 requests |
+| `/inventory/adjustments/new` | **64 ms** | 64 ms | 45 ms | ~1.07 MB / 27 requests |
+| `/inventory/write-offs/new` | **64 ms** | 64 ms | 45 ms | ~1.07 MB / 27 requests |
+
+**All ≈ 3 % of the 2 s budget.** *(Measuring `ng serve` instead would have been meaningless — the dev build is unminified and unoptimized.)*
+
+**One honesty note about the instrument:** the probe's `contentReadyAt` figure (~1 210 ms on every row) is **bounded below by its own fixed 1 200 ms wait** — it is an artifact, not a measurement, and is deliberately not quoted as a result. **FCP, LCP and DCL come from the browser's paint/navigation timing APIs and are real.**
+
+### After the capture — the database was cleaned and the invariant re-checked
+
+**19 901 synthetic rows were deleted** (159 movements remain — the real ones plus the balanced write traffic). The perf writes were designed to **net to zero** (alternating +1/−1), and they did.
+
+**`BR-INV-005` re-verified directly in SQL after all of it: `on_hand_quantity` = Σ `remaining_quantity` = 206.000 — the invariant holds.** That is the constraint C3 exists to protect, checked after ~160 real write operations rather than assumed.
+
+## Epic 2 — **LIVE-BROWSER VERIFICATION DONE for C2/C3/C4, and it caught a real defect** (2026-07-31)
+
+**Run for real** against the full stack — db :5434 · API :5080 · a **fresh** `ng serve` — in headless Chrome over CDP, at **1440×900 and 390×844**. *(The Chrome extension was not connected, so the prior sessions' CDP method was used.)*
+
+### The defect only this pass could find
+
+**The history's date column rendered a raw machine timestamp** — `2026-07-31T02:31:28.451294+00:00` — in every row. `FormatService.date()` parses `yyyy-MM-dd` by splitting on `-`; handed a full ISO instant its third part is `NaN`, so it **silently returns the input unchanged**. Every gate passed: types, lint, 207 unit tests, `ng build`. **Fixed** with a new `FormatService.dateTime()` (its own parse, ar-EG, date + time — matching `ui.md`'s «تاريخ/وقت»), used by both history components, **plus four regression specs** including one that pins the boundary: `date()` still refuses a timestamp, which is *why* the two methods are separate. It now renders **«31‏/07‏/2026، 05:31 ص»**.
+
+**A second, earlier trap worth recording:** the first run reported all three routes resolving to the *wrong* screens. That was **a stale `ng serve` already running on :4200 from an earlier session**, not a routing fault — proven by the new nav entries being absent from its DOM. **Re-run on a fresh server on :4300 and everything resolved correctly.** Had that been taken at face value it would have produced a bogus bug report; had it been dismissed, a real one might have been missed.
+
+### What was verified, on the real stack
+
+- **`dir=rtl`, `lang=ar`, and horizontal overflow exactly 0 px** on all three screens at both widths — **zero console errors anywhere**, including through form interaction and navigation.
+- **History:** the **seven frozen columns in the documented order** (BR-INV-041) and **no action column** — the only buttons are pagination · **newest-first** · **signed quantities** (`+30 علبة`, `‎-2 علبة`) · `PUR-000014` rendered as a link that, **when clicked, navigates to `/purchases/:id` and lands on the invoice whose header reads `PUR-000014`** (TS-INV-033) · and **«—» with no link** on the adjustment and write-off rows (BR-INV-043). Mobile shows the same seven fields as cards.
+- **Adjustments:** the reason picker offers **exactly the six adjustment reasons** — «منتهي الصلاحية» and «ملوَّث» are **absent from the UI**, so AC-INV-053 is verified at the surface, not only in the API. A **complete adjustment was driven through the form** (product → batch → direction → quantity → reason → save) and returned the success banner with its link to the history; **the new movement then appeared in the history**, taking it from 3 rows to 4.
+- **Write-off:** **three** pickers, not four — **there is no direction control** — and **exactly the five write-off reasons**, «موجود» absent.
+- **The theme-token fix is confirmed live:** the success banner computes to `rgb(240,253,244)` on `rgb(21,128,61)` — the real `--vf-success-soft`/`--vf-success`. Before the fix it would have been plain page background.
+- **The write paths were also exercised directly against the running API**, including the rejection: a write-off beyond the batch returned **409 `VTF-INV-061`** with the Arabic message, and nothing moved.
+
+**Dev-database side effects (pre-pilot, and stated rather than buried):** this pass created purchase invoice **`PUR-000014`** and received it (one new batch, +30), plus one **write-off (−2)** and **two adjustments (+4 and +5)**. All are development data — **not** the "first real operational clinic data intentionally entered for business use" that ADR-0020 defines as the Pilot start.
+
+**Pre-existing and unrelated, unchanged:** the dev seed products' Arabic names are stored as `????` (an encoding fault at seed time from an earlier session). Every string the new screens own renders correctly.
+
+**Frontend tests after the fix: 211** (was 207).
+
+**The performance capture is now also done** — see the section above it. TD-107 unchanged: initial bundle over the 500 kB budget (a warning, not raised).
+
+## Epic 2 — **three corrections made while blocked** (2026-07-31)
+
+Found by review after C4, not by a gate — all three are the *documentation-contradicting-code* class, which is on the Never list and would have failed the commit gate later:
+
+1. **`BR-INV-004` in `write-kernel.md` contradicted the code.** Its scope lock still excluded **التسويات · المرتجعات · تاريخ الحركة · FEFO · FIFO** by name — written when it was true, false as of Sprint 7 and C1–C4. **Amended in place with the superseded clause preserved and each item's approving requirement named** (BR-CAT-020 / BR-INV-042 precedent). **The rule's real intent is untouched and said so explicitly:** the receiving kernel still owns none of it — the new capabilities are separate Inventory paths over the same quantities, and **FIFO remains forbidden**. The same stale sentence in `InventoryBatch.cs`'s class comment was corrected too.
+2. **`docs/modules/_INDEX.md` was stale** — it still described C3 as in progress and C4–C6 as not started.
+3. **A real UI defect: four theme tokens that do not exist.** The banners and the ± quantity colouring used `--vf-danger-bg` / `--vf-success-bg` / `--vf-danger-text` / `--vf-success-text`, none of which are defined — the theme has `--vf-danger` / `--vf-danger-soft` / `--vf-success` / `--vf-success-soft`. **The fallbacks meant every error banner would have rendered as plain page background and the increase/decrease colour signal would have vanished, while Stylelint passed either way.** Corrected to the real tokens across all four components. **This is exactly the class of fault the live-browser pass exists to catch** — found here by inspection instead.
+
+**Re-verified after all three:** build **0/0** · format **clean** · `ng build` **exit 0** · frontend **207** · Stylelint **clean**.
+
+## Epic 2 — **C5/C6 BLOCKED at the Definition of Ready. This is a defined stop condition, not a pause.** (2026-07-31)
+
+**Continuous Capability Mode ran C1 → C4 without stopping, exactly as directed. It stops at C5 because a gate says so, and CCM never overrides a gate:** *"the Definition of Ready still gates every capability · nothing is invented to keep moving"* (`workflow.md`, ADR-0017 §11a). The playbook's Step 0 is explicit: **if the slice cannot name its `REQ-`/`BR-`/`AC-` IDs, STOP and ask the owner — never fill a gap by inventing.**
+
+### What is ruled, and what is missing
+
+**The Inventory half of both returns is fully ruled and needs nothing:** **BR-INV-069** (provenance-bound, capped at the originating batch, never FEFO) · **DEC-INV-033/034** · **DEC-INV-035** (stock-only) · and the ledger already carries `PurchaseReturn`/`SalesReturn` in its closed type set. **If returns were inventory-native operations, C5 and C6 would already be built** — the `BatchOperationWriter` C4 introduced would take them almost unchanged.
+
+**The blocker is the other half.** **DEC-INV-036 ruled that returns are *standalone documents*, and those documents belong to Purchasing and Sales — not Inventory.** In those two modules **no return documentation exists at all**: verified by search, **every** occurrence of «مرتجع» in `purchasing/` and `sales/` is an explicit **out-of-scope marker** (`purchasing/overview.md:36`, `purchasing/requirements.md:62`, `purchasing/workflow.md:34`, `sales/overview.md:76`, `sales/decisions.md:18/140/148`). **Zero `REQ-`/`BR-`/`AC-`/`TS-` IDs exist for either return**, and no `DEC` describes the document itself.
+
+**Why this is different from C3 and C4, which I did document myself:** there, the requirement and its business rules were already owner-approved (REQ-INV-010/011, BR-INV-061..069) and I derived only the **acceptance criteria and test scenarios** — restatements of approved rules, which is documentation work. For C5/C6 **the requirement and the rules themselves are absent**. Writing them would mean deciding, unasked: the document's **number format and sequence** (a business-visible identifier, like `PUR-`/`SAL-`), its **lifecycle** (draft → committed, and whether a return can be cancelled), whether a return may be **partial** or must return a whole line, whether it carries a **date, supplier/customer, reason, or note**, whether **one return may span several original invoices**, and what happens to a return against an invoice that was **already fully returned**. **Those are business decisions, and inventing them is the first non-negotiable in `CLAUDE.md`.**
+
+### The decision request — C5 and C6 need this before either can start
+
+1. **Confirm the pattern.** DEC-INV-036's rationale says returns reuse the sales/purchase invoice pattern. Is that a ruling I may implement from — **header + lines + draft→committed, mirroring `SalesInvoice`** — or do you want to design it?
+2. **Number format** for each document (the existing convention is `PUR-000001` / `SAL-000001`).
+3. **Partial returns:** may a return line return *part* of an original line's quantity, or only the whole line?
+4. **Scope of one return document:** one original invoice per return, or may a return span several?
+5. **Reason:** do returns carry a reason code? **BR-INV-067 says explicitly they do not** («المرتجعات لا تحمل رمز سبب — مستندها هو سياقها») — confirm that still holds now that the document exists.
+6. **Cancellation:** does a committed return have a reversal path, or is DEC-INV-037's "correct by an opposing movement" the only route?
+
+**Nothing else in Epic 2 is waiting on this.** C1–C4 are complete, green, and independent of the answer.
+
+## Epic 2 progress — **C4 «Write-Off» DONE and green — R9 CLOSED** (2026-07-31)
+
+**R9 is discharged, and there is a test that proves it:** expired stock has been visible, unsaleable (DEC-INV-021) and **stranded inside `OnHandQuantity` with no exit** since Sprint 7. `Expired_stock_can_finally_leave_inventory_TS_INV_066_R9` writes off an expired batch to zero and asserts the on-hand follows. **An expired batch is deliberately *not* excluded** — DEC-INV-021 keeps expired stock out of *selling*, not out of disposal, and refusing it here would have preserved the very debt R9 named.
+
+**Docs:** **AC-INV-057..060** · **TS-INV-063..066** · a `ui.md` screen section.
+
+**The duplication C3 would otherwise have caused was removed, not repeated.** `BatchOperationWriter` now owns everything the batch-moving operations share — the three things that move together (BR-INV-003/005/062), the reason-list check (BR-INV-067), and the concurrency outcome (BR-INV-068). **C3 was refactored onto it** and both handlers are now ~15 lines. Without it, BR-INV-005 and BR-INV-068 would have had four copies by C6, drifting one paste at a time.
+
+**Only two things differ from an adjustment, and the code says so:** a write-off has **no direction** (it only removes — offering one would invent a capability nobody ruled) and **its own reason list**. «تصحيح جرد» · «رصيد افتتاحيّ» · «موجود» are **not members of the write-off contract enum at all** — «موجود» on a write-off is a contradiction in terms — and **a second architecture test fails if the two lists ever drift**.
+
+**Frontend:** `/inventory/write-offs/new` — page · store (**reusing the adjustment screen's product and batch reads rather than copying them**) · ~15 `writeOff.*` keys · an «إهلاك مخزون» nav entry. The batch picker **shows expiry dates**, because that is usually *why* a batch is being written off, and expired batches stay selectable.
+
+**Tests added (+9):** 4 integration (both quantities moving together, the five-vs-three reason split, the whole-rejection with **no ledger row written**, and the R9 proof) · 1 architecture · 4 frontend store.
+
+**Gates after C4 — all green:** build **0/0** · format **clean** · Domain **136** · Architecture **105** · Integration **201** · frontend **207** · ESLint **clean** · Stylelint **clean** · `ng build` **exit 0** · `has-pending-model-changes` **none**. **No migration** — C4 writes only to existing tables.
+
+## Epic 2 progress — **C3 «Inventory Adjustments» DONE and green** (2026-07-31)
+
+**Closes R5** — «لا آلية مطابقة لثابت BR-INV-005» — by *being* the correction mechanism the debt named. **No drift detector and no reconciliation job was built**: that would be scope invention, and the accepted on-hand race stays accepted.
+
+**Documentation first, on the next free IDs:** **AC-INV-051..056** · **TS-INV-057..062** · a new **workflow.md** flow · a new **ui.md** screen section. `workflow.md` had said *«لا حركة ثالثة … ولا سجلّ حركات»* — true when written, false now; **corrected in place with the superseded text preserved**, since documentation contradicting code is on the Never list.
+
+**Two design points worth the owner's eye:**
+- **It is its own screen (`/inventory/adjustments/new`), not a button in the batch viewer.** **AC-INV-021 and BR-INV-018 forbid any quantity-editing action inside that viewer** — both approved and implemented. Putting the adjustment there would have broken an approved rule; the placement is an implementation choice that keeps it intact.
+- **The optional `ActorName` field is shown.** BR-INV-066/DEC-INV-030 allow it and C3 is the first screen where it becomes visible — **hiding it would have made the rule dead**. Free text, never validated, never required, with the owner's own examples as the placeholder.
+
+**Domain:** `InventoryBatch.ApplyDelta` — **the floor rule (BR-INV-061) lives on the aggregate, once**, so C4/C5/C6 inherit it instead of re-deriving it four times. It **rejects** as a `BusinessRuleException` (a real business outcome, not a programmer error) and **never clamps** (DEC-INV-032); `Quantity` — the historical received amount — never moves. `ProductOnHand.ApplyDelta` mirrors it so **BR-INV-005 holds through every Epic 2 operation**.
+
+**Three new error codes, each mapping to exactly one rule** (STD-BE-033): **`VTF-INV-061`** below zero · **`VTF-INV-067`** reason not in this operation's list · **`VTF-INV-068`** batch changed while saving. `VTF-INV-068` is deliberately **not** a reuse of `VTF-INV-056`, which BR-INV-056 scopes to sale consumption. All three have ar/en resources and catalog entries.
+
+**The two reason lists stay separate** (DEC-INV-031): the contract enum cannot even express «منتهي الصلاحية» or «ملوَّث», the domain subset checks it again, and **an architecture test fails if the two ever drift**.
+
+**A real defect was found and fixed by a test, not by inspection:** an unknown reason token on the wire produced a **500**, because binding a body enum makes an unknown value a deserialization failure. The request record now parses direction and reason **explicitly** into the canonical validation shape → **400** (STD-API-010/014/023, the `QueryStringParser` philosophy applied to a body). This is exactly the value a real user will get wrong.
+
+**Concurrency, stricter than ruled and said so:** the batch's existing `xmin` token means a **positive** adjustment also gets conflict detection, while BR-INV-068 only requires it for decreasing paths. Kept — it cannot cause a false failure the way a `ProductOnHand` token would — and recorded here rather than discovered later.
+
+**Frontend:** `/inventory/adjustments/new` — form page · store · api service (**reusing the batch-viewer read for the batch picker; no endpoint was added for the form**) · ~40 `adjustment.*` i18n keys · a «تسوية مخزون» nav entry. Depleted batches stay selectable on purpose: an adjustment can add back to a batch that reached zero.
+
+**Tests added (+19):** 7 domain (the floor rule, exact-to-zero, the rejection changing nothing, and the two reason lists) · 1 architecture (contract reasons ≡ the adjustment subset) · 6 integration (both directions with the invariant, the whole-rejection with no row written, the reason split, the optional actor, the single ledger row appearing in the history with «—», 404/400) · 6 frontend store.
+
+**Gates after C3 — all green:** build **0/0** · format **clean** · Domain **136** · Architecture **104** · Integration **197** · frontend **203** · ESLint **clean** · Stylelint **clean** · `ng build` **exit 0** · `has-pending-model-changes` **none**. **C3 adds no migration** — it writes only to existing tables.
+
+## Epic 2 progress — **C2 «Inventory Movement History» DONE and green** (2026-07-31)
+
+**Discharges R2.** Built on the **preserved IDs only** — REQ-INV-005 · BR-INV-039..045 · AC-INV-031..036 · TS-INV-031..036 — with **no new ID allocated** (DEC-INV-038 forbids it; a needed performance scenario was written as a constraint note under the existing IDs rather than as `TS-INV-036أ`).
+
+**The documentation redesign R2 required, and its exact limit.** Only two things changed in the preserved design: **the source** (a projection over the **ledger**, not over `InventoryBatch` — the design flaw R2 named: consumption mutates `RemainingQuantity` without creating a row) and **the type vocabulary** (BR-INV-065's closed set). **BR-INV-042 was amended in place with its superseded clause preserved** (the BR-CAT-020 precedent), never renumbered. Everything else is untouched: read-only · immutable · **the seven frozen fields** · newest-first with a stable tie-break · one projection query.
+
+**A limit worth seeing:** the ledger carries **reason, reason note and `ActorName`** (BR-INV-066/067) and **the history screen does not show them**. BR-INV-041 locks the field list with «حصرًا», and DEC-INV-038 reopened the design for *movement types*, not for new columns — so **no column was added and none was invented**. Surfacing them is the owner's call and has not been made. Recorded in the DTO, the rule and `ui.md` so it cannot be mistaken for an oversight.
+
+**Backend:** `InventoryHistoryQuery` + validator + `InventoryHistoryItemDto` (+ three contract enums mirroring the domain ones) · `InventoryHistoryQueryHandler` — **one projection SELECT plus the pagination COUNT**, with the purchase and sales documents resolved by **left** joins so an inventory-native movement with no document still appears · `GET /api/v1/inventory/movements`, **read-only: no POST/PUT/DELETE exists**.
+
+**Frontend:** `/inventory/history` — page · store · api service · type badge · table · mobile cards · skeleton · ~30 `history.*` i18n keys (the type and source terms are **the owner's own words**) · a «تاريخ الحركة» nav entry. The quantity is rendered **with its sign** (`+` / `−`), never as a bare magnitude.
+
+**Tests added (+20):** 7 integration (rows produced by the **real** receiving and sale-commit paths, not by inserting ledger rows), 1 architecture (**the contract enums must mirror the domain enums** — the handler casts between them, so the agreement is asserted rather than assumed), 12 frontend (6 store · 6 table, covering the seven-column lock, both reference links, and «—» with no link for a write-off).
+
+**Gates after C2 — all green:** build **0/0** · format **clean** (the LF-vs-CRLF trap caught again on the new files and **fixed by running the formatter**, whitespace only) · Domain **129** · Architecture **93** · Integration **191** · frontend **197** · ESLint **clean** · Stylelint **clean** · `ng build` **exit 0** · `has-pending-model-changes` **none**. C2 adds **no migration** — it is a pure read path.
+
+**Not done yet, deliberately:** **live-browser and performance verification are Epic-level stop conditions** and are run once over every new screen at the end of Epic 2, not per capability. TD-107 unchanged: initial bundle **543.23 kB** against the 500 kB budget — a **warning**, and it grew by 3.46 kB with this screen.
+
+## Owner rulings (2026-07-31, third cycle) — **ADR-0020 ACCEPTED · Pilot start defined · Epic 2 commits held to the Epic**
+
+Three rulings, all applied. **The session did not stop here** — the owner directed C2–C6 to continue immediately under Continuous Capability Mode.
+
+1. **Hold every Epic 2 commit until the Epic is complete.** The commit unit remains the **Epic**, not the capability. This confirms the reading taken at the previous close: C1 stays uncommitted, and **Epic Commit Approval remains at the end of Epic 2**.
+2. **ADR-0020 accepted — and its rule rewritten by the owner.** The draft was an **absolute** prohibition; the owner replaced it with: *"No destructive migrations are permitted once real pilot or production data exists, unless an explicit owner-approved migration plan has been approved."* **Two substantive changes, not wording:** the trigger is now **the existence of real data**, not a phase boundary; and there is now an **escape hatch that belongs solely to the owner** — approved before the migration ships, never inferred, and no AI contributor may approve or waive one. Propagated to `STD-BE-051`, `architecture/overview.md`, `decisions/_INDEX.md` (now `Accepted`) and the Inventory exception entry.
+3. **The Pilot start is defined:** *"The Pilot officially begins when the first real operational clinic data is intentionally entered for business use."* — the transition point between development and operational data. It is **an act, not a date**, and it **excludes seed and verification data** however realistic. A five-item **Pilot Transition Checklist** (all migrations applied · backup completed · seed data finalized · no destructive migrations pending · schema tagged) is recorded in ADR-0020, and executing it is what flips `STD-BE-051` from Manual to Semi-Automatic.
+
+**ADR-0020's two open items are closed by this cycle.** Nothing in it now rests on AI interpretation: the rule text, the Pilot definition and the checklist are the owner's own wording.
+
+## Session close (2026-07-31, second) — **C1 APPROVED · a new standing migration rule recorded · resume at C2**
+
+**No code was written this session.** Context was recovered, the owner ruled, and the rulings were recorded. **Nothing was committed and nothing was pushed.**
+
+### The owner's rulings, and where each one now lives
+
+| Ruling (owner, 2026-07-31) | Recorded in |
+|---|---|
+| **C1 «Movement Ledger» is approved.** | This section + the Epic 2 section below. Status, not a decision — no `DEC` ID. |
+| **C1's destructive migration is accepted, on the ground that we are still pre-pilot.** | `docs/modules/inventory/decisions.md` → **«استثناء مقبول لمرّة واحدة — ترحيل C1 الهدّام»**, written on the accepted-risk pattern, **not** as a `DEC`: it is a **spent** exception with no ongoing force. **`DEC-INV-039` was deliberately left free, not skipped.** |
+| **From the pilot onward, no destructive migration is permitted.** | **[ADR-0020](docs/architecture/decisions/ADR-0020-schema-evolution-safety.md)** — new, `Proposed`, indexed — plus **`STD-BE-051`** in `standards/backend-standards.md`, plus a **Schema-evolution-safety row in `architecture/overview.md`** (the "map of what is decided where" named by `PROJECT_CONTEXT.md`, which enumerates every ADR — leaving 0020 out would have made it wrong). Global engineering policy, so it does **not** live in a module. |
+| **Continuous Capability Mode continues; no approvals between C2–C6 unless a stop condition fires.** | Already binding — `.claude/rules/workflow.md` + ADR-0017 §11/§11a. Reaffirmed, nothing re-recorded. |
+| **Session capacity is an acceptable checkpoint; resume at C2.** | This section. |
+
+### Why the migration rule became an ADR rather than a `DEC` or a decision-log row
+
+`docs/business/DECISION_LOG.md` is a **business** log and this is engineering policy. ADR-0019's own Consequences delegate "migration specifics" to `standards/backend-standards.md`, so the **standards row is the required artifact** — but every row there is sourced to an ADR or a principle, and **no existing ADR owns this subject**: `STD-BE-041`/`042` govern *how* a migration ships and *where* it lives, and **neither constrains what a migration may destroy**. ADR-0019 was not amended, because its subject is the platform choice and provider independence, not data safety. Hence a new ADR — left **`Proposed`**, since a new ADR is a review checkpoint that needs the owner's explicit acceptance.
+
+### Two things recorded honestly rather than smoothed over
+
+1. **`STD-BE-051` is `Manual`, not automated — deliberately.** The rule is **dormant until the pilot begins**, so an architecture test or CI scan today would sit permanently inert or falsely red in the gate sweep. The obligation to automate it (a `DropTable`/`DropColumn`/narrowing-`AlterColumn` scan) is recorded in **ADR-0020 §Consequences** and in a note under the standards table, so it cannot be lost — **and so that nobody later "fixes" the Manual row by adding a gate that cannot pass.**
+2. **"The pilot" is a named phase but its start moment is undefined.** `inventory/decisions.md` records **pilot readiness (جاهزية التجربة الأولى)** as Epic 2's governing goal, and `docs/releases/pilot-p1-money-fix-report.md` refers to a "Pilot P1" — but **nowhere does the repository say when the pilot begins**. The trigger was **not invented**; it is an open question, and ADR-0020 applies the conservative reading in the meantime. **This does not block C2–C6: every one of them is additive** (C2 is a projection; C3–C6 add tables and columns), so no destructive migration is currently foreseen in the Epic.
+
+### C1 is approved but **NOT committed** — read this before assuming otherwise
+
+**"C1 is approved" was not read as commit authority, and nothing was committed.** Under Continuous Capability Mode the commit unit is the **Epic**, and **Epic Commit Approval** is a named artifact (ADR-0017 §11a) that the owner did not invoke. Committing on an inferred approval would be a governance breach; leaving the work on disk with this handoff describing it is fully recoverable. **The question is open at the top of this file and nothing waits on it — C2 proceeds either way.**
+
+**Uncommitted at close:** C1's code (`InventoryMovement` + 3 enums, its EF configuration, both writers, the `InventoryConsumption` deletions, migration `20260731003637_InventoryMovementLedger`, `InventoryMovementTests`, and the re-pointed Sprint 7 integration tests), the Epic 2 documentation, and this session's four doc changes (ADR-0020, the ADR index row, `STD-BE-051` + its note, the inventory exception entry).
+
+### Untracked files — checked, and they are the two long-standing intentional ones
+
+`docs/releases/pilot-p1-money-fix-report.md` and `docs/ui/product-editor-ux-architecture.md` are **untracked by intention, not by oversight** — this file has recorded them as "pre-existing untracked, intentionally not committed" in every handoff since Sprint 3 (e.g. lines ~439, ~984, ~1044). The editor doc is a forward-looking design reference **approved in principle but deliberately left `Status: Draft` and uncommitted** pending an owner ruling (recorded under the Edit Product slice); the money-fix report documents work whose code was committed while the report was not. **Neither was touched, deleted, or committed this session.** Nothing new here — noted only because a reader of `git status` will see them beside C1's genuinely new files and should not confuse the two.
+
+### Gates
+
+**No gate was run this session and none was owed** — no code changed. C1's gates stand as recorded below: build **0/0** · format **clean** · Domain **129** · Architecture **92** · Integration **184** · `has-pending-model-changes` **none**.
+
+### Resume here
+
+1. **C2 «Inventory Movement History»** — Definition of Ready first (ADR-0017), then implement as a **projection over the ledger**, reusing the **preserved IDs** (REQ-INV-005 · BR-INV-039..045 · AC-INV-031..036 · TS-INV-031..036 — DEC-INV-038 forbids allocating new ones) and **discharging R2**.
+2. Then **C3 → C4 → C5 → C6 without stopping for the owner**, verifying after each capability and fixing immediately. **A failing gate still stops everything.**
+3. Stop at the Epic's **seven conditions** and produce the **Epic Owner Report**. **Do not commit, do not push, until Epic Commit Approval.**
+
+## Epic 2 «Inventory Operations» — **ALL DECISIONS RULED · C1 APPROVED (owner, 2026-07-31), GREEN · C2–C6 NOT STARTED**
+
+**Owner ruled every decision on 2026-07-31 in one cycle** (AD-1..3, BD-1..9, plus a new rule BD-10). All rulings are recorded — **nothing invented**: `inventory/decisions.md` **DEC-INV-027..038**, `business-rules.md` **BR-INV-061..069**, `requirements.md` **REQ-INV-009/010/011** and **REQ-INV-005 reopened on its preserved ID** (DEC-INV-038).
+
+### C1 — Movement Ledger: **DONE, all backend gates green, APPROVED by the owner (2026-07-31) — but not committed**
+
+- **`InventoryMovement`** (+ `InventoryMovementType` / `Source` / `Reason`): append-only by construction — **no mutator exists**, which a domain test asserts by reflection. Signed quantities: `Increase`/`Decrease` factories take a magnitude so the sign convention lives in exactly one place (BR-INV-064).
+- **BR-INV-063 honoured literally:** the ledger **records history and never calculates inventory**. `InventoryBatch.RemainingQuantity` and `ProductOnHand.OnHandQuantity` remain authoritative; nothing derives a quantity from the ledger; no event sourcing.
+- **Both existing write paths now emit movements** in the same unit of work as the quantity change (BR-INV-062): `InventoryReceiptWriter` → Receive/Purchasing/+qty/ref=purchase line · `InventoryConsumptionWriter` → Consume/Sales/−qty/ref=**sale line**.
+- **`InventoryConsumption` absorbed** (DEC-INV-027): entity, EF configuration and table removed. **REQ-INV-008 sale-line traceability is unchanged** — it now rides on the Consume movement's reference. The Sprint 7 tests were re-pointed at the ledger through a small `Trace` projection, so the assertions still read in business terms.
+- **Migration `20260731003637_InventoryMovementLedger`**: creates `inventory_movements`, drops `inventory_consumptions`.
+- **Reason vocabulary is the owner's list verbatim**, with a test that fails if a term is added or dropped.
+
+**Gates after C1 — all green:** build **0/0** · format **clean** · **Domain 129** · **Architecture 92** · **Integration 184** · `has-pending-model-changes` **none**. (Domain moved 126 → 129: the 8 absorbed-entity tests were replaced by 11 ledger tests.)
+
+**Data note:** the migration **drops `inventory_consumptions`**, discarding its rows. It is a **destructive migration** and was called out rather than buried — **and the owner then accepted it explicitly on pre-pilot grounds (2026-07-31)**, while creating the standing rule that **no destructive migration is permitted once the pilot begins** (**ADR-0020** · **`STD-BE-051`**). The acceptance is recorded as a **spent, one-off exception** in `docs/modules/inventory/decisions.md`.
+
+### C2–C6 — not started
+
+C2 Inventory History · C3 Adjustments · C4 Write-Off · C5 Purchase Returns · C6 Sales Returns. **No code, no docs beyond the rules already recorded above.** The ledger they all depend on now exists, so each is additive from here.
+
+### Discovery record (the review the owner approved)
+
+**Scope:** Inventory Adjustments · Purchase Returns · Sales Returns · Write-Off · Inventory Movement History.
+
+**State: no approved documentation exists for any of the five.** Zero `REQ-`/`BR-`/`AC-`/`TS-`/`DEC-` IDs. Every occurrence in the repository is an explicit out-of-scope marker (`write-kernel.md:20` BR-INV-004 excludes تسويات/مرتجعات/تاريخ حركة by name; `purchasing/overview.md:36` defers returns and inventory adjustment to "شرائحها"). **No business rule was invented in this discovery.** What follows is a decision request.
+
+### Reused, not re-asked (the discovery's main output)
+
+| Existing decision | How Epic 2 reuses it |
+|---|---|
+| **DEC-INV-019 / DEC-SAL-006** | The boundary generalizes verbatim: **Purchasing/Sales express return intent · Inventory executes the stock movement · Inventory owns batch selection.** No new architectural boundary is needed for returns. |
+| **DEC-INV-001 / DEC-PUR-008** | Return/adjust/write-off writers mirror `IInventoryReceiptWriter` and `IInventoryConsumptionWriter`. No new pattern. |
+| **`InventoryConsumption(saleLineId, batchId, quantity)`** | **The single most valuable asset.** Already written at **sale-line** level *explicitly so "future Returns can identify which line consumed which batch"* (REQ-INV-008). **Sales Returns can restore stock to its originating batch without inventing anything.** |
+| **`InventoryBatch.PurchaseLineId`** | The identical provenance path for **Purchase Returns**. |
+| **DEC-INV-011/012** | Batch status stays derived Active/Depleted; **Epic 2 adds no batch state**, and «returned»/«written-off» must not become states. |
+| **DEC-INV-021 + R9** | Write-Off is the capability R9 named as the resolution for stranded expired stock. |
+| **DEC-INV-023** | Concurrency-conflict detection, already ruled mandatory for consumption. |
+| **DEC-INV-026 / BR-INV-059/060** | Clinic Local Date governs every Epic 2 date. Settled. |
+| **BR-INV-058** | Exact conversion, no quantity rounding — applies to a return entered in a sale/purchase unit. Settled. |
+| **BR-INV-005 + R5** | R5 deferred reconciliation **explicitly to "future Inventory Adjustments"**. That is this Epic. |
+| **BR-PUR-011 / BR-SAL-011** | Received and committed invoices are **immutable**, which forces returns to be **new documents** rather than mutations of the original. |
+| **DEC-INV-015/016 · REQ-INV-005 · BR-INV-039..045 · AC-INV-031..036 · TS-INV-031..036** | The **preserved, deferred History design**. DEC-INV-025 ruled that reopening happens **on these same IDs**, and R2 ruled the design **must be redesigned first** because a projection over `InventoryBatch` cannot represent Consume. |
+
+### The decisions genuinely missing — 9, grouped, 7 with a recommendation
+
+**Architectural (ADR-level):**
+- **AD-1 — Unified Inventory Movement Ledger.** *Recommended: adopt.* Append-only row per stock change (product · batch · type · signed quantity in stock unit · reference · source module · occurred-at). Consequences: `InventoryConsumption` is **absorbed** (it is already a single-purpose partial ledger); **History becomes a projection over the ledger**, which *is* the R2-mandated redesign; BR-INV-005 becomes auditable. **Without it, adjustments and write-offs have nowhere to be recorded and History cannot be rebuilt.** Everything else in the Epic depends on this.
+- **AD-2 — Ledger's relationship to the quantities.** *Recommended: record alongside*, leaving `RemainingQuantity`/`OnHandQuantity` authoritative (BR-INV-001/002 unchanged). The alternative — deriving quantities from the ledger (event sourcing) — contradicts DEC-INV-002 and BR-INV-002 and is a far larger change.
+- **AD-3 — Concurrency scope.** DEC-INV-023 mandated conflict detection for **consumption only**; DEC-INV-002 deliberately left receiving optimistic. Epic 2 adds four writers. *Recommended: extend DEC-INV-023 to every stock-**decreasing** path (write-off, purchase return, negative adjustment); leave receiving unchanged.* This widens a ruled scope, so it needs the owner.
+
+**Business:**
+- **BD-1 — Actor attribution. BLOCKING, no recommendation possible without your call.** **There is no authentication, user, or actor concept anywhere in the codebase**, and Audit Log is `Not documented` (DEC-CAT-028). Adjustments and write-offs conventionally record *who*. *Recommended: record no actor in Epic 2 and document it as a known, named gap* — the free-text-supplier precedent (BR-PUR-001): do not invent a module. Alternatives: free-text "performed by" (invented data), or block Epic 2 behind an Auth epic.
+- **BD-2 — Reason vocabulary for Adjustments **and** Write-Off (one decision, both capabilities). NO RECOMMENDATION — this is business vocabulary I must not invent.** Fixed enumerated Arabic list, or free text? *Recommended shape only:* a short fixed list **plus** an optional free-text note. **You must supply the terms.**
+- **BD-3 — Adjustment semantics.** *Recommended: batch-level, both directions, never below zero, rejected rather than clamped.* Batch-level is near-forced: BR-INV-005 requires batch and on-hand to move together, and a product-level adjustment cannot say which batch moved. Rejection over clamping mirrors BR-INV-052 and BR-INV-058.
+- **BD-4 — Return targeting.** *Recommended: both returns are provenance-bound, never FEFO.* Purchase Return decrements **the originating batch** (`PurchaseLineId`), capped at its remaining quantity. Sales Return restores to **the originating batch** (`InventoryConsumption`), capped at what that sale line consumed. FEFO is a *sales allocation* rule and must not leak into returns.
+- **BD-5 — Sales Return condition handling.** *Recommended: always restock to origin; the existing expiry rules then apply naturally* (a returned-into-expired batch simply stays unsaleable via DEC-INV-021, with no new concept). Alternative: return-and-write-off in one step, which couples two capabilities.
+- **BD-6 — Financial scope. The biggest scope-limiter.** Suppliers, Customers, Cash Management and Expenses are **all `Not documented`**. *Recommended: Epic 2 is **stock-only*** — no credit notes, no refunds, no supplier/customer balances, no cost re-recognition — deferred explicitly in the same shape as DEC-SAL-003 deferred price override.
+- **BD-7 — Document model.** *Recommended: split.* Purchase/Sales Returns are **standalone documents** with their own numbers and a draft→committed lifecycle (reusing the entire Sales invoice pattern, forced by BR-PUR-011/BR-SAL-011 immutability); Adjustments and Write-Off are **inventory-native operations with no counterparty document**. DEC-SAL-009 («ملغاة») stays closed and out.
+- **BD-8 — Reversal policy.** *Recommended: append-only.* No movement is edited or deleted; a mistake is corrected by a new opposing movement. Natural consequence of AD-1.
+- **BD-9 — History screen scope.** *Recommended: reopen REQ-INV-005 on the preserved IDs*, reusing the BR-INV-039/041/044/045 shape (read-only · immutable · single projection query · date-desc with a stable tiebreak), **updated for real movement types** — which discharges R2.
+
+### Dependencies · Risks
+
+**Dependencies:** no auth/actor (BD-1) · Audit Log undocumented · Suppliers/Customers/Cash/Expenses undocumented (BD-6) · GLOSSARY sync still deferred and «المبيعات» still absent, with Epic 2 adding ~15 more terms.
+
+**Risks:** (1) absorbing `InventoryConsumption` into the ledger is a **data migration over committed production-shaped data**; (2) implementing BR-INV-005 reconciliation may **surface pre-existing drift**, including the accepted R5 on-hand race; (3) Epic 2 spans **three modules and five capabilities — the largest epic so far**, exceeding the Medium context budget, so it must be split per capability; (4) returns reopen concurrency (AD-3); (5) Write-Off finally clears R9.
+
+### Proposed Epic structure (6 capabilities, dependency-ordered)
+
+**C1 Movement Ledger foundation** (AD-1/AD-2; absorbs `InventoryConsumption`) → **C2 Inventory Movement History** (projection over C1; discharges R2 on preserved IDs) → **C3 Inventory Adjustments** (+ BR-INV-005 reconciliation, closing R5) → **C4 Write-Off** (closes R9) → **C5 Purchase Returns** → **C6 Sales Returns**. Rationale: the ledger must exist before anything can be recorded; adjustments are the simplest write path and validate the ledger; returns are cross-module and go last.
+
+**Status: awaiting owner ruling on AD-1..3 and BD-1..9. No documentation written, no IDs allocated, no code.** Next free IDs when approved: **REQ-INV-009** · **BR-INV-061** · **AC-INV-051** · **TS-INV-057** · **DEC-INV-027** (REQ-INV-005 / BR-INV-039..045 / AC-INV-031..036 / TS-INV-031..036 are **reserved for History** and must be reused, not reallocated).
 
 ## Governance ruling (2026-07-31) — **Continuous Capability Mode** adopted by the owner
 

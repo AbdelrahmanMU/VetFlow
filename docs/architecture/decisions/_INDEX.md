@@ -24,5 +24,6 @@
 | [ADR-0017](ADR-0017-ai-execution-model.md) | AI execution model — gates, context, playbooks | Proposed | 2026-07-13 |
 | [ADR-0018](ADR-0018-business-failure-strategy.md) | Business failure strategy — exceptions + error catalog | Proposed | 2026-07-13 |
 | [ADR-0019](ADR-0019-database-platform.md) | Database platform — PostgreSQL | Proposed | 2026-07-13 |
+| [ADR-0020](ADR-0020-schema-evolution-safety.md) | Schema evolution safety — no destructive migrations once real data exists; Pilot start defined | Accepted | 2026-07-31 |
 
 Related studies (not decisions): [Database platform study — PostgreSQL vs SQL Server](../database-platform-study.md) (Draft; ruled by ADR-0019).

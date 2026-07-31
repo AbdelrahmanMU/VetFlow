@@ -50,4 +50,19 @@ public sealed class ProductOnHand
 
         OnHandQuantity -= quantity;
     }
+
+    /// <summary>
+    /// Apply the same signed change a batch just took, so the BR-INV-005 invariant
+    /// (on-hand = Σ remaining) survives every Epic 2 operation. The batch is adjusted <b>first</b>
+    /// and enforces the floor rule (BR-INV-061, <see cref="InventoryBatch.ApplyDelta"/>); by the
+    /// time this runs the change is already known to be legal, so a negative result here would be
+    /// a programmer error — hence an argument exception, not a business failure.
+    /// </summary>
+    public void ApplyDelta(decimal delta)
+    {
+        ArgumentOutOfRangeException.ThrowIfEqual(delta, 0m);
+        ArgumentOutOfRangeException.ThrowIfLessThan(OnHandQuantity + delta, 0m);
+
+        OnHandQuantity += delta;
+    }
 }

@@ -13,6 +13,12 @@ export const PURCHASING_ROUTES: Routes = [
       import('./purchase-create/purchase-create-page.component').then((m) => m.PurchaseCreatePageComponent),
   },
   {
+    // Registered before ':id' so the more specific route wins (REQ-PUR-006, purchasing/ui.md).
+    path: ':id/returns/new',
+    loadComponent: () =>
+      import('./purchase-return/purchase-return-page.component').then((m) => m.PurchaseReturnPageComponent),
+  },
+  {
     path: ':id',
     loadComponent: () =>
       import('./purchase-details/purchase-details-page.component').then((m) => m.PurchaseDetailsPageComponent),

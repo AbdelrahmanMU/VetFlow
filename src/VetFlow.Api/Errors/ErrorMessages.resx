@@ -156,6 +156,21 @@
   <data name="VTF-PUR-007" xml:space="preserve">
     <value>هذا المنتج يتطلّب تاريخ صلاحية عند الاستلام.</value>
   </data>
+  <data name="VTF-PUR-015" xml:space="preserve">
+    <value>لا يمكن إنشاء مرتجع إلّا مقابل فاتورة شراء مستلَمة.</value>
+  </data>
+  <data name="VTF-PUR-016" xml:space="preserve">
+    <value>الكمّية المرتجَعة تتجاوز المتبقّي القابل للإرجاع من هذا البند.</value>
+  </data>
+  <data name="VTF-PUR-017" xml:space="preserve">
+    <value>بند المرتجع غير صالح. يجب أن تكون الكمّية أكبر من صفر.</value>
+  </data>
+  <data name="VTF-PUR-018" xml:space="preserve">
+    <value>لا يمكن تعديل مرتجع مثبَّت أو إعادة تثبيته.</value>
+  </data>
+  <data name="VTF-PUR-019" xml:space="preserve">
+    <value>لا يمكن تثبيت مرتجع بلا بنود. أضِف بندًا واحدًا على الأقل قبل التثبيت.</value>
+  </data>
   <data name="error.internal" xml:space="preserve">
     <value>حدث خطأ غير متوقع. أعد المحاولة، وإن تكرر تواصل مع الدعم الفني.</value>
   </data>
@@ -167,6 +182,30 @@
   </data>
   <data name="validation.saleDate.required" xml:space="preserve">
     <value>تاريخ البيع إجباري.</value>
+  </data>
+  <data name="validation.adjustment.batch.required" xml:space="preserve">
+    <value>الدفعة إجبارية.</value>
+  </data>
+  <data name="validation.adjustment.direction.required" xml:space="preserve">
+    <value>اتجاه التسوية إجباري: زيادة أو نقص.</value>
+  </data>
+  <data name="validation.adjustment.quantity.positive" xml:space="preserve">
+    <value>المقدار يجب أن يكون أكبر من صفر.</value>
+  </data>
+  <data name="validation.return.originalInvoice.required" xml:space="preserve">
+    <value>الفاتورة الأصليّة مطلوبة.</value>
+  </data>
+  <data name="validation.return.date.required" xml:space="preserve">
+    <value>تاريخ المرتجع مطلوب.</value>
+  </data>
+  <data name="validation.return.originalLine.required" xml:space="preserve">
+    <value>بند الفاتورة الأصليّ مطلوب.</value>
+  </data>
+  <data name="validation.return.quantity.positive" xml:space="preserve">
+    <value>الكمّية المرتجَعة يجب أن تكون أكبر من صفر.</value>
+  </data>
+  <data name="validation.adjustment.reason.required" xml:space="preserve">
+    <value>سبب التسوية إجباري.</value>
   </data>
   <data name="validation.line.saleUnit.required" xml:space="preserve">
     <value>وحدة البيع إجبارية.</value>
@@ -183,6 +222,24 @@
   <data name="VTF-SAL-012" xml:space="preserve">
     <value>تعذّر تحويل كمية أحد البنود إلى وحدة المخزون تحويلًا تامًّا. لم تُقرَّب الكمية ولم تُبتَر، والإثبات مرفوض.</value>
   </data>
+  <data name="VTF-SAL-015" xml:space="preserve">
+    <value>لا يمكن إنشاء مرتجع إلّا مقابل فاتورة بيع مثبَّتة.</value>
+  </data>
+  <data name="VTF-SAL-016" xml:space="preserve">
+    <value>الكمّية المرتجَعة تتجاوز المتبقّي القابل للإرجاع من هذا البند.</value>
+  </data>
+  <data name="VTF-SAL-017" xml:space="preserve">
+    <value>بند المرتجع غير صالح. يجب أن تكون الكمّية أكبر من صفر، وأن تكون عددًا صحيحًا للمنتج غير القابل للتجزئة.</value>
+  </data>
+  <data name="VTF-SAL-018" xml:space="preserve">
+    <value>لا يمكن تعديل مرتجع مثبَّت أو إعادة تثبيته.</value>
+  </data>
+  <data name="VTF-SAL-019" xml:space="preserve">
+    <value>لا يمكن تثبيت مرتجع بلا بنود. أضِف بندًا واحدًا على الأقل قبل التثبيت.</value>
+  </data>
+  <data name="VTF-SAL-020" xml:space="preserve">
+    <value>تعذّر تحديد الدفعات التي خرجت منها الكمّية المرتجَعة، فلم يُنفَّذ التثبيت ولم يتغيّر أيّ مخزون.</value>
+  </data>
   <data name="VTF-INV-046" xml:space="preserve">
     <value>طلب استهلاك المخزون غير صالح.</value>
   </data>
@@ -191,5 +248,14 @@
   </data>
   <data name="VTF-INV-056" xml:space="preserve">
     <value>تغيّر المخزون أثناء إتمام البيع. لم يُحفظ أيّ تغيير. حاول مرة أخرى.</value>
+  </data>
+  <data name="VTF-INV-061" xml:space="preserve">
+    <value>الكمية المطلوب خصمها تتجاوز المتبقّي في الدفعة. لم تُنفَّذ العملية ولم يتغيّر أيّ رصيد.</value>
+  </data>
+  <data name="VTF-INV-067" xml:space="preserve">
+    <value>سبب غير مسموح به لهذه العملية. اختر سببًا من قائمة العملية نفسها.</value>
+  </data>
+  <data name="VTF-INV-068" xml:space="preserve">
+    <value>تغيّرت الدفعة أثناء حفظ العملية. لم يُحفظ أيّ تغيير. حاول مرة أخرى.</value>
   </data>
 </root>

@@ -1,6 +1,9 @@
 using VetFlow.Application.Common;
+using VetFlow.Application.Inventory.Commands.AdjustInventory;
+using VetFlow.Application.Inventory.Commands.WriteOffInventory;
 using VetFlow.Application.Inventory.Queries.BatchViewer;
 using VetFlow.Application.Inventory.Queries.ExpiryMonitoring;
+using VetFlow.Application.Inventory.Queries.InventoryHistory;
 using VetFlow.Application.Inventory.Queries.InventoryProjection;
 
 namespace VetFlow.Api.Endpoints.Inventory;
@@ -27,6 +30,54 @@ public static class InventoryEndpoints
             async (
                 [AsParameters] ExpiryMonitoringRequest request,
                 IQueryHandler<ExpiryMonitoringQuery, PagedResult<ExpiryMonitoringItemDto>> handler,
+                CancellationToken cancellationToken) =>
+                Results.Ok(await handler.HandleAsync(request.ToQuery(), cancellationToken)));
+
+        // Inventory adjustment (REQ-INV-010) — the first Inventory-owned write surface. A null
+        // result means the batch does not exist → 404. Business rejections travel as error codes:
+        // VTF-INV-061 (would go below zero), VTF-INV-067 (reason not in the adjustment list),
+        // VTF-INV-068 (the batch changed while saving).
+        app.MapPost(
+            "/api/v1/inventory/adjustments",
+            async (
+                AdjustInventoryRequest request,
+                ICommandHandler<AdjustInventoryCommand, Guid?> handler,
+                CancellationToken cancellationToken) =>
+            {
+                var movementId = await handler.HandleAsync(request.ToCommand(), cancellationToken);
+                return movementId is null
+                    ? Results.NotFound()
+                    // The movement is readable in the history collection; there is no per-movement
+                    // resource, and pointing at one that does not exist would be a broken link.
+                    : Results.Created("/api/v1/inventory/movements", new { movementId });
+            });
+
+        // Write-off (REQ-INV-011) — the exit path R9 asked for. Same rejections as an adjustment,
+        // and an expired batch is deliberately eligible: DEC-INV-021 keeps expired stock out of
+        // sales allocation, not out of disposal.
+        app.MapPost(
+            "/api/v1/inventory/write-offs",
+            async (
+                WriteOffInventoryRequest request,
+                ICommandHandler<WriteOffInventoryCommand, Guid?> handler,
+                CancellationToken cancellationToken) =>
+            {
+                var movementId = await handler.HandleAsync(request.ToCommand(), cancellationToken);
+                return movementId is null
+                    ? Results.NotFound()
+                    : Results.Created("/api/v1/inventory/movements", new { movementId });
+            });
+
+        // Inventory movement history — a read-only, clinic-wide chronological list of stock
+        // movements (REQ-INV-005, reopened by DEC-INV-038). Read-only by construction: there is
+        // deliberately no POST/PUT/DELETE on this resource, because movements are written only by
+        // the inventory paths inside their own unit of work (BR-INV-039, BR-INV-062, AC-INV-035).
+        // A literal segment, so it cannot collide with the {productId:guid} batch route below.
+        app.MapGet(
+            "/api/v1/inventory/movements",
+            async (
+                [AsParameters] InventoryHistoryRequest request,
+                IQueryHandler<InventoryHistoryQuery, PagedResult<InventoryHistoryItemDto>> handler,
                 CancellationToken cancellationToken) =>
                 Results.Ok(await handler.HandleAsync(request.ToQuery(), cancellationToken)));
 

@@ -256,6 +256,58 @@ public sealed class PurchaseReceiveEndpointTests(ApiFixture fixture)
             new Uri($"/api/v1/purchase-invoices/{invoiceId}/receive", UriKind.Relative),
             new { lines = expiries.Select(entry => new { lineId = entry.LineId, expiryDate = entry.Expiry }).ToArray() });
 
+    [Fact]
+    public async Task Receiving_writes_one_increase_movement_to_the_ledger_per_batch_BR_INV_062()
+    {
+        var seed = await SeedAsync(Marker());
+        var lineId = await AddLineAsync(seed.InvoiceId, seed.ProductId, 2m, 100m);
+
+        (await ReceiveAsync(seed.InvoiceId)).StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        var movements = await MovementsAsync(seed.ProductId);
+        movements.Count.ShouldBe(1);
+
+        var movement = movements.Single();
+        movement.Type.ShouldBe(InventoryMovementType.Receive);
+        movement.Source.ShouldBe(InventoryMovementSource.Purchasing);
+        movement.BatchId.ShouldBe((await BatchesAsync(seed.ProductId)).Single().Id);
+        // Signed: receiving increases stock, in the canonical stock unit (BR-INV-064).
+        movement.Quantity.ShouldBe(2m * CartonToStrip);
+        movement.ReferenceId.ShouldBe(lineId);
+        // A document-driven movement carries no inventory-native reason or actor (BR-INV-067).
+        movement.Reason.ShouldBeNull();
+        movement.ActorName.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task The_ledger_records_history_and_never_owns_the_quantities_BR_INV_063()
+    {
+        var seed = await SeedAsync(Marker());
+        await AddLineAsync(seed.InvoiceId, seed.ProductId, 1m, 100m);
+        await AddLineAsync(seed.InvoiceId, seed.ProductId, 1m, 100m);
+
+        (await ReceiveAsync(seed.InvoiceId)).StatusCode.ShouldBe(HttpStatusCode.NoContent);
+
+        // Two lines → two batches → two appended rows; the ledger is never rewritten (DEC-INV-037).
+        var movements = await MovementsAsync(seed.ProductId);
+        movements.Count.ShouldBe(2);
+        movements.Select(movement => movement.BatchId).Distinct().Count().ShouldBe(2);
+
+        // The ledger agrees with the authoritative state — but the batches and the on-hand row are
+        // the source of truth, never the ledger (BR-INV-001/002/005, BR-INV-063).
+        movements.Sum(movement => movement.Quantity).ShouldBe(2m * CartonToStrip);
+        (await OnHandAsync(seed.ProductId)).ShouldBe(2m * CartonToStrip);
+        (await BatchesAsync(seed.ProductId)).Sum(batch => batch.RemainingQuantity)
+            .ShouldBe(2m * CartonToStrip);
+    }
+
+    private Task<List<InventoryMovement>> MovementsAsync(Guid productId) =>
+        fixture.QueryDbAsync(dbContext => dbContext.InventoryMovements
+            .Where(movement => movement.ProductId == productId)
+            .OrderBy(movement => movement.OccurredAt)
+            .ThenBy(movement => movement.Id)
+            .ToListAsync());
+
     private Task<List<InventoryBatch>> BatchesAsync(Guid productId) =>
         fixture.QueryDbAsync(dbContext => dbContext.InventoryBatches
             .Where(batch => batch.ProductId == productId)

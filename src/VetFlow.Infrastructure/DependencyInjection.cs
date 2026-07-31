@@ -72,15 +72,29 @@ public static class DependencyInjection
         services.AddScoped<AddPurchaseLineItemCommandHandler>();
         services.AddScoped<RemovePurchaseLineItemCommandHandler>();
         services.AddScoped<ReceivePurchaseInvoiceCommandHandler>();
+        services.AddScoped<PurchaseReturnableLinesQueryHandler>();
+        services.AddScoped<CreatePurchaseReturnCommandHandler>();
+        services.AddScoped<AddPurchaseReturnLineCommandHandler>();
+        services.AddScoped<RemovePurchaseReturnLineCommandHandler>();
+        services.AddScoped<CommitPurchaseReturnCommandHandler>();
         services.AddScoped<InventoryProjectionQueryHandler>();
         services.AddScoped<BatchViewerQueryHandler>();
         services.AddScoped<ExpiryMonitoringQueryHandler>();
+        services.AddScoped<InventoryHistoryQueryHandler>();
+        services.AddScoped<BatchOperationWriter>();
+        services.AddScoped<AdjustInventoryCommandHandler>();
+        services.AddScoped<WriteOffInventoryCommandHandler>();
         services.AddScoped<SalesDetailsQueryHandler>();
         services.AddScoped<SalesLineItemsQueryHandler>();
         services.AddScoped<CreateSalesInvoiceCommandHandler>();
         services.AddScoped<AddSalesLineItemCommandHandler>();
         services.AddScoped<RemoveSalesLineItemCommandHandler>();
         services.AddScoped<CommitSalesInvoiceCommandHandler>();
+        services.AddScoped<SalesReturnableLinesQueryHandler>();
+        services.AddScoped<CreateSalesReturnCommandHandler>();
+        services.AddScoped<AddSalesReturnLineCommandHandler>();
+        services.AddScoped<RemoveSalesReturnLineCommandHandler>();
+        services.AddScoped<CommitSalesReturnCommandHandler>();
 
         // Inventory write kernel (write-kernel.md, DEC-INV-001) — the public write contract
         // Purchase Receiving depends on; internals owned by Inventory (DEC-PUR-008).
@@ -90,6 +104,11 @@ public static class DependencyInjection
         // committing a sale depends on; FEFO and batch selection stay inside Inventory
         // (DEC-SAL-006, BR-SAL-013).
         services.AddScoped<IInventoryConsumptionWriter, InventoryConsumptionWriter>();
+
+        // Inventory sales returns (BR-INV-069, REQ-SAL-004) — the public write contract committing a
+        // sales return depends on. Which batches receive the quantity is read from the recorded
+        // consumption trace inside Inventory; Sales never sees one (BR-SAL-013, BR-SAL-017).
+        services.AddScoped<IInventorySalesReturnWriter, InventorySalesReturnWriter>();
 
         return services;
     }

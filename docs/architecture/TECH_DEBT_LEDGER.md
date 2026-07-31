@@ -38,6 +38,22 @@ Known, deliberately kept as-is; no active breach.
 - **Recommended sprint:** Slice 2 (before adding Product-editor entities, which is
   exactly when new domain types appear). See TD-101 for the fix shape.
 
+### TD-007 — Raw `<table class="vf-table">` on the two return screens (Accepted, owner-ruled 2026-07-31)
+- **Description:** both Epic 2 return screens (`/purchases/:id/returns/new`,
+  `/sales/:id/returns/new`) render a raw `<table>` with local styles instead of the
+  UI Kit's `<vf-table>` component, deviating from the Frontend Page mode's "UI Kit
+  only" rule. Deliberate: `<vf-table>` is a scrollable PrimeNG datatable with state
+  storage built for data lists, not for four rows each carrying an editable input.
+  C5 introduced it; C6 mirrored it for consistency. Flagged to the owner rather
+  than changed unasked (Epic 2 self review).
+- **Owner ruling (2026-07-31, Epic 2 approval):** **accepted as-is. No refactoring
+  to `<vf-table>` is required before or during the Pilot.** Re-evaluate, if ever,
+  only after the Pilot on the owner's initiative.
+- **Estimated impact:** Low — the deviation is contained to two screens, the local
+  styles use the real UI Kit tokens (verified in the C6 browser pass), and an
+  architecture test still guards the screens' forbidden controls.
+- **Recommended sprint:** none — accepted, not scheduled.
+
 ---
 
 ## Deferred Improvements
@@ -189,6 +205,13 @@ Design-boundary edges surfaced by implementation.
 - **Recommended sprint:** **owner ruling (2026-07-17): keep TD-107 open — do NOT raise budgets, do NOT
   relax gates, do NOT optimize prematurely.** Bundle optimization happens only after measurable user
   impact or future growth. Candidate fix stays lazy per-feature i18n.
+- **Owner ruling (2026-07-31) — accepted debt *for the Pilot*:** TD-107 **remains accepted technical debt
+  through the Pilot**; it is **not** a Pilot Readiness blocker and does **not** appear on ADR-0020's Pilot
+  Transition Checklist. The 2026-07-17 ruling is unchanged and now carries an explicit horizon: **no
+  speculative optimization** — the bundle is not to be optimized before the Pilot on the strength of the
+  warning alone. Re-evaluate only on **measured** user impact after the Pilot begins. Recorded alongside
+  the Epic 2 performance capture (ADR-0014 §11), where every measured budget passed with wide margin;
+  this debt is a build-time warning, not one of those measurements.
 
 ### TD-108 — Status sort uses lexicographic string order, not lifecycle order (recorded 2026-07-17, owner-ruled)
 - **Description:** "sort by status" orders by the persisted enum string (`HasConversion<string>`), i.e.

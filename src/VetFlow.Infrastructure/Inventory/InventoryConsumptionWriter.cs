@@ -146,13 +146,21 @@ public sealed class InventoryConsumptionWriter(
                 var take = Math.Min(batch.RemainingQuantity, outstanding);
 
                 batch.Consume(take);
-                dbContext.InventoryConsumptions.Add(new InventoryConsumption(
+
+                // The consumption is recorded in the unified ledger (REQ-INV-009, DEC-INV-027),
+                // which absorbed the Sprint 7 InventoryConsumption record. The sale line travels
+                // in the reference, so sale-line-level traceability is unchanged (REQ-INV-008,
+                // BR-INV-057) — written here, in the same unit of work as the decrement, because
+                // it cannot be reconstructed afterwards (BR-INV-062).
+                dbContext.InventoryMovements.Add(InventoryMovement.Decrease(
                     Guid.NewGuid(),
-                    batch.Id,
                     productId,
-                    request.SaleLineId,
+                    batch.Id,
+                    InventoryMovementType.Consume,
+                    InventoryMovementSource.Sales,
                     take,
-                    consumedAt));
+                    consumedAt,
+                    referenceId: request.SaleLineId));
 
                 outstanding -= take;
                 consumedForProduct += take;

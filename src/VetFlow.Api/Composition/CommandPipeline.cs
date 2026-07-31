@@ -10,16 +10,27 @@ using VetFlow.Application.Categories.Commands.RenameCategory;
 using VetFlow.Application.Categories.Commands.SetCategoryActive;
 using VetFlow.Application.Common;
 using VetFlow.Application.Common.Behaviors;
+using VetFlow.Application.Inventory.Commands.AdjustInventory;
+using VetFlow.Application.Inventory.Commands.WriteOffInventory;
 using VetFlow.Application.Purchasing.Commands.AddPurchaseLineItem;
+using VetFlow.Application.Purchasing.Commands.AddPurchaseReturnLine;
+using VetFlow.Application.Purchasing.Commands.CommitPurchaseReturn;
 using VetFlow.Application.Purchasing.Commands.CreatePurchaseInvoice;
+using VetFlow.Application.Purchasing.Commands.CreatePurchaseReturn;
 using VetFlow.Application.Purchasing.Commands.ReceivePurchaseInvoice;
 using VetFlow.Application.Purchasing.Commands.RemovePurchaseLineItem;
+using VetFlow.Application.Purchasing.Commands.RemovePurchaseReturnLine;
 using VetFlow.Application.Sales.Commands.AddSalesLineItem;
+using VetFlow.Application.Sales.Commands.AddSalesReturnLine;
 using VetFlow.Application.Sales.Commands.CommitSalesInvoice;
+using VetFlow.Application.Sales.Commands.CommitSalesReturn;
 using VetFlow.Application.Sales.Commands.CreateSalesInvoice;
+using VetFlow.Application.Sales.Commands.CreateSalesReturn;
 using VetFlow.Application.Sales.Commands.RemoveSalesLineItem;
+using VetFlow.Application.Sales.Commands.RemoveSalesReturnLine;
 using VetFlow.Infrastructure.Catalog;
 using VetFlow.Infrastructure.Categories;
+using VetFlow.Infrastructure.Inventory;
 using VetFlow.Infrastructure.Purchasing;
 using VetFlow.Infrastructure.Sales;
 
@@ -47,10 +58,20 @@ public static class CommandPipeline
         services.AddCommandHandler<AddPurchaseLineItemCommand, Guid?, AddPurchaseLineItemCommandHandler>();
         services.AddCommandHandler<RemovePurchaseLineItemCommand, Guid?, RemovePurchaseLineItemCommandHandler>();
         services.AddCommandHandler<ReceivePurchaseInvoiceCommand, Guid?, ReceivePurchaseInvoiceCommandHandler>();
+        services.AddCommandHandler<CreatePurchaseReturnCommand, CreatePurchaseReturnResult?, CreatePurchaseReturnCommandHandler>();
+        services.AddCommandHandler<AddPurchaseReturnLineCommand, Guid?, AddPurchaseReturnLineCommandHandler>();
+        services.AddCommandHandler<RemovePurchaseReturnLineCommand, bool, RemovePurchaseReturnLineCommandHandler>();
+        services.AddCommandHandler<CommitPurchaseReturnCommand, bool, CommitPurchaseReturnCommandHandler>();
         services.AddCommandHandler<CreateSalesInvoiceCommand, CreateSalesInvoiceResult, CreateSalesInvoiceCommandHandler>();
         services.AddCommandHandler<AddSalesLineItemCommand, Guid?, AddSalesLineItemCommandHandler>();
         services.AddCommandHandler<RemoveSalesLineItemCommand, Guid?, RemoveSalesLineItemCommandHandler>();
         services.AddCommandHandler<CommitSalesInvoiceCommand, Guid?, CommitSalesInvoiceCommandHandler>();
+        services.AddCommandHandler<CreateSalesReturnCommand, CreateSalesReturnResult?, CreateSalesReturnCommandHandler>();
+        services.AddCommandHandler<AddSalesReturnLineCommand, Guid?, AddSalesReturnLineCommandHandler>();
+        services.AddCommandHandler<RemoveSalesReturnLineCommand, bool, RemoveSalesReturnLineCommandHandler>();
+        services.AddCommandHandler<CommitSalesReturnCommand, bool, CommitSalesReturnCommandHandler>();
+        services.AddCommandHandler<AdjustInventoryCommand, Guid?, AdjustInventoryCommandHandler>();
+        services.AddCommandHandler<WriteOffInventoryCommand, Guid?, WriteOffInventoryCommandHandler>();
         return services;
     }
 

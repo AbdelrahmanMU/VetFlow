@@ -75,6 +75,15 @@ import { ReceivePurchaseInvoicePayload } from './purchase-lines.models';
                     {{ t.t('purchaseDetails.receive.action') }}
                   </vf-button>
                 }
+                <!--
+                  Received only (BR-PUR-015): a draft never put stock in and a cancelled invoice
+                  never will, so the action does not exist for them rather than existing and failing.
+                -->
+                @if (invoice.status === 'received') {
+                  <vf-button variant="secondary" icon="pi-reply" (pressed)="openReturn()">
+                    {{ t.t('purchaseReturn.open') }}
+                  </vf-button>
+                }
                 <vf-button variant="quiet" icon="pi-arrow-right" (pressed)="goToList()">
                   {{ t.t('purchaseDetails.back') }}
                 </vf-button>
@@ -246,6 +255,11 @@ export class PurchaseDetailsPageComponent {
 
   protected goToList(): void {
     void this.router.navigate(['/purchases']);
+  }
+
+  /** Open the new-purchase-return screen for this invoice (REQ-PUR-006, purchasing/ui.md). */
+  protected openReturn(): void {
+    void this.router.navigate(['/purchases', this.id(), 'returns', 'new']);
   }
 
   protected openReceive(): void {

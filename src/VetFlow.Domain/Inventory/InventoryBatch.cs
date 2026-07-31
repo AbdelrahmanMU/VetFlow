@@ -1,3 +1,6 @@
+using System.Globalization;
+using VetFlow.Domain.Common;
+
 namespace VetFlow.Domain.Inventory;
 
 /// <summary>
@@ -8,8 +11,12 @@ namespace VetFlow.Domain.Inventory;
 /// (provenance), the received <see cref="Quantity"/>, <see cref="RemainingQuantity"/> (initialized
 /// to the received quantity — no logic consumes it this slice; it exists for forward-compatibility
 /// with Sales/FEFO allocation), the unit-cost snapshot (the purchase line's unit price), an optional
-/// <see cref="ExpiryDate"/> (DEC-PUR-009), and the receive timestamp. The write kernel owns no
-/// queries, projection, adjustments, or movement history (BR-INV-004).
+/// <see cref="ExpiryDate"/> (DEC-PUR-009), and the receive timestamp.
+///
+/// <para>The write kernel itself still owns no queries, projection or reporting (BR-INV-004, as
+/// amended for Epic 2). Adjustments, write-off and movement history are <b>separate Inventory
+/// paths</b> — <c>BatchOperationWriter</c> and the history projection — operating on the same
+/// quantities; not one line was added to receiving.</para>
 /// </summary>
 public sealed class InventoryBatch
 {
@@ -83,5 +90,42 @@ public sealed class InventoryBatch
         ArgumentOutOfRangeException.ThrowIfGreaterThan(quantity, RemainingQuantity);
 
         RemainingQuantity -= quantity;
+    }
+
+    /// <summary>
+    /// Apply a signed change to the remaining quantity — the single write path for every Epic 2
+    /// operation that moves an <b>existing</b> batch: adjustments in either direction
+    /// (DEC-INV-032), write-off, and the two returns (BR-INV-069).
+    ///
+    /// <para><b>The floor rule lives here, once</b> (BR-INV-061): a change that would drive the
+    /// remaining quantity below zero is <b>rejected as a business failure</b> — never clamped to
+    /// zero, never applied partially. It is a <see cref="BusinessRuleException"/> rather than an
+    /// argument exception precisely because it <i>is</i> a legitimate business outcome the user
+    /// can cause: asking to remove more than the batch holds. Keeping the guard on the aggregate
+    /// stops C4/C5/C6 from each re-implementing it and drifting.</para>
+    ///
+    /// <para><see cref="Quantity"/> — the historical received amount — never changes, and a batch
+    /// driven to zero simply becomes "depleted" by the existing derivation (BR-INV-021): no new
+    /// batch state is introduced (DEC-INV-011/012).</para>
+    /// </summary>
+    public void ApplyDelta(decimal delta)
+    {
+        // A zero-quantity operation records nothing and would write an empty ledger row.
+        ArgumentOutOfRangeException.ThrowIfEqual(delta, 0m);
+
+        var updated = RemainingQuantity + delta;
+        if (updated < 0m)
+        {
+            throw new BusinessRuleException(
+                InventoryErrorCodes.QuantityBelowZero,
+                new Dictionary<string, string>
+                {
+                    ["batchId"] = Id.ToString(),
+                    ["remaining"] = RemainingQuantity.ToString(CultureInfo.InvariantCulture),
+                    ["requested"] = delta.ToString(CultureInfo.InvariantCulture),
+                });
+        }
+
+        RemainingQuantity = updated;
     }
 }

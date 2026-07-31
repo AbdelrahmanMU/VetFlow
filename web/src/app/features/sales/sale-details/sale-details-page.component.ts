@@ -89,6 +89,16 @@ import { SaleLinesStore } from './sale-lines.store';
                     {{ t.t('saleDetails.commit.action') }}
                   </vf-button>
                 }
+                <!--
+                  Committed only (BR-SAL-015): a draft never consumed stock, so there is no
+                  consumption trace to return along. The action does not exist for a draft rather
+                  than existing and failing.
+                -->
+                @if (invoice.status === 'committed') {
+                  <vf-button variant="secondary" icon="pi-reply" (pressed)="openReturn()">
+                    {{ t.t('salesReturn.open') }}
+                  </vf-button>
+                }
               </div>
             </header>
 
@@ -256,6 +266,13 @@ export class SaleDetailsPageComponent {
 
   protected goToNewSale(): void {
     void this.router.navigate(['/sales/new']);
+  }
+
+  protected openReturn(): void {
+    const invoice = this.readyInvoice();
+    if (invoice) {
+      void this.router.navigate(['/sales', invoice.id, 'returns', 'new']);
+    }
   }
 
   protected openCommit(): void {
