@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using VetFlow.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using VetFlow.Infrastructure.Persistence;
 namespace VetFlow.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(VetFlowDbContext))]
-    partial class VetFlowDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260731123845_SalesInvoiceSearchText")]
+    partial class SalesInvoiceSearchText
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

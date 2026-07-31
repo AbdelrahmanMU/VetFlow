@@ -1,12 +1,17 @@
 import { Routes } from '@angular/router';
 
 /**
- * Sales routes (sales ui.md). There is no list route: a sales list is not one of the five slices
- * and was not invented (DEC-SAL-005 — open). `new` is registered before `:id` so the literal
+ * Sales routes (sales ui.md). The list is the entry (REQ-SAL-005, DEC-SAL-005 —
+ * owner-ruled 2026-07-31). `new` is registered before `:id` so the literal
  * segment wins — the same order as purchasing and inventory.
  */
 export const SALES_ROUTES: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'new' },
+  {
+    path: '',
+    pathMatch: 'full',
+    loadComponent: () =>
+      import('./sales-list/sales-list-page.component').then((m) => m.SalesListPageComponent),
+  },
   {
     path: 'new',
     loadComponent: () => import('./sale-create/sale-create-page.component').then((m) => m.SaleCreatePageComponent),

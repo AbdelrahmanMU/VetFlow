@@ -79,6 +79,31 @@ app.MapInventoryEndpoints();
 app.MapSalesInvoiceEndpoints();
 app.MapSalesReturnEndpoints();
 
+// Pilot deployment hosting (PRS WS1): when the published Angular bundle is present
+// (the Docker image copies it into wwwroot), the API serves it same-origin — no
+// second server, no new tool, and CORS becomes moot. Development is untouched:
+// there is no wwwroot/index.html there, so nothing below activates, and `ng serve`
+// keeps proxying. Unmatched /api/* paths still return the canonical ProblemDetails
+// 404 — the SPA fallback deliberately never swallows an API route.
+var spaIndex = Path.Combine(app.Environment.WebRootPath ?? "wwwroot", "index.html");
+if (File.Exists(spaIndex))
+{
+    app.UseDefaultFiles();
+    app.UseStaticFiles();
+    app.MapFallback(async context =>
+    {
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+            // No body: UseStatusCodePages turns this into the canonical 404 shape.
+            context.Response.StatusCode = StatusCodes.Status404NotFound;
+            return;
+        }
+
+        context.Response.ContentType = "text/html; charset=utf-8";
+        await context.Response.SendFileAsync(spaIndex);
+    });
+}
+
 await VetFlow.Infrastructure.DependencyInjection.ApplyMigrationsIfConfiguredAsync(app.Services);
 await VetFlow.Infrastructure.DependencyInjection.SeedDevelopmentDataIfConfiguredAsync(app.Services);
 

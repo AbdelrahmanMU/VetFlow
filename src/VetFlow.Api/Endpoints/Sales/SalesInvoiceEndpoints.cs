@@ -5,19 +5,27 @@ using VetFlow.Application.Sales.Commands.CreateSalesInvoice;
 using VetFlow.Application.Sales.Commands.RemoveSalesLineItem;
 using VetFlow.Application.Sales.Queries.SalesDetails;
 using VetFlow.Application.Sales.Queries.SalesLineItems;
+using VetFlow.Application.Sales.Queries.SalesList;
 
 namespace VetFlow.Api.Endpoints.Sales;
 
 /// <summary>
-/// The Sales HTTP surface (REQ-SAL-001/002/003), mirroring the purchase-invoice endpoints. There is
-/// deliberately <b>no list endpoint</b>: a sales list is not among the five slices and was not
-/// invented (DEC-SAL-005 — still open). Commit is a POST action on the invoice, exactly like
-/// receive.
+/// The Sales HTTP surface (REQ-SAL-001/002/003/005), mirroring the purchase-invoice endpoints.
+/// The list endpoint exists by owner ruling (DEC-SAL-005, 2026-07-31 — a basic list is required
+/// for Pilot operation). Commit is a POST action on the invoice, exactly like receive.
 /// </summary>
 public static class SalesInvoiceEndpoints
 {
     public static void MapSalesInvoiceEndpoints(this IEndpointRouteBuilder app)
     {
+        app.MapGet(
+            "/api/v1/sales-invoices",
+            async (
+                [AsParameters] SalesListRequest request,
+                IQueryHandler<SalesListQuery, PagedResult<SalesListItemDto>> handler,
+                CancellationToken cancellationToken) =>
+                Results.Ok(await handler.HandleAsync(request.ToQuery(), cancellationToken)));
+
         app.MapGet(
             "/api/v1/sales-invoices/{id:guid}",
             async (

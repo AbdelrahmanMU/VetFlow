@@ -1,0 +1,9 @@
+# STD-BE-051 / ADR-0020 — owner-approved destructive migration plans.
+# One migration file name per line. A line here records an OWNER-approved plan;
+# no AI contributor may add one on its own authority.
+#
+# Pre-real-data exception (ADR-0020 §Decision: the rule turns on the existence
+# of real data, and it creates no retroactive obligation). The owner approved
+# this migration explicitly on 2026-07-31 on the pre-pilot ground — recorded in
+# docs/modules/inventory/decisions.md (the spent, one-off exception entry):
+20260731003637_InventoryMovementLedger.cs

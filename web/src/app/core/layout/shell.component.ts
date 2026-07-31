@@ -64,17 +64,17 @@ import { TranslationService } from '../i18n/translation.service';
               {{ t.t('nav.purchases') }}
             </a>
           </li>
-          <!-- The entry point is the create screen: there is no sales list (DEC-SAL-005 — open). -->
+          <!-- The entry point is the list (DEC-SAL-005 — owner-ruled 2026-07-31, AC-SAL-022). -->
           <li class="nav-module">{{ t.t('nav.sales') }}</li>
           <li>
             <a
               class="nav-link"
-              routerLink="/sales/new"
+              routerLink="/sales"
               routerLinkActive="nav-link--active"
-              [routerLinkActiveOptions]="{ exact: true }"
+              [routerLinkActiveOptions]="{ exact: false }"
             >
               <i class="pi pi-shopping-cart nav-icon" aria-hidden="true"></i>
-              {{ t.t('nav.newSale') }}
+              {{ t.t('nav.salesInvoices') }}
             </a>
           </li>
           <li class="nav-module">{{ t.t('nav.inventory') }}</li>

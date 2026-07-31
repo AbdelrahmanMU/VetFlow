@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using VetFlow.Domain.Catalog;
 using VetFlow.Domain.Categories;
 using VetFlow.Domain.Purchasing;
+using VetFlow.Domain.Sales;
 
 namespace VetFlow.Infrastructure.Persistence;
 
@@ -52,6 +53,10 @@ public sealed class SearchTextInterceptor : SaveChangesInterceptor
                 // Supplier name + the supplier's invoice reference are searchable
                 // (BR-PUR-004); notes are deliberately excluded.
                 PurchaseInvoice invoice => ArabicSearchText.Normalize(invoice.SupplierName, invoice.SupplierInvoiceReference),
+                // The customer name alone is searchable (BR-SAL-019); notes are
+                // deliberately excluded, and a null customer normalizes to empty —
+                // such invoices are simply never matched by a name search.
+                SalesInvoice salesInvoice => ArabicSearchText.Normalize(salesInvoice.CustomerName ?? string.Empty),
                 _ => null,
             };
 

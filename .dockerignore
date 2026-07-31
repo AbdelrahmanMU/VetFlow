@@ -1,0 +1,10 @@
+# Keep the Docker build context lean and deterministic (PRS WS1).
+.git
+**/bin
+**/obj
+web/node_modules
+web/dist
+web/.angular
+docs
+tests
+scripts

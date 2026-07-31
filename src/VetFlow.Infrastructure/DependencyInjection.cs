@@ -84,6 +84,7 @@ public static class DependencyInjection
         services.AddScoped<BatchOperationWriter>();
         services.AddScoped<AdjustInventoryCommandHandler>();
         services.AddScoped<WriteOffInventoryCommandHandler>();
+        services.AddScoped<SalesListQueryHandler>();
         services.AddScoped<SalesDetailsQueryHandler>();
         services.AddScoped<SalesLineItemsQueryHandler>();
         services.AddScoped<CreateSalesInvoiceCommandHandler>();

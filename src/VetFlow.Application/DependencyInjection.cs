@@ -34,6 +34,7 @@ using VetFlow.Application.Sales.Commands.CreateSalesInvoice;
 using VetFlow.Application.Sales.Commands.CreateSalesReturn;
 using VetFlow.Application.Sales.Queries.SalesDetails;
 using VetFlow.Application.Sales.Queries.SalesLineItems;
+using VetFlow.Application.Sales.Queries.SalesList;
 
 namespace VetFlow.Application;
 
@@ -71,6 +72,7 @@ public static class DependencyInjection
         services.AddSingleton<IValidator<InventoryHistoryQuery>, InventoryHistoryQueryValidator>();
         services.AddSingleton<IValidator<AdjustInventoryCommand>, AdjustInventoryCommandValidator>();
         services.AddSingleton<IValidator<WriteOffInventoryCommand>, WriteOffInventoryCommandValidator>();
+        services.AddSingleton<IValidator<SalesListQuery>, SalesListQueryValidator>();
         services.AddSingleton<IValidator<SalesDetailsQuery>, SalesDetailsQueryValidator>();
         services.AddSingleton<IValidator<SalesLineItemsQuery>, SalesLineItemsQueryValidator>();
         services.AddSingleton<IValidator<CreateSalesInvoiceCommand>, CreateSalesInvoiceCommandValidator>();

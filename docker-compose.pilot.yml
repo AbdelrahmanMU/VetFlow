@@ -1,0 +1,49 @@
+# VetFlow PILOT stack (PRS WS1 — Pilot Readiness, owner-approved 2026-07-31).
+# One machine, one command: `docker compose -f docker-compose.pilot.yml up -d --build`.
+# Production configuration: no development seed, the API serves the Angular
+# bundle same-origin, and both services restart with the machine.
+# Credentials live in the untracked .env file — see .env.example (STD-CS-030).
+name: vetflow-pilot
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: vetflow
+      POSTGRES_USER: ${VETFLOW_DB_USER}
+      POSTGRES_PASSWORD: ${VETFLOW_DB_PASSWORD}
+    ports:
+      # Loopback only, for backup tooling and administration — never exposed to the network.
+      - "127.0.0.1:5435:5432"
+    volumes:
+      - vetflow-pilot-db-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${VETFLOW_DB_USER} -d vetflow"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: src/VetFlow.Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Database__ConnectionString: "Host=db;Database=vetflow;Username=${VETFLOW_DB_USER};Password=${VETFLOW_DB_PASSWORD}"
+      # Schema is applied by the app at startup (ADR-0019 / STD-BE-041 mechanism —
+      # the same one development uses; the Pilot Transition Checklist verifies it).
+      Database__ApplyMigrationsAtStartup: "true"
+      # Explicit even though false is the default: the pilot database must never
+      # receive development seed rows (PRS WS3, PRS-Q-04 — reference data only,
+      # entered through the application).
+      Database__SeedDevelopmentDataAtStartup: "false"
+    ports:
+      - "127.0.0.1:8080:8080"
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  vetflow-pilot-db-data:

@@ -39,6 +39,18 @@ See [`releases/mvp.md`](releases/mvp.md).
 **الغاية جاهزية تشغيلية، لا وظائف إضافية** — ولا يُوسَّع التنفيذ بعد Epic 2
 (تأكيدٌ لقاعدة هذا القسم أعلاه، لا قاعدة جديدة).
 
+**قرار GO وامتداد القاعدة أثناء التجربة (حسم المالك 2026-07-31):** اكتملت
+مرحلة Pilot Readiness وقرّر المالك **GO**
+([التقرير والقرار](../../operations/go-no-go.md)). **وأثناء التجربة نفسها: لا
+ميزات جديدة إلا إذا كانت لازمة لاستمرار تشغيل النظام** — امتدادٌ صريح من
+المالك لقاعدة هذا القسم من «قبل التجربة» إلى «خلالها». كلّ ملاحظات التجربة
+تُسجَّل في ثلاث فئات لا غير — **Bug · Usability · Enhancement** — في
+[`pilot-findings.md`](../../operations/pilot-findings.md).
+
+**مواصفة المرحلة:** [`releases/pilot-readiness.md`](releases/pilot-readiness.md)
+(**Approved — اعتمدها المالك 2026-07-31 وحسم أسئلتها الستّ**) — المصدر الوحيد
+للحقيقة لمرحلة Pilot Readiness.
+
 **الفهرسة:** `BD-PRD-008` في [`docs/business/DECISION_LOG.md`](../../business/DECISION_LOG.md).
 
 ## Later (order not decided)

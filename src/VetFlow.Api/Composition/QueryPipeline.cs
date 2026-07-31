@@ -19,6 +19,7 @@ using VetFlow.Application.Purchasing.Queries.PurchaseList;
 using VetFlow.Application.Purchasing.Queries.PurchaseReturnableLines;
 using VetFlow.Application.Sales.Queries.SalesDetails;
 using VetFlow.Application.Sales.Queries.SalesLineItems;
+using VetFlow.Application.Sales.Queries.SalesList;
 using VetFlow.Application.Sales.Queries.SalesReturnableLines;
 using VetFlow.Infrastructure.Catalog;
 using VetFlow.Infrastructure.Categories;
@@ -52,6 +53,7 @@ public static class QueryPipeline
         services.AddQueryHandler<BatchViewerQuery, BatchViewerResult?, BatchViewerQueryHandler>();
         services.AddQueryHandler<ExpiryMonitoringQuery, PagedResult<ExpiryMonitoringItemDto>, ExpiryMonitoringQueryHandler>();
         services.AddQueryHandler<InventoryHistoryQuery, PagedResult<InventoryHistoryItemDto>, InventoryHistoryQueryHandler>();
+        services.AddQueryHandler<SalesListQuery, PagedResult<SalesListItemDto>, SalesListQueryHandler>();
         services.AddQueryHandler<SalesDetailsQuery, SalesDetailsDto?, SalesDetailsQueryHandler>();
         services.AddQueryHandler<SalesLineItemsQuery, IReadOnlyList<SalesLineItemDto>?, SalesLineItemsQueryHandler>();
         services.AddQueryHandler<SalesReturnableLinesQuery, IReadOnlyList<SalesReturnableLineDto>?, SalesReturnableLinesQueryHandler>();
