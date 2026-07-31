@@ -13,11 +13,16 @@
 - **Vision:** `docs/shared/VISION.md` (Draft). Domain:
   `docs/business/domain-overview.md` (Draft).
 
-## MVP scope (fixed — see `docs/shared/roadmap/releases/mvp.md`)
+## MVP scope (see `docs/shared/roadmap/releases/mvp.md` — amended 2026-07-31)
 
-Catalog (incl. Pricing) · Categories · Suppliers · Customers (minimal) ·
-Purchasing · Sales · Inventory · Batch · Monitoring · Cash Management ·
-Expenses · Reports · Audit Log · Local Backup · Settings
+Split by owner ruling into **Pilot MVP Scope** (delivered and validated:
+Catalog incl. Pricing · Categories · Purchasing incl. receiving & returns ·
+Sales incl. list & returns · Inventory incl. batches, expiry, ledger,
+adjustments, write-offs) and **Post-Pilot Scope** (intentionally postponed by
+recorded owner decisions: Cash Management · Expenses · Reports · Audit Log ·
+Settings · in-app Local Backup · Suppliers/Customers as modules · Monitoring
+alerts). The authoritative split, with each deferral's ruling, lives in
+`mvp.md` — this file does not duplicate it.
 
 MVP covers the clinic's commercial cycle only; the medical side is
 deliberately post-MVP.
