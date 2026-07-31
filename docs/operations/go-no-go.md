@@ -62,10 +62,12 @@ transition, before real operational data is entered**:
   modules — UAT may surface needs; owner judges).
 - **Accepted:** RSK-09 / TD-107 (bundle warning, 567.05 kB after the list).
 
-## Owner actions before the transition
+## Owner actions before the transition — status after the GO (2026-07-31)
 
-1. **UAT sessions** with both participants (scripts ready; schedule is yours).
-2. **Clear the Git Credential Manager block and push** — until then the
-   repository, including this phase, exists on one disk (`! git push origin main`).
-3. **Commit approval for the Pilot Readiness work** (nothing is committed, per
-   standing discipline), then the schema tag completes the checklist's last item.
+1. **UAT sessions** with both participants (scripts ready; schedule is yours)
+   — **the one remaining action.**
+2. ~~Clear the Git Credential Manager block and push~~ — **DONE:** the complete
+   history is pushed (`main → 5f8e761`); PRS-RSK-03 closed.
+3. ~~Commit approval + schema tag~~ — **DONE:** committed on the owner's
+   approval and tagged **`pilot-2026-07-31`** (pushed). The checklist's
+   «Current schema tagged» item is satisfied.
