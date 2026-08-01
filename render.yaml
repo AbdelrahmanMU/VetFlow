@@ -42,8 +42,18 @@ services:
 
       # Neon connection string — set in the Render dashboard, never committed.
       #
-      #   Host=<project>.<region>.aws.neon.tech;Database=vetflow;Username=<user>;
-      #   Password=<password>;SSL Mode=Require;Trust Server Certificate=true
+      #   Host=<project>.<region>.aws.neon.tech;Database=<db>;Username=<user>;
+      #   Password=<password>;SSL Mode=Require
+      #
+      # Npgsql keyword syntax — NOT the postgresql:// URI Neon shows you; Npgsql
+      # cannot parse a URI. And do NOT add `Trust Server Certificate`: Npgsql 10
+      # removed that keyword and throws `Couldn't set trust server certificate`
+      # at startup (verified against this deployment, 2026-08-02). Since Npgsql 8
+      # the libpq semantics apply — `SSL Mode=Require` encrypts without verifying
+      # the certificate, which is what that keyword used to be paired with.
+      # `SSL Mode=VerifyFull` is the hardening step once a deploy is green.
+      # Drop `channel_binding` too: Npgsql has no such keyword and negotiates
+      # SCRAM channel binding on its own.
       #
       # Use Neon's DIRECT endpoint (NOT the "-pooler" host) while numInstances is
       # 1: this process applies EF migrations at startup, and Neon's pooled

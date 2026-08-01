@@ -122,8 +122,25 @@ come back on their own once Docker Desktop starts.
 2. Set the one secret it asks for — **`Database__ConnectionString`**:
 
    ```
-   Host=<project>.<region>.aws.neon.tech;Database=vetflow;Username=<user>;Password=<password>;SSL Mode=Require;Trust Server Certificate=true
+   Host=<project>.<region>.aws.neon.tech;Database=<db>;Username=<user>;Password=<password>;SSL Mode=Require
    ```
+
+   **Neon shows you a `postgresql://` URI — Npgsql cannot parse it.** Rewrite it
+   into the keyword form above: `user:pass@host/dbname` becomes `Username=` /
+   `Password=` / `Host=` / `Database=`.
+
+   **Two parameters must NOT be carried over** (both verified against the first
+   real deployment, 2026-08-02):
+
+   - **`Trust Server Certificate`** — removed in Npgsql 10. Including it kills
+     the app at startup with `Couldn't set trust server certificate`. Since
+     Npgsql 8, libpq semantics apply: `SSL Mode=Require` already means "encrypt
+     without verifying the certificate", which is what that keyword used to be
+     paired with. Harden to `SSL Mode=VerifyFull` **after** a deploy is green —
+     Neon presents a certificate from a public CA.
+   - **`channel_binding`** — Neon puts it in the URI; Npgsql has no such keyword
+     and rejects it. Drop it. Channel binding is negotiated during SCRAM
+     authentication anyway.
 
    **Use Neon's DIRECT endpoint, not the `-pooler` host.** This process applies
    EF migrations at startup, and Neon's pooled endpoint runs PgBouncer in
