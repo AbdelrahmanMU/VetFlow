@@ -25,5 +25,6 @@
 | [ADR-0018](ADR-0018-business-failure-strategy.md) | Business failure strategy — exceptions + error catalog | Proposed | 2026-07-13 |
 | [ADR-0019](ADR-0019-database-platform.md) | Database platform — PostgreSQL | Proposed | 2026-07-13 |
 | [ADR-0020](ADR-0020-schema-evolution-safety.md) | Schema evolution safety — no destructive migrations once real data exists; Pilot start defined | Accepted | 2026-07-31 |
+| [ADR-0021](ADR-0021-deployment-platform.md) | Deployment platform — managed cloud (Neon + Render); ships before authentication, real data held until auth lands | Proposed | 2026-08-01 |
 
 Related studies (not decisions): [Database platform study — PostgreSQL vs SQL Server](../database-platform-study.md) (Draft; ruled by ADR-0019).

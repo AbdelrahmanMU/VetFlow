@@ -1,0 +1,72 @@
+# Render Blueprint — VetFlow cloud pilot (ADR-0021).
+#
+# One web service, built from the existing pilot Dockerfile. The API serves the
+# Angular bundle same-origin (Program.cs pilot hosting block), so there is no
+# second service and no CORS configuration — exactly as on-premise.
+#
+# The database is NOT declared here: PostgreSQL is hosted on Neon (ADR-0021),
+# not on Render. Its connection string is supplied as a secret env var.
+#
+# Deploy: Render Dashboard → New → Blueprint → point at this repository.
+services:
+  - type: web
+    name: vetflow
+    runtime: docker
+    dockerfilePath: ./src/VetFlow.Api/Dockerfile
+    dockerContext: .
+    region: frankfurt
+    plan: starter
+
+    # ADR-0021 §Consequences 4: `ApplyMigrationsAtStartup` is true, so two
+    # instances starting together would race on the same schema. Exactly one
+    # instance until migrations move to a release step.
+    numInstances: 1
+
+    # The SPA index is served at "/" and returns 200 once the app is up. There is
+    # no dedicated health endpoint yet; if one is added, point this at it.
+    healthCheckPath: /
+
+    envVars:
+      # ADR-0021 §Consequences 9: the .NET container listens on 8080, but Render
+      # health-checks $PORT (default 10000). Pinning PORT to 8080 aligns them.
+      - key: PORT
+        value: 8080
+
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+
+      # Explicit rather than relying on the base image's default, so the port the
+      # app binds and the port Render routes to are pinned in one place.
+      - key: ASPNETCORE_HTTP_PORTS
+        value: "8080"
+
+      # Neon connection string — set in the Render dashboard, never committed.
+      #
+      #   Host=<project>.<region>.aws.neon.tech;Database=vetflow;Username=<user>;
+      #   Password=<password>;SSL Mode=Require;Trust Server Certificate=true
+      #
+      # Use Neon's DIRECT endpoint (NOT the "-pooler" host) while numInstances is
+      # 1: this process applies EF migrations at startup, and Neon's pooled
+      # endpoint runs PgBouncer in transaction mode, which is the wrong place to
+      # be issuing DDL. One instance serving one clinic does not need pooling.
+      # Revisit — pooled endpoint, migrations moved to a release step — only if
+      # the service ever scales past one instance.
+      - key: Database__ConnectionString
+        sync: false
+
+      # Same mechanism as on-premise (ADR-0019 / STD-BE-041). Safe only while
+      # numInstances is 1 — see above.
+      - key: Database__ApplyMigrationsAtStartup
+        value: "true"
+
+      # Explicit even though false is the default: the pilot database must never
+      # receive development seed rows (PRS-Q-04).
+      - key: Database__SeedDevelopmentDataAtStartup
+        value: "false"
+
+      # BR-INV-060: the clinic's local date comes from ONE configured zone and
+      # must never fall back to UTC — ClinicClock throws if it cannot resolve.
+      # The Debian-based runtime image carries tzdata; an Alpine base would break
+      # this at startup (ADR-0021 §Consequences 8).
+      - key: Clinic__TimeZone
+        value: Africa/Cairo
