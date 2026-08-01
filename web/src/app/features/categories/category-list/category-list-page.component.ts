@@ -3,17 +3,22 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  ElementRef,
   computed,
+  effect,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import { ApiError } from '../../../core/api/problem-details';
 import { FormatService } from '../../../core/i18n/format.service';
 import { TranslationService } from '../../../core/i18n/translation.service';
+import { ApiErrorMapper, ClassifiedFailure } from '../../../core/validation/api-error-mapper';
+import { ValidationFocusService } from '../../../core/validation/validation-focus.service';
+import { VfBannerComponent } from '../../../shared/ui-kit/banner/vf-banner.component';
 import { VfButtonComponent } from '../../../shared/ui-kit/button/vf-button.component';
 import { VfEmptyStateComponent } from '../../../shared/ui-kit/empty-state/vf-empty-state.component';
 import { VfPaginationComponent } from '../../../shared/ui-kit/pagination/vf-pagination.component';
@@ -37,6 +42,7 @@ import { CategoryTableComponent } from './components/category-table.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [CategoriesApiService, CategoryListStore],
   imports: [
+    VfBannerComponent,
     VfSearchInputComponent,
     VfButtonComponent,
     VfEmptyStateComponent,
@@ -64,6 +70,10 @@ import { CategoryTableComponent } from './components/category-table.component';
           (debouncedValue)="store.setSearch($event)"
         />
       </div>
+
+      @if (toggleFailureMessage(); as message) {
+        <vf-banner tone="error" #toggleBanner>{{ message }}</vf-banner>
+      }
 
       <section class="list-area">
         @switch (store.view().kind) {
@@ -139,7 +149,7 @@ import { CategoryTableComponent } from './components/category-table.component';
         [mode]="dialogMode()"
         [initialName]="dialogInitialName()"
         [saving]="dialogSaving()"
-        [serverError]="dialogServerError()"
+        [serverFailure]="dialogServerFailure()"
         (save)="onDialogSave($event)"
       />
     </div>
@@ -219,8 +229,32 @@ export class CategoryListPageComponent {
   readonly dialogMode = signal<CategoryDialogMode>('create');
   readonly dialogInitialName = signal('');
   readonly dialogSaving = signal(false);
-  readonly dialogServerError = signal<string | null>(null);
+  readonly dialogServerFailure = signal<ClassifiedFailure | null>(null);
+  /** A failed row toggle — surfaced, never silent (STD-UX-004). */
+  readonly toggleFailure = signal<ClassifiedFailure | null>(null);
+  private readonly mapper = inject(ApiErrorMapper);
+  private readonly focus = inject(ValidationFocusService);
+  private readonly toggleBanner = viewChild('toggleBanner', { read: ElementRef });
   private editingId: string | null = null;
+
+  protected readonly toggleFailureMessage = computed(() => {
+    const failure = this.toggleFailure();
+    return failure ? this.t.t(failure.messageKey, failure.params) : null;
+  });
+
+  constructor() {
+    // The toggle banner receives focus when it appears (STD-UX-071).
+    effect(() => {
+      if (!this.toggleFailure()) {
+        return;
+      }
+
+      const banner = this.toggleBanner()?.nativeElement as HTMLElement | undefined;
+      if (banner) {
+        this.focus.focusMessage(banner);
+      }
+    });
+  }
 
   protected readonly isMobile = toSignal(
     this.breakpoints.observe('(max-width: 768px)').pipe(map((state) => state.matches)),
@@ -255,7 +289,7 @@ export class CategoryListPageComponent {
     this.editingId = null;
     this.dialogMode.set('create');
     this.dialogInitialName.set('');
-    this.dialogServerError.set(null);
+    this.dialogServerFailure.set(null);
     this.dialogVisible.set(true);
   }
 
@@ -263,7 +297,7 @@ export class CategoryListPageComponent {
     this.editingId = category.id;
     this.dialogMode.set('rename');
     this.dialogInitialName.set(category.name);
-    this.dialogServerError.set(null);
+    this.dialogServerFailure.set(null);
     this.dialogVisible.set(true);
   }
 
@@ -274,7 +308,7 @@ export class CategoryListPageComponent {
         : this.api.create(name);
 
     this.dialogSaving.set(true);
-    this.dialogServerError.set(null);
+    this.dialogServerFailure.set(null);
     request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.dialogSaving.set(false);
@@ -283,7 +317,15 @@ export class CategoryListPageComponent {
       },
       error: (error: unknown) => {
         this.dialogSaving.set(false);
-        this.dialogServerError.set(this.fieldErrorFrom(error));
+        // Classified by the shared mapper (STD-UX-123); the dialog projects a
+        // VTF-VAL-001 `name` failure onto the field (BR-CTG-003 duplicate,
+        // STD-UX-019) and renders anything else as its operation message.
+        this.dialogServerFailure.set(
+          this.mapper.map(error, {
+            system: 'categories.error.saveFailed',
+            notFound: 'categories.error.saveFailed',
+          }),
+        );
       },
     });
   }
@@ -294,30 +336,15 @@ export class CategoryListPageComponent {
       : this.api.activate(category.id);
 
     // Re-read from the server either way — the truth is authoritative, never
-    // an optimistic local flip (STD-FE-036).
+    // an optimistic local flip (STD-FE-036). A failure is surfaced through
+    // the classified banner, never swallowed (STD-UX-004).
+    this.toggleFailure.set(null);
     request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => this.store.refresh(),
-      error: () => this.store.refresh(),
+      error: (error: unknown) => {
+        this.toggleFailure.set(this.mapper.map(error));
+        this.store.refresh();
+      },
     });
-  }
-
-  /**
-   * The name field's message. A per-field validation failure on an already
-   * client-validated name (required + length are enforced before submit) means the
-   * uniqueness rule fired (BR-CTG-003), so we show a local Arabic message rather
-   * than the server's Accept-Language-negotiated text — the UI is Arabic-only
-   * (ADR-0007). Decided on the structured error (errorCode + the `name` field),
-   * never on message text (STD-FE-037); any other failure is the generic fallback.
-   */
-  private fieldErrorFrom(error: unknown): string {
-    if (
-      error instanceof ApiError &&
-      error.problem?.errorCode === 'VTF-VAL-001' &&
-      (error.problem.errors?.['name']?.length ?? 0) > 0
-    ) {
-      return this.t.t('categories.error.duplicate');
-    }
-
-    return this.t.t('categories.error.saveFailed');
   }
 }

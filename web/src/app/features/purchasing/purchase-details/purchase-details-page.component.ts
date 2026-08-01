@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { FormatService } from '../../../core/i18n/format.service';
 import { TranslationService } from '../../../core/i18n/translation.service';
+import { ClassifiedFailure } from '../../../core/validation/api-error-mapper';
 import { VfButtonComponent } from '../../../shared/ui-kit/button/vf-button.component';
 import { VfEmptyStateComponent } from '../../../shared/ui-kit/empty-state/vf-empty-state.component';
 import { PurchaseStatusBadgeComponent } from '../purchase-list/components/purchase-status-badge.component';
@@ -123,12 +124,14 @@ import { ReceivePurchaseInvoicePayload } from './purchase-lines.models';
               [(visible)]="receiveDialogVisible"
               [lines]="linesStore.lines()"
               [saving]="linesStore.saving()"
-              [serverError]="receiveServerError()"
+              [serverFailure]="receiveServerFailure()"
               (confirmed)="onReceiveConfirm($event)"
             />
           }
         }
       }
+
+      <p class="vf-visually-hidden" aria-live="polite">{{ announcement() }}</p>
     </div>
   `,
   styles: `
@@ -238,7 +241,8 @@ export class PurchaseDetailsPageComponent {
   readonly id = input.required<string>();
 
   protected readonly receiveDialogVisible = signal(false);
-  protected readonly receiveServerError = signal<string | null>(null);
+  /** The classified receive failure, rendered inside the dialog (STD-UX-082/037). */
+  protected readonly receiveServerFailure = signal<ClassifiedFailure | null>(null);
 
   constructor() {
     effect(() => {
@@ -253,6 +257,22 @@ export class PurchaseDetailsPageComponent {
     return view.kind === 'ready' ? view.invoice : null;
   }
 
+  // Screen-level load outcomes for the polite live region (STD-UX-092):
+  // loading, error, not-found, and the loaded invoice by number.
+  protected readonly announcement = computed(() => {
+    const view = this.store.view();
+    switch (view.kind) {
+      case 'loading':
+        return this.t.t('purchaseDetails.loading');
+      case 'error':
+        return this.t.t('purchaseDetails.error.title');
+      case 'notFound':
+        return this.t.t('purchaseDetails.notFound.title');
+      default:
+        return view.invoice.number;
+    }
+  });
+
   protected goToList(): void {
     void this.router.navigate(['/purchases']);
   }
@@ -263,20 +283,23 @@ export class PurchaseDetailsPageComponent {
   }
 
   protected openReceive(): void {
-    this.receiveServerError.set(null);
+    this.receiveServerFailure.set(null);
     this.receiveDialogVisible.set(true);
   }
 
   protected onReceiveConfirm(payload: ReceivePurchaseInvoicePayload): void {
-    this.receiveServerError.set(null);
-    this.linesStore.receive(payload, (succeeded) => {
-      if (succeeded) {
+    this.receiveServerFailure.set(null);
+    this.linesStore.receive(payload, (failure) => {
+      if (failure) {
+        // Classified by the shared mapper (STD-UX-123, STD-UX-037): the ruled
+        // per-code wording, never one generic sentence for an irreversible
+        // stock operation.
+        this.receiveServerFailure.set(failure);
+      } else {
         this.receiveDialogVisible.set(false);
         // Re-read the header: the invoice is now Received and immutable, so the receive
         // and line-change actions disappear (BR-PUR-011).
         this.store.retry();
-      } else {
-        this.receiveServerError.set(this.t.t('purchaseDetails.receive.dialog.error'));
       }
     });
   }

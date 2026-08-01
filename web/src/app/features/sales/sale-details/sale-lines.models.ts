@@ -46,12 +46,3 @@ export interface ProductSaleProfile {
   readonly isSplittable: boolean;
   readonly units: readonly SaleUnitOption[];
 }
-
-/** Why a commit was refused — the UI branches on the error code only (STD-FE-037). */
-export type CommitFailure = 'insufficientStock' | 'concurrencyConflict' | 'inexactConversion' | 'other';
-
-export interface CommitRejection {
-  readonly failure: CommitFailure;
-  /** The products the sale could not cover, as named by the server (AC-SAL-009). */
-  readonly products: string | null;
-}

@@ -1,22 +1,44 @@
 import { Injectable, inject, signal } from '@angular/core';
 
 import { ApiError } from '../../../core/api/problem-details';
+import {
+  ApiErrorMapper,
+  ClassifiedFailure,
+  FailureMessageOverrides,
+} from '../../../core/validation/api-error-mapper';
 import { PurchaseReturnApiService } from './purchase-return-api.service';
-import { PurchaseReturnFailure, ReturnableLine } from './purchase-return.models';
+import { ReturnableLine } from './purchase-return.models';
 
-/** Error codes the return path can return — branch on the code, never on message text (STD-FE-037). */
-const InvoiceNotReceivedCode = 'VTF-PUR-015';
-const ExceedsReturnableCode = 'VTF-PUR-016';
-const NotDraftCode = 'VTF-PUR-018';
-const NoLinesCode = 'VTF-PUR-019';
-const BelowZeroCode = 'VTF-INV-061';
-const ConflictCode = 'VTF-INV-068';
+/**
+ * The screen's ruled contextual wordings (purchasing ui.md §المرتجع;
+ * BR-PUR-015/016, BR-INV-061/068) — overrides on the shared
+ * ValidationRegistry defaults, never a fork of it (STD-UX-110/111).
+ */
+const PURCHASE_RETURN_MESSAGES: FailureMessageOverrides = {
+  'VTF-PUR-015': 'purchaseReturn.error.invoiceNotReceived',
+  'VTF-PUR-016': 'purchaseReturn.error.exceedsReturnable',
+  'VTF-PUR-018': 'purchaseReturn.error.notDraft',
+  'VTF-PUR-019': 'purchaseReturn.error.noLines',
+  'VTF-INV-061': 'purchaseReturn.error.belowZero',
+  'VTF-INV-068': 'purchaseReturn.error.conflict',
+  notFound: 'purchaseReturn.error.notFound',
+  system: 'purchaseReturn.error.unknown',
+};
 
 export type PurchaseReturnSubmitState =
   | { readonly kind: 'idle' }
   | { readonly kind: 'saving' }
   | { readonly kind: 'saved'; readonly number: string }
-  | { readonly kind: 'failed'; readonly failure: PurchaseReturnFailure };
+  | {
+      readonly kind: 'failed';
+      readonly failure: ClassifiedFailure;
+      /**
+       * True when the draft document was created before the sequence failed —
+       * the page states the partial document state explicitly (STD-UX-042):
+       * a draft exists, nothing is committed, no stock moved (BR-PUR-018).
+       */
+      readonly draftCreated: boolean;
+    };
 
 /**
  * Purchase-return state (REQ-PUR-006): signals for state, RxJS only at the HTTP boundary
@@ -25,11 +47,12 @@ export type PurchaseReturnSubmitState =
  * The store holds no copy of a rule and decides nothing: the returnable ceiling is the server's
  * number (BR-PUR-016) and is only *displayed* here. Client-side quantity checks exist to spare a
  * round trip, never to be the authority — the command re-checks against the committed returns,
- * which a screen cannot see.
+ * which a screen cannot see. Every failure passes through the shared ApiErrorMapper (STD-UX-123).
  */
 @Injectable()
 export class PurchaseReturnStore {
   private readonly api = inject(PurchaseReturnApiService);
+  private readonly mapper = inject(ApiErrorMapper);
 
   readonly lines = signal<readonly ReturnableLine[]>([]);
   readonly linesLoading = signal(false);
@@ -58,7 +81,8 @@ export class PurchaseReturnStore {
   /**
    * Create the draft, add every chosen line, then commit — the document lifecycle the owner ruled
    * (DEC-PUR-010). The commit is what moves stock, atomically across all lines (BR-PUR-018), so a
-   * failure at any step leaves no partial stock effect.
+   * failure at any step leaves no partial stock effect; a failure after the create leaves a draft
+   * document, which the failed state names so the page can say so (STD-UX-042).
    */
   save(
     invoiceId: string,
@@ -68,7 +92,20 @@ export class PurchaseReturnStore {
   ): void {
     const chosen = [...quantities.entries()].filter(([, quantity]) => quantity > 0);
     if (chosen.length === 0) {
-      this.submit.set({ kind: 'failed', failure: 'noLines' });
+      // The client-side half of BR-PUR-019 (the server enforces it at commit):
+      // a synthetic business failure with the ruled wording, same shape as a
+      // classified one so the page has a single rendering path.
+      this.submit.set({
+        kind: 'failed',
+        failure: {
+          kind: 'business',
+          code: null,
+          messageKey: 'purchaseReturn.error.noLines',
+          retryable: false,
+          fieldErrors: null,
+        },
+        draftCreated: false,
+      });
       return;
     }
 
@@ -76,7 +113,7 @@ export class PurchaseReturnStore {
 
     this.api.createReturn({ purchaseInvoiceId: invoiceId, returnDate, notes }).subscribe({
       next: (created) => this.addLinesThenCommit(created.id, created.number, chosen),
-      error: (error: unknown) => this.fail(error),
+      error: (error: unknown) => this.fail(error, false),
     });
   }
 
@@ -89,41 +126,26 @@ export class PurchaseReturnStore {
     if (next === undefined) {
       this.api.commit(returnId).subscribe({
         next: () => this.submit.set({ kind: 'saved', number }),
-        error: (error: unknown) => this.fail(error),
+        error: (error: unknown) => this.fail(error, true),
       });
       return;
     }
 
     this.api.addLine(returnId, { purchaseLineItemId: next[0], quantity: next[1] }).subscribe({
       next: () => this.addLinesThenCommit(returnId, number, rest),
-      error: (error: unknown) => this.fail(error),
+      error: (error: unknown) => this.fail(error, true),
     });
   }
 
-  private fail(error: unknown): void {
-    this.submit.set({ kind: 'failed', failure: PurchaseReturnStore.classify(error) });
+  reset(): void {
+    this.submit.set({ kind: 'idle' });
   }
 
-  private static classify(error: unknown): PurchaseReturnFailure {
-    if (!(error instanceof ApiError)) {
-      return 'unknown';
-    }
-
-    switch (error.errorCode) {
-      case InvoiceNotReceivedCode:
-        return 'invoiceNotReceived';
-      case ExceedsReturnableCode:
-        return 'exceedsReturnable';
-      case NotDraftCode:
-        return 'notDraft';
-      case NoLinesCode:
-        return 'noLines';
-      case BelowZeroCode:
-        return 'belowZero';
-      case ConflictCode:
-        return 'conflict';
-      default:
-        return error.status === 404 ? 'notFound' : 'unknown';
-    }
+  private fail(error: unknown, draftCreated: boolean): void {
+    this.submit.set({
+      kind: 'failed',
+      failure: this.mapper.map(error, PURCHASE_RETURN_MESSAGES),
+      draftCreated,
+    });
   }
 }

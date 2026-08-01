@@ -1,12 +1,15 @@
-import { ChangeDetectionStrategy, Component, forwardRef, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, forwardRef, inject, input, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 import { normalizeDigits } from '../../../core/i18n/digits';
+import { VfFormFieldComponent } from '../form-field/vf-form-field.component';
 
 /**
  * Labelled numeric field for reactive forms (STD-FE-016): a
  * ControlValueAccessor whose model value is a `number | null` (empty ⇒ null).
- * Owns its label, required marker, and error line (STD-FE-017).
+ *
+ * Inside a `vf-form-field` (STD-UX-120) the wrapper owns label, message line,
+ * and timing; standalone it keeps its own (STD-FE-017).
  *
  * The field is `type="text" inputmode="decimal"`, not `type="number"`, so that
  * Arabic-Indic and mixed digits survive to be normalized: a native number input
@@ -22,26 +25,30 @@ import { normalizeDigits } from '../../../core/i18n/digits';
   ],
   template: `
     <label class="field">
-      <span class="field-caption">
-        {{ label() }}
-        @if (required()) {
-          <span class="field-required" aria-hidden="true">*</span>
-        }
-      </span>
+      @if (!formField) {
+        <span class="field-caption">
+          {{ label() }}
+          @if (required()) {
+            <span class="field-required" aria-hidden="true">*</span>
+          }
+        </span>
+      }
       <input
         class="field-input vf-num"
-        [class.field-input--invalid]="!!error()"
+        [class.field-input--invalid]="isInvalid()"
         type="text"
         inputmode="decimal"
         [value]="text()"
         [placeholder]="placeholder()"
         [disabled]="disabled()"
-        [attr.aria-label]="label()"
-        [attr.aria-invalid]="!!error()"
+        [attr.id]="formField?.controlId ?? null"
+        [attr.aria-label]="formField ? null : label()"
+        [attr.aria-describedby]="formField?.messageId ?? null"
+        [attr.aria-invalid]="isInvalid()"
         (input)="onInput($event)"
         (blur)="onTouched()"
       />
-      @if (error(); as message) {
+      @if (!formField && error(); as message) {
         <span class="field-error" role="alert">{{ message }}</span>
       }
     </label>
@@ -99,6 +106,8 @@ import { normalizeDigits } from '../../../core/i18n/digits';
   `,
 })
 export class VfNumberInputComponent implements ControlValueAccessor {
+  protected readonly formField = inject(VfFormFieldComponent, { optional: true });
+
   readonly label = input('');
   readonly placeholder = input('');
   readonly required = input(false);
@@ -109,6 +118,10 @@ export class VfNumberInputComponent implements ControlValueAccessor {
 
   protected readonly value = signal<number | null>(null);
   protected readonly disabled = signal(false);
+
+  protected readonly isInvalid = computed(() =>
+    this.formField ? this.formField.invalid() : !!this.error(),
+  );
 
   /**
    * What the field shows. Held separately from the parsed `value` so the user

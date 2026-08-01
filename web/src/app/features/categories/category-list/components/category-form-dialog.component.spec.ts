@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
+import { ClassifiedFailure } from '../../../../core/validation/api-error-mapper';
 import { CategoryFormDialogComponent } from './category-form-dialog.component';
 
 describe('CategoryFormDialogComponent', () => {
@@ -64,14 +65,40 @@ describe('CategoryFormDialogComponent', () => {
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('إعادة تسمية التصنيف');
   });
 
-  it('a server field error is displayed and clears once the user edits', async () => {
+  it('a duplicate-name failure projects inline onto the field — not a banner — and clears on edit (STD-UX-019/020)', async () => {
     const { fixture } = await open('create');
 
-    fixture.componentRef.setInput('serverError', 'يوجد تصنيف بهذا الاسم بالفعل.');
+    type(fixture, 'أدوية');
+    fixture.componentRef.setInput('serverFailure', {
+      kind: 'field',
+      code: 'VTF-VAL-001',
+      messageKey: 'errors.VTF-VAL-001',
+      retryable: false,
+      fieldErrors: { name: ['server text (never rendered)'] },
+    } satisfies ClassifiedFailure);
     fixture.detectChanges();
+
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('يوجد تصنيف بهذا الاسم بالفعل');
+    expect((fixture.nativeElement as HTMLElement).querySelector('vf-banner')).toBeNull();
 
     type(fixture, 'أدوية جديدة');
     expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('يوجد تصنيف بهذا الاسم بالفعل');
+  });
+
+  it('a non-field failure renders as the dialog’s own operation message (STD-UX-080/082)', async () => {
+    const { fixture } = await open('create');
+
+    fixture.componentRef.setInput('serverFailure', {
+      kind: 'system',
+      code: null,
+      messageKey: 'categories.error.saveFailed',
+      retryable: false,
+      fieldErrors: null,
+    } satisfies ClassifiedFailure);
+    fixture.detectChanges();
+
+    const banner = (fixture.nativeElement as HTMLElement).querySelector('vf-banner');
+    expect(banner?.textContent).toContain('تعذّر حفظ التصنيف. أعد المحاولة.');
+    expect(banner?.getAttribute('role')).toBe('alert');
   });
 });

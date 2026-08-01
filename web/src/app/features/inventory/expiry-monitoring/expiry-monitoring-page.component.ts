@@ -135,6 +135,8 @@ import { ExpiryMonitoringStore } from './expiry-monitoring.store';
         }
       </section>
 
+      <p class="vf-visually-hidden" aria-live="polite">{{ announcement() }}</p>
+
       <app-expiry-monitoring-filters-drawer
         [(visible)]="filtersOpen"
         [filters]="store.filters()"
@@ -241,5 +243,26 @@ export class ExpiryMonitoringPageComponent {
   protected readonly readyView = computed(() => {
     const view = this.store.view();
     return view.kind === 'ready' ? view : null;
+  });
+
+  // Screen-level load outcomes for the polite live region (STD-UX-092) — the
+  // same loading / error / range announcement the list pages carry.
+  protected readonly announcement = computed(() => {
+    const view = this.store.view();
+    if (view.kind === 'loading') {
+      return this.t.t('expiry.loading');
+    }
+
+    if (view.kind === 'error') {
+      return this.t.t('expiry.error.title');
+    }
+
+    return view.totalCount === 0
+      ? this.t.t('pagination.zero')
+      : this.t.t('pagination.range', {
+          from: this.format.integer((this.store.page() - 1) * this.pageSize + 1),
+          to: this.format.integer(Math.min(this.store.page() * this.pageSize, view.totalCount)),
+          total: this.format.integer(view.totalCount),
+        });
   });
 }

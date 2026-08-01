@@ -86,7 +86,12 @@ describe('SalesReturnStore', () => {
   it('skips lines with no quantity and refuses an empty return without calling the API', () => {
     store.save('invoice-1', '2026-07-31', null, quantities([['line-a', 0]]));
 
-    expect(store.submit()).toEqual({ kind: 'failed', failure: 'noLines' });
+    const state = store.submit();
+    expect(state.kind).toBe('failed');
+    if (state.kind === 'failed') {
+      expect(state.failure.messageKey).toBe('salesReturn.error.noLines');
+      expect(state.draftCreated).toBe(false);
+    }
     http.expectNone(() => true);
   });
 
@@ -104,7 +109,15 @@ describe('SalesReturnStore', () => {
         { status: 409, statusText: 'Conflict' },
       );
 
-    expect(store.submit()).toEqual({ kind: 'failed', failure: 'exceedsReturnable' });
+    const state = store.submit();
+    expect(state.kind).toBe('failed');
+    if (state.kind === 'failed') {
+      expect(state.failure.code).toBe('VTF-SAL-016');
+      expect(state.failure.messageKey).toBe('salesReturn.error.exceedsReturnable');
+      // The draft was created before the rejection — the page states the
+      // partial document state (STD-UX-042).
+      expect(state.draftCreated).toBe(true);
+    }
   });
 
   it('classifies a fractional return of an indivisible product by its code (BR-SAL-016, DEC-SAL-007)', () => {
@@ -121,7 +134,12 @@ describe('SalesReturnStore', () => {
         { status: 400, statusText: 'Bad Request' },
       );
 
-    expect(store.submit()).toEqual({ kind: 'failed', failure: 'lineComposition' });
+    const state = store.submit();
+    expect(state.kind).toBe('failed');
+    if (state.kind === 'failed') {
+      expect(state.failure.messageKey).toBe('salesReturn.error.lineComposition');
+      expect(state.draftCreated).toBe(true);
+    }
   });
 
   it('classifies an unusable consumption trace by its code (BR-SAL-017)', () => {
@@ -142,7 +160,12 @@ describe('SalesReturnStore', () => {
         { status: 409, statusText: 'Conflict' },
       );
 
-    expect(store.submit()).toEqual({ kind: 'failed', failure: 'traceUnusable' });
+    const state = store.submit();
+    expect(state.kind).toBe('failed');
+    if (state.kind === 'failed') {
+      expect(state.failure.messageKey).toBe('salesReturn.error.traceUnusable');
+      expect(state.draftCreated).toBe(true);
+    }
   });
 
   it('classifies a concurrent batch change as retryable (BR-INV-068)', () => {
@@ -161,7 +184,14 @@ describe('SalesReturnStore', () => {
         { status: 409, statusText: 'Conflict' },
       );
 
-    expect(store.submit()).toEqual({ kind: 'failed', failure: 'conflict' });
+    const state = store.submit();
+    expect(state.kind).toBe('failed');
+    if (state.kind === 'failed') {
+      expect(state.failure.messageKey).toBe('salesReturn.error.conflict');
+      // The concurrency conflict is retryable (STD-UX-033, DEC-INV-023).
+      expect(state.failure.retryable).toBe(true);
+      expect(state.draftCreated).toBe(true);
+    }
   });
 
   it('classifies a return against a draft invoice by its code (BR-SAL-015)', () => {
@@ -174,6 +204,12 @@ describe('SalesReturnStore', () => {
         { status: 409, statusText: 'Conflict' },
       );
 
-    expect(store.submit()).toEqual({ kind: 'failed', failure: 'invoiceNotCommitted' });
+    const state = store.submit();
+    expect(state.kind).toBe('failed');
+    if (state.kind === 'failed') {
+      expect(state.failure.messageKey).toBe('salesReturn.error.invoiceNotCommitted');
+      // The very first step failed — no draft exists and nothing needs stating.
+      expect(state.draftCreated).toBe(false);
+    }
   });
 });

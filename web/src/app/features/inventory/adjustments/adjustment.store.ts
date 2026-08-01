@@ -1,50 +1,66 @@
 import { Injectable, inject, signal } from '@angular/core';
 
-import { ApiError } from '../../../core/api/problem-details';
-import { AdjustmentApiService } from './adjustment-api.service';
 import {
-  AdjustmentFailure,
-  AdjustmentPayload,
-  BatchPickerOption,
-  ProductPickerOption,
-} from './adjustment.models';
+  ApiErrorMapper,
+  ClassifiedFailure,
+  FailureMessageOverrides,
+} from '../../../core/validation/api-error-mapper';
+import { AdjustmentApiService } from './adjustment-api.service';
+import { AdjustmentPayload, BatchPickerOption, ProductPickerOption } from './adjustment.models';
 
-/** Error codes the adjustment path can return — branch on the code, never on message text (STD-FE-037). */
-const BelowZeroCode = 'VTF-INV-061';
-const ReasonNotAllowedCode = 'VTF-INV-067';
-const ConflictCode = 'VTF-INV-068';
+/**
+ * The adjustment screen's ruled contextual wordings (inventory ui.md «الرفض —
+ * رسائل صريحة لا صامتة»; BR-INV-061/067/068) — overrides on the shared
+ * ValidationRegistry defaults, never a fork of it (STD-UX-110/111).
+ */
+const ADJUSTMENT_MESSAGES: FailureMessageOverrides = {
+  'VTF-INV-061': 'adjustment.error.belowZero',
+  'VTF-INV-067': 'adjustment.error.reason',
+  'VTF-INV-068': 'adjustment.error.conflict',
+  notFound: 'adjustment.error.notFound',
+  system: 'adjustment.error.unknown',
+};
 
 export type AdjustmentSubmitState =
   | { readonly kind: 'idle' }
   | { readonly kind: 'saving' }
   | { readonly kind: 'saved'; readonly movementId: string }
-  | { readonly kind: 'failed'; readonly failure: AdjustmentFailure };
+  | { readonly kind: 'failed'; readonly failure: ClassifiedFailure };
 
 /**
  * Inventory adjustment state (REQ-INV-010): signals for state, RxJS only at the HTTP boundary
  * (STD-FE-012/013).
  *
- * The store holds no copy and makes no rule decision — it classifies the server's error code into
- * one of the documented failures and lets the page choose the sentence (BR-INV-061/067/068).
+ * The store holds no copy and makes no rule decision — every failure passes through the shared
+ * ApiErrorMapper (STD-UX-123) and the page renders the classified message.
  */
 @Injectable()
 export class AdjustmentStore {
   private readonly api = inject(AdjustmentApiService);
+  private readonly mapper = inject(ApiErrorMapper);
 
   readonly products = signal<readonly ProductPickerOption[]>([]);
   readonly batches = signal<readonly BatchPickerOption[]>([]);
   readonly batchesLoading = signal(false);
+  /** Picker-load failures are surfaced with a retry — a failed load never degrades to an empty list (STD-UX-041). */
+  readonly productsError = signal(false);
+  readonly batchesError = signal(false);
   readonly submit = signal<AdjustmentSubmitState>({ kind: 'idle' });
 
   loadProducts(): void {
+    this.productsError.set(false);
     this.api.getActiveProducts().subscribe({
       next: (products) => this.products.set(products),
-      error: () => this.products.set([]),
+      error: () => {
+        this.products.set([]);
+        this.productsError.set(true);
+      },
     });
   }
 
   loadBatches(productId: string | null): void {
     this.batches.set([]);
+    this.batchesError.set(false);
     if (!productId) {
       return;
     }
@@ -58,8 +74,14 @@ export class AdjustmentStore {
       error: () => {
         this.batches.set([]);
         this.batchesLoading.set(false);
+        this.batchesError.set(true);
       },
     });
+  }
+
+  /** Retry the batches load for the currently chosen product (STD-UX-041). */
+  retryBatches(productId: string | null): void {
+    this.loadBatches(productId);
   }
 
   save(payload: AdjustmentPayload): void {
@@ -70,28 +92,12 @@ export class AdjustmentStore {
         // The batch moved, so the picker's remaining quantities are now stale.
         this.loadBatches(null);
       },
-      error: (error: unknown) => this.submit.set({ kind: 'failed', failure: classify(error) }),
+      error: (error: unknown) =>
+        this.submit.set({ kind: 'failed', failure: this.mapper.map(error, ADJUSTMENT_MESSAGES) }),
     });
   }
 
   reset(): void {
     this.submit.set({ kind: 'idle' });
-  }
-}
-
-function classify(error: unknown): AdjustmentFailure {
-  if (!(error instanceof ApiError)) {
-    return 'unknown';
-  }
-
-  switch (error.errorCode) {
-    case BelowZeroCode:
-      return 'belowZero';
-    case ConflictCode:
-      return 'conflict';
-    case ReasonNotAllowedCode:
-      return 'reason';
-    default:
-      return error.status === 404 ? 'notFound' : 'unknown';
   }
 }

@@ -1,4 +1,6 @@
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
+
+import { vfValidators } from '../../../core/validation/validators';
 
 /**
  * The create-purchase header form (STD-FE-016, REQ-PUR-003 / BR-PUR-001): supplier
@@ -15,9 +17,9 @@ export type PurchaseCreateForm = FormGroup<{
 
 export function buildPurchaseCreateForm(): PurchaseCreateForm {
   return new FormGroup({
-    supplierName: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    supplierName: new FormControl('', { nonNullable: true, validators: [vfValidators.required] }),
     supplierInvoiceReference: new FormControl('', { nonNullable: true }),
-    invoiceDate: new FormControl<string | null>(null, [Validators.required]),
+    invoiceDate: new FormControl<string | null>(null, [vfValidators.required]),
     notes: new FormControl('', { nonNullable: true }),
   });
 }

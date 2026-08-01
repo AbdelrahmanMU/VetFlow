@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
+import { ClassifiedFailure } from '../../../core/validation/api-error-mapper';
 import { PurchaseLinesApiService } from './purchase-lines-api.service';
 import { PurchaseLinesStore } from './purchase-lines.store';
 
@@ -70,8 +71,8 @@ describe('PurchaseLinesStore', () => {
     TestBed.tick();
     http.expectOne('/api/v1/purchase-invoices/inv-1/lines').flush([]);
 
-    let reported: boolean | null = null;
-    store.add({ productId: 'p1', purchaseUnitId: 'u1', quantity: 3, unitPrice: 100 }, (ok) => (reported = ok));
+    let reported: unknown = 'unset';
+    store.add({ productId: 'p1', purchaseUnitId: 'u1', quantity: 3, unitPrice: 100 }, (failure) => (reported = failure));
 
     const post = http.expectOne(
       (request) => request.method === 'POST' && request.url === '/api/v1/purchase-invoices/inv-1/lines',
@@ -83,7 +84,7 @@ describe('PurchaseLinesStore', () => {
     TestBed.tick();
     http.expectOne('/api/v1/purchase-invoices/inv-1/lines').flush([line]);
 
-    expect(reported).toBe(true);
+    expect(reported).toBeNull();
     expect(store.saving()).toBe(false);
     const view = store.view();
     expect(view.kind === 'ready' && view.lines.length).toBe(1);
@@ -94,15 +95,17 @@ describe('PurchaseLinesStore', () => {
     TestBed.tick();
     http.expectOne('/api/v1/purchase-invoices/inv-1/lines').flush([]);
 
-    let reported: boolean | null = null;
-    store.add({ productId: 'p1', purchaseUnitId: 'u1', quantity: 0, unitPrice: 100 }, (ok) => (reported = ok));
+    const reports: (ClassifiedFailure | null)[] = [];
+    store.add({ productId: 'p1', purchaseUnitId: 'u1', quantity: 0, unitPrice: 100 }, (failure) => reports.push(failure));
 
     http.expectOne((request) => request.method === 'POST').flush(
       { type: 'about:blank', title: 'Bad Request', status: 400 },
       { status: 400, statusText: 'Bad Request' },
     );
 
-    expect(reported).toBe(false);
+    // The failure arrives classified (STD-UX-123) with the dialog's ruled fallback copy.
+    expect(reports[0]?.kind).toBe('system');
+    expect(reports[0]?.messageKey).toBe('purchaseDetails.lines.dialog.error');
     expect(store.saving()).toBe(false);
     // No refresh GET is issued on failure (http.verify() in afterEach would flag a stray request).
   });
@@ -112,8 +115,8 @@ describe('PurchaseLinesStore', () => {
     TestBed.tick();
     http.expectOne('/api/v1/purchase-invoices/inv-1/lines').flush([line]);
 
-    let reported: boolean | null = null;
-    store.remove('l1', (ok) => (reported = ok));
+    let reported: unknown = 'unset';
+    store.remove('l1', (failure) => (reported = failure));
 
     http
       .expectOne((request) => request.method === 'DELETE' && request.url === '/api/v1/purchase-invoices/inv-1/lines/l1')
@@ -122,7 +125,7 @@ describe('PurchaseLinesStore', () => {
     TestBed.tick();
     http.expectOne('/api/v1/purchase-invoices/inv-1/lines').flush([]);
 
-    expect(reported).toBe(true);
+    expect(reported).toBeNull();
     const view = store.view();
     expect(view.kind === 'ready' && view.lines.length).toBe(0);
   });
@@ -132,14 +135,14 @@ describe('PurchaseLinesStore', () => {
     TestBed.tick();
     http.expectOne('/api/v1/purchase-invoices/inv-1/lines').flush([line]);
 
-    let reported: boolean | null = null;
-    store.receive({ lines: [] }, (ok) => (reported = ok));
+    let reported: unknown = 'unset';
+    store.receive({ lines: [] }, (failure) => (reported = failure));
 
     http
       .expectOne((request) => request.method === 'POST' && request.url === '/api/v1/purchase-invoices/inv-1/receive')
       .flush(null);
 
-    expect(reported).toBe(true);
+    expect(reported).toBeNull();
     expect(store.saving()).toBe(false);
   });
 
@@ -148,14 +151,17 @@ describe('PurchaseLinesStore', () => {
     TestBed.tick();
     http.expectOne('/api/v1/purchase-invoices/inv-1/lines').flush([line]);
 
-    let reported: boolean | null = null;
-    store.receive({ lines: [] }, (ok) => (reported = ok));
+    const reports: (ClassifiedFailure | null)[] = [];
+    store.receive({ lines: [] }, (failure) => reports.push(failure));
 
     http
       .expectOne('/api/v1/purchase-invoices/inv-1/receive')
-      .flush({ errorCode: 'VTF-PUR-006' }, { status: 409, statusText: 'Conflict' });
+      .flush({ errorCode: 'VTF-PUR-006', status: 409, title: 'x', type: 'y' }, { status: 409, statusText: 'Conflict' });
 
-    expect(reported).toBe(false);
+    // The rejection arrives classified by code (STD-UX-037): the ruled
+    // no-lines wording, not one generic sentence.
+    expect(reports[0]?.code).toBe('VTF-PUR-006');
+    expect(reports[0]?.messageKey).toBe('errors.VTF-PUR-006');
     expect(store.saving()).toBe(false);
   });
 });

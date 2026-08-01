@@ -1,7 +1,21 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  computed,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 
 import { FormatService } from '../../../../core/i18n/format.service';
 import { TranslationService } from '../../../../core/i18n/translation.service';
+import { ClassifiedFailure } from '../../../../core/validation/api-error-mapper';
+import { ValidationFocusService } from '../../../../core/validation/validation-focus.service';
+import { VfBannerComponent } from '../../../../shared/ui-kit/banner/vf-banner.component';
 import { VfButtonComponent } from '../../../../shared/ui-kit/button/vf-button.component';
 import { VfEmptyStateComponent } from '../../../../shared/ui-kit/empty-state/vf-empty-state.component';
 import { Money } from '../purchase-details.models';
@@ -20,7 +34,7 @@ import { AddPurchaseLineDialogComponent } from './add-purchase-line-dialog.compo
 @Component({
   selector: 'app-purchase-line-items',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [VfButtonComponent, VfEmptyStateComponent, AddPurchaseLineDialogComponent],
+  imports: [VfBannerComponent, VfButtonComponent, VfEmptyStateComponent, AddPurchaseLineDialogComponent],
   template: `
     <section class="card">
       <div class="card-head">
@@ -31,6 +45,10 @@ import { AddPurchaseLineDialogComponent } from './add-purchase-line-dialog.compo
           </vf-button>
         }
       </div>
+
+      @if (removeFailureMessage(); as message) {
+        <vf-banner tone="error" class="remove-banner" #removeBanner>{{ message }}</vf-banner>
+      }
 
       @switch (store.view().kind) {
         @case ('loading') {
@@ -114,7 +132,9 @@ import { AddPurchaseLineDialogComponent } from './add-purchase-line-dialog.compo
         [(visible)]="dialogVisible"
         [products]="products()"
         [saving]="store.saving()"
-        [serverError]="serverError()"
+        [serverFailure]="serverFailure()"
+        [productsLoadFailed]="productsError()"
+        (retryProducts)="loadProducts()"
         (save)="onSave($event)"
       />
     </section>
@@ -134,6 +154,11 @@ import { AddPurchaseLineDialogComponent } from './add-purchase-line-dialog.compo
       gap: var(--vf-space-3);
       margin-block-end: var(--vf-space-3);
       flex-wrap: wrap;
+    }
+
+    /* Instance spacing only — the banner's own chrome is the shared component's (STD-UX-121). */
+    .remove-banner {
+      margin-block-end: var(--vf-space-3);
     }
 
     .card-title {
@@ -253,6 +278,7 @@ export class PurchaseLineItemsComponent {
   protected readonly format = inject(FormatService);
   protected readonly store = inject(PurchaseLinesStore);
   private readonly api = inject(PurchaseLinesApiService);
+  private readonly focus = inject(ValidationFocusService);
 
   readonly isDraft = input.required<boolean>();
   readonly total = input.required<Money>();
@@ -260,7 +286,12 @@ export class PurchaseLineItemsComponent {
 
   protected readonly dialogVisible = signal(false);
   protected readonly products = signal<readonly ProductPickerOption[]>([]);
-  protected readonly serverError = signal<string | null>(null);
+  /** The classified add failure, rendered inside the dialog (STD-UX-082). */
+  protected readonly serverFailure = signal<ClassifiedFailure | null>(null);
+  /** A failed removal is surfaced in the card, never silent (STD-UX-004). */
+  protected readonly removeFailure = signal<ClassifiedFailure | null>(null);
+  protected readonly productsError = signal(false);
+  private readonly removeBanner = viewChild('removeBanner', { read: ElementRef });
   private productsLoaded = false;
 
   protected readonly lines = computed(() => {
@@ -268,33 +299,64 @@ export class PurchaseLineItemsComponent {
     return view.kind === 'ready' ? view.lines : null;
   });
 
-  protected openDialog(): void {
-    this.serverError.set(null);
-    if (!this.productsLoaded) {
-      this.api.getActiveProducts().subscribe((products) => {
+  protected readonly removeFailureMessage = computed(() => {
+    const failure = this.removeFailure();
+    return failure ? this.t.t(failure.messageKey, failure.params) : null;
+  });
+
+  constructor() {
+    // The removal banner receives focus when it appears (STD-UX-071).
+    effect(() => {
+      if (!this.removeFailure()) {
+        return;
+      }
+
+      const banner = this.removeBanner()?.nativeElement as HTMLElement | undefined;
+      if (banner) {
+        this.focus.focusMessage(banner);
+      }
+    });
+  }
+
+  protected loadProducts(): void {
+    this.productsError.set(false);
+    this.api.getActiveProducts().subscribe({
+      next: (products) => {
         this.products.set(products);
         this.productsLoaded = true;
-      });
+      },
+      // A failed load is surfaced in the dialog with a retry (STD-UX-041).
+      error: () => this.productsError.set(true),
+    });
+  }
+
+  protected openDialog(): void {
+    this.serverFailure.set(null);
+    if (!this.productsLoaded) {
+      this.loadProducts();
     }
 
     this.dialogVisible.set(true);
   }
 
   protected onSave(payload: AddPurchaseLinePayload): void {
-    this.serverError.set(null);
-    this.store.add(payload, (succeeded) => {
-      if (succeeded) {
+    this.serverFailure.set(null);
+    this.store.add(payload, (failure) => {
+      if (failure) {
+        this.serverFailure.set(failure);
+      } else {
         this.dialogVisible.set(false);
         this.changed.emit();
-      } else {
-        this.serverError.set(this.t.t('purchaseDetails.lines.dialog.error'));
       }
     });
   }
 
   protected remove(lineId: string): void {
-    this.store.remove(lineId, (succeeded) => {
-      if (succeeded) {
+    this.removeFailure.set(null);
+    this.store.remove(lineId, (failure) => {
+      if (failure) {
+        this.removeFailure.set(failure);
+      } else {
         this.changed.emit();
       }
     });

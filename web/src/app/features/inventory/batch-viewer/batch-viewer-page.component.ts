@@ -147,6 +147,8 @@ import { BatchViewerStore } from './batch-viewer.store';
         }
       </section>
 
+      <p class="vf-visually-hidden" aria-live="polite">{{ announcement() }}</p>
+
       <app-batch-viewer-filters-drawer
         [(visible)]="filtersOpen"
         [filters]="store.filters()"
@@ -282,6 +284,31 @@ export class BatchViewerPageComponent {
   protected readonly headerTitle = computed(() => {
     const view = this.readyView();
     return view ? view.productName : this.t.t('batchViewer.title');
+  });
+
+  // Screen-level load outcomes for the polite live region (STD-UX-092) — the
+  // same loading / error / range announcement the list pages carry.
+  protected readonly announcement = computed(() => {
+    const view = this.store.view();
+    if (view.kind === 'loading') {
+      return this.t.t('batchViewer.loading');
+    }
+
+    if (view.kind === 'error') {
+      return this.t.t('batchViewer.error.title');
+    }
+
+    if (view.kind === 'notFound') {
+      return this.t.t('batchViewer.notFound.title');
+    }
+
+    return view.totalCount === 0
+      ? this.t.t('pagination.zero')
+      : this.t.t('pagination.range', {
+          from: this.format.integer((this.store.page() - 1) * this.pageSize + 1),
+          to: this.format.integer(Math.min(this.store.page() * this.pageSize, view.totalCount)),
+          total: this.format.integer(view.totalCount),
+        });
   });
 
   protected goToInventory(): void {

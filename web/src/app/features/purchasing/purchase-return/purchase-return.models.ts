@@ -37,14 +37,3 @@ export interface AddReturnLinePayload {
   readonly purchaseLineItemId: string;
   readonly quantity: number;
 }
-
-/** Why a return step was refused — each maps to one documented rule, branched on the code. */
-export type PurchaseReturnFailure =
-  | 'invoiceNotReceived'
-  | 'exceedsReturnable'
-  | 'notDraft'
-  | 'noLines'
-  | 'belowZero'
-  | 'conflict'
-  | 'notFound'
-  | 'unknown';

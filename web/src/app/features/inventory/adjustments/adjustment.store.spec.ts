@@ -49,24 +49,38 @@ describe('AdjustmentStore', () => {
     expect(store.submit()).toEqual({ kind: 'saved', movementId: 'mv-1' });
   });
 
-  it('classifies the below-zero rejection so the page can say what happened (BR-INV-061)', () => {
+  function failedFailure() {
+    const state = store.submit();
+    if (state.kind !== 'failed') {
+      throw new Error(`expected a failed state, got ${state.kind}`);
+    }
+
+    return state.failure;
+  }
+
+  it('classifies the below-zero rejection with its ruled wording (BR-INV-061, STD-UX-123)', () => {
     store.save(payload);
     expectAdjust().flush(
       { errorCode: 'VTF-INV-061', status: 409, title: 'x', type: 'y' },
       { status: 409, statusText: 'Conflict' },
     );
 
-    expect(store.submit()).toEqual({ kind: 'failed', failure: 'belowZero' });
+    const failure = failedFailure();
+    expect(failure.code).toBe('VTF-INV-061');
+    expect(failure.messageKey).toBe('adjustment.error.belowZero');
+    expect(failure.retryable).toBe(false);
   });
 
-  it('classifies a concurrency conflict as retryable (BR-INV-068)', () => {
+  it('classifies a concurrency conflict as retryable (BR-INV-068, STD-UX-033)', () => {
     store.save(payload);
     expectAdjust().flush(
       { errorCode: 'VTF-INV-068', status: 409, title: 'x', type: 'y' },
       { status: 409, statusText: 'Conflict' },
     );
 
-    expect(store.submit()).toEqual({ kind: 'failed', failure: 'conflict' });
+    const failure = failedFailure();
+    expect(failure.messageKey).toBe('adjustment.error.conflict');
+    expect(failure.retryable).toBe(true);
   });
 
   it('classifies a reason outside the adjustment list (BR-INV-067)', () => {
@@ -76,14 +90,16 @@ describe('AdjustmentStore', () => {
       { status: 400, statusText: 'Bad Request' },
     );
 
-    expect(store.submit()).toEqual({ kind: 'failed', failure: 'reason' });
+    expect(failedFailure().messageKey).toBe('adjustment.error.reason');
   });
 
   it('classifies a missing batch as not found', () => {
     store.save(payload);
     expectAdjust().flush({}, { status: 404, statusText: 'Not Found' });
 
-    expect(store.submit()).toEqual({ kind: 'failed', failure: 'notFound' });
+    const failure = failedFailure();
+    expect(failure.kind).toBe('notFound');
+    expect(failure.messageKey).toBe('adjustment.error.notFound');
   });
 
   it('loads the batches of the chosen product and clears them when it is cleared', () => {
@@ -110,5 +126,21 @@ describe('AdjustmentStore', () => {
 
     store.loadBatches(null);
     expect(store.batches()).toEqual([]);
+  });
+
+  it('a failed picker load surfaces its error channel — never a silent empty list (STD-UX-041)', () => {
+    store.loadProducts();
+    http
+      .expectOne((candidate) => candidate.url === '/api/v1/products')
+      .flush({}, { status: 500, statusText: 'Internal Server Error' });
+    expect(store.products()).toEqual([]);
+    expect(store.productsError()).toBe(true);
+
+    store.loadBatches('prod-1');
+    http
+      .expectOne((candidate) => candidate.url === '/api/v1/inventory/prod-1/batches')
+      .flush({}, { status: 500, statusText: 'Internal Server Error' });
+    expect(store.batchesError()).toBe(true);
+    expect(store.batchesLoading()).toBe(false);
   });
 });

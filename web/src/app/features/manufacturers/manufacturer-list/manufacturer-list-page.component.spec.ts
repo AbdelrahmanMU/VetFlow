@@ -71,9 +71,12 @@ describe('ManufacturerListPageComponent', () => {
     );
 
     expect(component.dialogVisible()).toBe(true);
-    // A per-field name failure surfaces the local Arabic duplicate message,
-    // independent of the server's Accept-Language negotiation.
-    expect(component.dialogServerError()).toBe('توجد شركة مصنعة بهذا الاسم بالفعل.');
+    // The failure is classified by the shared mapper (STD-UX-123); the dialog
+    // projects the `name` field error inline with the local Arabic duplicate
+    // message — never the server's text (STD-UX-019, STD-FE-037).
+    const failure = component.dialogServerFailure();
+    expect(failure?.kind).toBe('field');
+    expect(failure?.fieldErrors).toEqual({ name: ['توجد شركة مصنعة بهذا الاسم بالفعل.'] });
     // No refresh is issued on a failed write.
   });
 
@@ -91,7 +94,9 @@ describe('ManufacturerListPageComponent', () => {
       );
 
     expect(component.dialogVisible()).toBe(true);
-    expect(component.dialogServerError()).toBe('تعذّر حفظ الشركة المصنعة. أعد المحاولة.');
+    const failure = component.dialogServerFailure();
+    expect(failure?.kind).toBe('system');
+    expect(failure?.messageKey).toBe('manufacturers.error.saveFailed');
   });
 
   it('renaming a manufacturer PUTs to its id and refreshes', () => {
@@ -135,5 +140,24 @@ describe('ManufacturerListPageComponent', () => {
 
     TestBed.tick();
     flushList(0);
+  });
+
+  it('a failed toggle is surfaced as a classified failure, never silent (STD-UX-004)', () => {
+    const component = setup();
+
+    component.toggleActive({ id: 'm-5', name: 'شركة الأمل', isActive: true });
+
+    http
+      .expectOne((request) => request.url === '/api/v1/manufacturers/m-5/deactivate' && request.method === 'POST')
+      .flush(
+        { type: 'about:blank', title: 'Server Error', status: 500 },
+        { status: 500, statusText: 'Internal Server Error' },
+      );
+
+    expect(component.toggleFailure()?.kind).toBe('system');
+    expect(component.toggleFailure()?.messageKey).toBe('errors.system');
+    // The list still re-reads the authoritative state.
+    TestBed.tick();
+    flushList(1);
   });
 });

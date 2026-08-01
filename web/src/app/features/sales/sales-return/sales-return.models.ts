@@ -39,16 +39,3 @@ export interface AddSalesReturnLinePayload {
   readonly salesLineItemId: string;
   readonly quantity: number;
 }
-
-/** Why a return step was refused — each maps to one documented rule, branched on the code. */
-export type SalesReturnFailure =
-  | 'invoiceNotCommitted'
-  | 'exceedsReturnable'
-  | 'lineComposition'
-  | 'notDraft'
-  | 'noLines'
-  | 'traceUnusable'
-  | 'belowZero'
-  | 'conflict'
-  | 'notFound'
-  | 'unknown';

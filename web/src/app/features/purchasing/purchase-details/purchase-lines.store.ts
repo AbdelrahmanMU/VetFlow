@@ -3,6 +3,7 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { of } from 'rxjs';
 import { catchError, map, startWith, switchMap } from 'rxjs/operators';
 
+import { ApiErrorMapper, ClassifiedFailure } from '../../../core/validation/api-error-mapper';
 import { AddPurchaseLinePayload, PurchaseLine, ReceivePurchaseInvoicePayload } from './purchase-lines.models';
 import { PurchaseLinesApiService } from './purchase-lines-api.service';
 
@@ -16,10 +17,15 @@ export type PurchaseLinesViewState =
  * purchase-details store), plus add/remove mutations that refresh the list from the
  * server on success (no optimistic UI — STD-FE-036). The invoice total is never
  * computed here (BR-PUR-006, DEC-PUR-003); the page re-reads the header after a change.
+ *
+ * Every mutation failure passes through the shared ApiErrorMapper
+ * (STD-UX-123) and reaches the caller classified — never a bare boolean that
+ * throws the reason away.
  */
 @Injectable()
 export class PurchaseLinesStore {
   private readonly api = inject(PurchaseLinesApiService);
+  private readonly mapper = inject(ApiErrorMapper);
 
   private readonly invoiceId = signal<string | null>(null);
   private readonly reloadCounter = signal(0);
@@ -59,8 +65,8 @@ export class PurchaseLinesStore {
     this.reloadCounter.update((count) => count + 1);
   }
 
-  /** POST a line; on success refresh the list and report success so the page re-reads the total. */
-  add(payload: AddPurchaseLinePayload, done: (succeeded: boolean) => void): void {
+  /** POST a line; on success (`null`) refresh the list so the page re-reads the total. */
+  add(payload: AddPurchaseLinePayload, done: (failure: ClassifiedFailure | null) => void): void {
     const id = this.invoiceId();
     if (!id) {
       return;
@@ -71,17 +77,17 @@ export class PurchaseLinesStore {
       next: () => {
         this._saving.set(false);
         this.refresh();
-        done(true);
+        done(null);
       },
-      error: () => {
+      error: (error: unknown) => {
         this._saving.set(false);
-        done(false);
+        done(this.mapper.map(error, { system: 'purchaseDetails.lines.dialog.error' }));
       },
     });
   }
 
-  /** DELETE a line; on success refresh the list and report so the page re-reads the total. */
-  remove(lineId: string, done: (succeeded: boolean) => void): void {
+  /** DELETE a line; on success (`null`) refresh the list so the page re-reads the total. */
+  remove(lineId: string, done: (failure: ClassifiedFailure | null) => void): void {
     const id = this.invoiceId();
     if (!id) {
       return;
@@ -92,20 +98,20 @@ export class PurchaseLinesStore {
       next: () => {
         this._saving.set(false);
         this.refresh();
-        done(true);
+        done(null);
       },
-      error: () => {
+      error: (error: unknown) => {
         this._saving.set(false);
-        done(false);
+        done(this.mapper.map(error));
       },
     });
   }
 
   /**
-   * Receive the invoice (REQ-PUR-005): on success report so the page re-reads the header (the
-   * status becomes Received and the invoice is immutable). No optimistic UI (STD-FE-036).
+   * Receive the invoice (REQ-PUR-005): on success (`null`) report so the page re-reads the header
+   * (the status becomes Received and the invoice is immutable). No optimistic UI (STD-FE-036).
    */
-  receive(payload: ReceivePurchaseInvoicePayload, done: (succeeded: boolean) => void): void {
+  receive(payload: ReceivePurchaseInvoicePayload, done: (failure: ClassifiedFailure | null) => void): void {
     const id = this.invoiceId();
     if (!id) {
       return;
@@ -115,11 +121,11 @@ export class PurchaseLinesStore {
     this.api.receive(id, payload).subscribe({
       next: () => {
         this._saving.set(false);
-        done(true);
+        done(null);
       },
-      error: () => {
+      error: (error: unknown) => {
         this._saving.set(false);
-        done(false);
+        done(this.mapper.map(error, { system: 'purchaseDetails.receive.dialog.error' }));
       },
     });
   }

@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 
+import { FormatService } from '../../../core/i18n/format.service';
 import { TranslationService } from '../../../core/i18n/translation.service';
 import { VfButtonComponent } from '../../../shared/ui-kit/button/vf-button.component';
 import { VfEmptyStateComponent } from '../../../shared/ui-kit/empty-state/vf-empty-state.component';
@@ -82,6 +83,8 @@ import { MovementHistoryStore } from './movement-history.store';
           }
         }
       </section>
+
+      <p class="vf-visually-hidden" aria-live="polite">{{ announcement() }}</p>
     </div>
   `,
   styles: `
@@ -139,6 +142,7 @@ import { MovementHistoryStore } from './movement-history.store';
 })
 export class MovementHistoryPageComponent {
   protected readonly t = inject(TranslationService);
+  private readonly format = inject(FormatService);
   protected readonly store = inject(MovementHistoryStore);
   private readonly breakpoints = inject(BreakpointObserver);
 
@@ -152,5 +156,26 @@ export class MovementHistoryPageComponent {
   protected readonly readyView = computed(() => {
     const view = this.store.view();
     return view.kind === 'ready' ? view : null;
+  });
+
+  // Screen-level load outcomes for the polite live region (STD-UX-092) — the
+  // same loading / error / range announcement the list pages carry.
+  protected readonly announcement = computed(() => {
+    const view = this.store.view();
+    if (view.kind === 'loading') {
+      return this.t.t('history.loading');
+    }
+
+    if (view.kind === 'error') {
+      return this.t.t('history.error.title');
+    }
+
+    return view.totalCount === 0
+      ? this.t.t('pagination.zero')
+      : this.t.t('pagination.range', {
+          from: this.format.integer((this.store.page() - 1) * this.pageSize + 1),
+          to: this.format.integer(Math.min(this.store.page() * this.pageSize, view.totalCount)),
+          total: this.format.integer(view.totalCount),
+        });
   });
 }

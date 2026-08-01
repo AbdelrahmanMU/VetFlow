@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
-import { CommitRejection } from './sale-lines.models';
+import { ClassifiedFailure } from '../../../core/validation/api-error-mapper';
 import { SaleLinesApiService } from './sale-lines-api.service';
 import { SaleLinesStore } from './sale-lines.store';
 
@@ -88,8 +88,8 @@ describe('SaleLinesStore', () => {
   it('POSTs a line without a price then refreshes from the server (AC-SAL-003, DEC-SAL-003)', () => {
     loadLines([]);
 
-    let reported: boolean | null = null;
-    store.add({ productId: 'p1', saleUnitId: 'u1', quantity: 2 }, (ok) => (reported = ok));
+    const reports: (ClassifiedFailure | null)[] = [];
+    store.add({ productId: 'p1', saleUnitId: 'u1', quantity: 2 }, (failure) => reports.push(failure));
 
     const post = http.expectOne(
       (request) => request.method === 'POST' && request.url === '/api/v1/sales-invoices/si-1/lines',
@@ -101,7 +101,7 @@ describe('SaleLinesStore', () => {
     TestBed.tick();
     http.expectOne('/api/v1/sales-invoices/si-1/lines').flush([line]);
 
-    expect(reported).toBe(true);
+    expect(reports).toEqual([null]);
     expect(store.saving()).toBe(false);
     const view = store.view();
     expect(view.kind === 'ready' && view.lines.length).toBe(1);
@@ -110,15 +110,17 @@ describe('SaleLinesStore', () => {
   it('reports failure and does not refresh when the add is rejected', () => {
     loadLines([]);
 
-    let reported: boolean | null = null;
-    store.add({ productId: 'p1', saleUnitId: 'u1', quantity: 0 }, (ok) => (reported = ok));
+    const reports: (ClassifiedFailure | null)[] = [];
+    store.add({ productId: 'p1', saleUnitId: 'u1', quantity: 0 }, (failure) => reports.push(failure));
 
     http.expectOne((request) => request.method === 'POST').flush(
       { type: 'about:blank', title: 'Bad Request', status: 400 },
       { status: 400, statusText: 'Bad Request' },
     );
 
-    expect(reported).toBe(false);
+    // The failure arrives classified (STD-UX-123) with the dialog's ruled fallback copy.
+    expect(reports[0]?.kind).toBe('system');
+    expect(reports[0]?.messageKey).toBe('saleDetails.lines.dialog.error');
     expect(store.saving()).toBe(false);
     // No refresh GET is issued on failure (http.verify() in afterEach would flag a stray request).
   });
@@ -126,8 +128,8 @@ describe('SaleLinesStore', () => {
   it('DELETEs a line then refreshes the list (AC-SAL-003)', () => {
     loadLines();
 
-    let reported: boolean | null = null;
-    store.remove('l1', (ok) => (reported = ok));
+    const reports: (ClassifiedFailure | null)[] = [];
+    store.remove('l1', (failure) => reports.push(failure));
 
     http
       .expectOne((request) => request.method === 'DELETE' && request.url === '/api/v1/sales-invoices/si-1/lines/l1')
@@ -136,7 +138,7 @@ describe('SaleLinesStore', () => {
     TestBed.tick();
     http.expectOne('/api/v1/sales-invoices/si-1/lines').flush([]);
 
-    expect(reported).toBe(true);
+    expect(reports).toEqual([null]);
     const view = store.view();
     expect(view.kind === 'ready' && view.lines.length).toBe(0);
   });
@@ -144,8 +146,8 @@ describe('SaleLinesStore', () => {
   it('commits with no body and reports no rejection on success (AC-SAL-007)', () => {
     loadLines();
 
-    let rejection: CommitRejection | null | 'unset' = 'unset';
-    store.commit((result) => (rejection = result));
+    const reports: (ClassifiedFailure | null)[] = [];
+    store.commit((failure) => reports.push(failure));
 
     const commit = http.expectOne(
       (request) => request.method === 'POST' && request.url === '/api/v1/sales-invoices/si-1/commit',
@@ -153,15 +155,15 @@ describe('SaleLinesStore', () => {
     expect(commit.request.body).toEqual({});
     commit.flush(null);
 
-    expect(rejection).toBeNull();
+    expect(reports).toEqual([null]);
     expect(store.saving()).toBe(false);
   });
 
   it('classifies insufficient stock and carries the products the server named (AC-SAL-009)', () => {
     loadLines();
 
-    let rejection: CommitRejection | null = null;
-    store.commit((result) => (rejection = result));
+    const reports: (ClassifiedFailure | null)[] = [];
+    store.commit((failure) => reports.push(failure));
 
     http
       .expectOne('/api/v1/sales-invoices/si-1/commit')
@@ -170,27 +172,29 @@ describe('SaleLinesStore', () => {
         statusText: 'Conflict',
       });
 
-    expect(rejection).toEqual({ failure: 'insufficientStock', products: 'أموكسيسيلين، سيفترياكسون' });
+    expect(reports[0]?.code).toBe('VTF-INV-052');
+    expect(reports[0]?.params).toEqual({ products: 'أموكسيسيلين، سيفترياكسون' });
   });
 
   it('classifies a concurrency conflict so the page can offer a retry (AC-SAL-012)', () => {
     loadLines();
 
-    let rejection: CommitRejection | null = null;
-    store.commit((result) => (rejection = result));
+    const reports: (ClassifiedFailure | null)[] = [];
+    store.commit((failure) => reports.push(failure));
 
     http
       .expectOne('/api/v1/sales-invoices/si-1/commit')
       .flush(problem(409, 'VTF-INV-056'), { status: 409, statusText: 'Conflict' });
 
-    expect(rejection).toEqual({ failure: 'concurrencyConflict', products: null });
+    expect(reports[0]?.code).toBe('VTF-INV-056');
+    expect(reports[0]?.retryable).toBe(true);
   });
 
   it('classifies an inexact conversion and names the offending line (AC-SAL-013)', () => {
     loadLines();
 
-    let rejection: CommitRejection | null = null;
-    store.commit((result) => (rejection = result));
+    const reports: (ClassifiedFailure | null)[] = [];
+    store.commit((failure) => reports.push(failure));
 
     http
       .expectOne('/api/v1/sales-invoices/si-1/commit')
@@ -199,14 +203,15 @@ describe('SaleLinesStore', () => {
         statusText: 'Bad Request',
       });
 
-    expect(rejection).toEqual({ failure: 'inexactConversion', products: 'أموكسيسيلين' });
+    expect(reports[0]?.code).toBe('VTF-SAL-012');
+    expect(reports[0]?.params?.['product']).toBe('أموكسيسيلين');
   });
 
   it('falls back to a generic refusal for an unrecognised failure', () => {
     loadLines();
 
-    let rejection: CommitRejection | null = null;
-    store.commit((result) => (rejection = result));
+    const reports: (ClassifiedFailure | null)[] = [];
+    store.commit((failure) => reports.push(failure));
 
     http
       .expectOne('/api/v1/sales-invoices/si-1/commit')
@@ -215,7 +220,8 @@ describe('SaleLinesStore', () => {
         { status: 500, statusText: 'Internal Server Error' },
       );
 
-    expect(rejection).toEqual({ failure: 'other', products: null });
+    expect(reports[0]?.kind).toBe('system');
+    expect(reports[0]?.messageKey).toBe('saleDetails.commit.error.other');
     expect(store.saving()).toBe(false);
   });
 

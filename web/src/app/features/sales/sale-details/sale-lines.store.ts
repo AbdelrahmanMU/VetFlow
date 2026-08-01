@@ -3,8 +3,8 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { of } from 'rxjs';
 import { catchError, map, startWith, switchMap } from 'rxjs/operators';
 
-import { ApiError } from '../../../core/api/problem-details';
-import { AddSaleLinePayload, CommitFailure, CommitRejection, SaleLine } from './sale-lines.models';
+import { ApiErrorMapper, ClassifiedFailure } from '../../../core/validation/api-error-mapper';
+import { AddSaleLinePayload, SaleLine } from './sale-lines.models';
 import { SaleLinesApiService } from './sale-lines-api.service';
 
 export type SaleLinesViewState =
@@ -12,24 +12,21 @@ export type SaleLinesViewState =
   | { readonly kind: 'error' }
   | { readonly kind: 'ready'; readonly lines: readonly SaleLine[] };
 
-/** The error codes the commit can answer with (ADR-0018); the UI branches on these, never on text. */
-const InsufficientStockCode = 'VTF-INV-052';
-const ConcurrencyConflictCode = 'VTF-INV-056';
-const InexactConversionCode = 'VTF-SAL-012';
-
 /**
  * Sales line-items state (REQ-SAL-001/002/003): a reactive list read (mirroring the purchase-lines
  * store), plus add/remove mutations and the commit, each refreshing from the server on success —
  * no optimistic UI (STD-FE-036). The invoice total is never computed here (BR-SAL-005); the page
  * re-reads the header after a change.
  *
- * The commit's rejection is classified by error code so the page can show the right message and,
- * for a concurrency conflict, offer a retry (BR-INV-056, DEC-INV-023). A rejected commit changes
- * nothing — the invoice stays a draft with all its lines (BR-SAL-012).
+ * Every failure passes through the shared ApiErrorMapper (STD-UX-123) and reaches the caller
+ * classified — code, message key, metadata params, and the retryable flag (BR-INV-056,
+ * DEC-INV-023). A rejected commit changes nothing — the invoice stays a draft with all its lines
+ * (BR-SAL-012).
  */
 @Injectable()
 export class SaleLinesStore {
   private readonly api = inject(SaleLinesApiService);
+  private readonly mapper = inject(ApiErrorMapper);
 
   private readonly invoiceId = signal<string | null>(null);
   private readonly reloadCounter = signal(0);
@@ -69,8 +66,8 @@ export class SaleLinesStore {
     this.reloadCounter.update((count) => count + 1);
   }
 
-  /** POST a line; on success refresh the list and report so the page re-reads the total. */
-  add(payload: AddSaleLinePayload, done: (succeeded: boolean) => void): void {
+  /** POST a line; on success (`null`) refresh the list so the page re-reads the total. */
+  add(payload: AddSaleLinePayload, done: (failure: ClassifiedFailure | null) => void): void {
     const id = this.invoiceId();
     if (!id) {
       return;
@@ -81,17 +78,17 @@ export class SaleLinesStore {
       next: () => {
         this._saving.set(false);
         this.refresh();
-        done(true);
+        done(null);
       },
-      error: () => {
+      error: (error: unknown) => {
         this._saving.set(false);
-        done(false);
+        done(this.mapper.map(error, { system: 'saleDetails.lines.dialog.error' }));
       },
     });
   }
 
-  /** DELETE a line; on success refresh the list and report so the page re-reads the total. */
-  remove(lineId: string, done: (succeeded: boolean) => void): void {
+  /** DELETE a line; on success (`null`) refresh the list so the page re-reads the total. */
+  remove(lineId: string, done: (failure: ClassifiedFailure | null) => void): void {
     const id = this.invoiceId();
     if (!id) {
       return;
@@ -102,11 +99,11 @@ export class SaleLinesStore {
       next: () => {
         this._saving.set(false);
         this.refresh();
-        done(true);
+        done(null);
       },
-      error: () => {
+      error: (error: unknown) => {
         this._saving.set(false);
-        done(false);
+        done(this.mapper.map(error));
       },
     });
   }
@@ -114,9 +111,10 @@ export class SaleLinesStore {
   /**
    * Commit the sale (REQ-SAL-003). On success the page re-reads the header: the invoice is now
    * Committed and immutable (BR-SAL-011). On rejection nothing changed — the caller receives the
-   * classified reason so it can name the products or offer a retry.
+   * classified failure (code + metadata params + retryable) so the dialog can name the products
+   * the server named (AC-SAL-009/013) or offer a retry (DEC-INV-023).
    */
-  commit(done: (rejection: CommitRejection | null) => void): void {
+  commit(done: (failure: ClassifiedFailure | null) => void): void {
     const id = this.invoiceId();
     if (!id) {
       return;
@@ -130,29 +128,8 @@ export class SaleLinesStore {
       },
       error: (error: unknown) => {
         this._saving.set(false);
-        done(classify(error));
+        done(this.mapper.map(error, { system: 'saleDetails.commit.error.other' }));
       },
     });
   }
-}
-
-function classify(error: unknown): CommitRejection {
-  if (!(error instanceof ApiError)) {
-    return { failure: 'other', products: null };
-  }
-
-  const failure: CommitFailure =
-    error.errorCode === InsufficientStockCode
-      ? 'insufficientStock'
-      : error.errorCode === ConcurrencyConflictCode
-        ? 'concurrencyConflict'
-        : error.errorCode === InexactConversionCode
-          ? 'inexactConversion'
-          : 'other';
-
-  // Insufficient stock names every product that fell short (`products`); an inexact conversion
-  // names the single offending line's product (`product`). Both are data the server produced —
-  // the UI only renders what it was given (AC-SAL-009, AC-SAL-013).
-  const metadata = error.problem?.metadata;
-  return { failure, products: metadata?.['products'] ?? metadata?.['product'] ?? null };
 }

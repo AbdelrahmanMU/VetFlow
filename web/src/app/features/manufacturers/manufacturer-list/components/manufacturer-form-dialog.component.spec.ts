@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
+import { ClassifiedFailure } from '../../../../core/validation/api-error-mapper';
 import { ManufacturerFormDialogComponent } from './manufacturer-form-dialog.component';
 
 describe('ManufacturerFormDialogComponent', () => {
@@ -47,6 +48,16 @@ describe('ManufacturerFormDialogComponent', () => {
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('اسم الشركة المصنعة مطلوب');
   });
 
+  it('an over-long name gets the max-length sentence, not the required copy (STD-UX-017)', async () => {
+    const { fixture, saved } = await open('create');
+
+    type(fixture, 'م'.repeat(120));
+    clickSave(fixture);
+
+    expect(saved).toEqual([]);
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('يجب ألّا يتجاوز هذا الحقل 100 حرفًا.');
+  });
+
   it('a valid name is emitted trimmed', async () => {
     const { fixture, saved } = await open('create');
 
@@ -64,14 +75,40 @@ describe('ManufacturerFormDialogComponent', () => {
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('إعادة تسمية الشركة المصنعة');
   });
 
-  it('a server field error is displayed and clears once the user edits', async () => {
+  it('a duplicate-name failure projects inline onto the field — not a banner — and clears on edit (STD-UX-019/020)', async () => {
     const { fixture } = await open('create');
 
-    fixture.componentRef.setInput('serverError', 'توجد شركة مصنعة بهذا الاسم بالفعل.');
+    type(fixture, 'شركة الأمل');
+    fixture.componentRef.setInput('serverFailure', {
+      kind: 'field',
+      code: 'VTF-VAL-001',
+      messageKey: 'errors.VTF-VAL-001',
+      retryable: false,
+      fieldErrors: { name: ['server text (never rendered)'] },
+    } satisfies ClassifiedFailure);
     fixture.detectChanges();
+
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('توجد شركة مصنعة بهذا الاسم بالفعل');
+    expect((fixture.nativeElement as HTMLElement).querySelector('vf-banner')).toBeNull();
 
     type(fixture, 'شركة جديدة');
     expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('توجد شركة مصنعة بهذا الاسم بالفعل');
+  });
+
+  it('a non-field failure renders as the dialog’s own operation message (STD-UX-080/082)', async () => {
+    const { fixture } = await open('create');
+
+    fixture.componentRef.setInput('serverFailure', {
+      kind: 'system',
+      code: null,
+      messageKey: 'manufacturers.error.saveFailed',
+      retryable: false,
+      fieldErrors: null,
+    } satisfies ClassifiedFailure);
+    fixture.detectChanges();
+
+    const banner = (fixture.nativeElement as HTMLElement).querySelector('vf-banner');
+    expect(banner?.textContent).toContain('تعذّر حفظ الشركة المصنعة. أعد المحاولة.');
+    expect(banner?.getAttribute('role')).toBe('alert');
   });
 });

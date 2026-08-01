@@ -109,15 +109,31 @@ export const AR = {
   'editor.update': 'حفظ التعديلات',
   'editor.saving': 'جارٍ الحفظ…',
   'editor.cancel': 'إلغاء',
-  'editor.error': 'تعذّر حفظ المنتج. راجع الحقول المميّزة ثم أعد المحاولة.',
-  'editor.required': 'هذا الحقل مطلوب.',
+  // Generic save-failure template of the standard («تعذّر حفظ [الشيء]…»,
+  // validation-and-guidance.md §6) with the editor's noun — NEW WORDING
+  // (template substitution, STD-UX-054), pending owner review. Replaces the
+  // removed 'editor.error', whose «راجع الحقول المميّزة» pointed at fields
+  // that were never highlighted (AP-03); field errors now project inline.
+  'editor.error.save': 'تعذّر حفظ المنتج. لم يُحفظ أيّ تغيير — أعد المحاولة، وإن تكرّر الخطأ أبلغ المسؤول.',
+  // The possible-duplicate advisory could not run (BR-CAT-042 — it may never
+  // block saving): what happened · the state · the exit (STD-UX-001) — NEW
+  // WORDING, pending owner review.
+  'editor.duplicateCheck.failed':
+    'تعذّر التحقق من وجود منتج مشابه. لم يُحفظ المنتج بعد. اضغط «حفظ المنتج» مرة أخرى للمتابعة دون هذا التحقق.',
 
   'editor.units.title': 'الوحدات ومعاملات التحويل',
   'editor.units.add': 'أضف وحدة',
   'editor.units.remove': 'حذف الوحدة',
   'editor.units.unit': 'الوحدة',
   'editor.units.conversion': 'معامل التحويل',
-  'editor.units.conversionHint': 'الكمية داخل الوحدة الأكبر التالية',
+  // The previous wording — «الكمية داخل الوحدة الأكبر التالية» — named the wrong
+  // direction: `QuantityInNextUnit` is how many of the NEXT (smaller) row this unit
+  // contains (`ProductUnit`: "carton = 12 boxes"; rows are submitted largest-first,
+  // `position: index`). BR-CAT-018 states the rule in exactly this direction
+  // («١ زجاجة = ١٠٠ سم») and BR-CAT-019 draws the chain كرتونة ← علبة ← شريط ← قرص.
+  // The old hint told the user to invert every factor in the most consequential field
+  // in the system. NEW WORDING, pending owner review (STD-UX-114 sync: catalog/ui.md).
+  'editor.units.conversionHint': 'عدد وحدات الصفّ التالي الأصغر داخل هذه الوحدة — مثل: ١ علبة = ٢٠ قرص. يُترك فارغًا في أصغر وحدة.',
   'editor.units.isPurchase': 'شراء',
   'editor.units.isSale': 'بيع',
   'editor.units.barcode': 'الباركود (اختياري)',
@@ -129,6 +145,12 @@ export const AR = {
   'editor.units.defaultPurchase': 'وحدة الشراء الافتراضية',
   'editor.units.empty': 'أضف وحدة شراء ووحدة بيع ووحدة مخزون على الأقل.',
   'editor.units.storageHint': 'كل الأرصدة والحركات تُحسب بوحدة المخزون.',
+  // One sentence per cross-row rule (STD-UX-017; BR-CAT-016/024/025) — the
+  // old single sentence covered three distinct rules (AP-02). NEW WORDINGS,
+  // pending owner review.
+  'editor.units.error.empty': 'أضف وحدة واحدة على الأقل إلى ملف الوحدات.',
+  'editor.units.error.noPurchase': 'حدّد وحدة شراء واحدة على الأقل.',
+  'editor.units.error.noSale': 'حدّد وحدة بيع واحدة على الأقل.',
 
   'editor.duplicate.title': 'تكرار محتمل',
   'editor.duplicate.body': 'يوجد منتج مشابه بالفعل. راجعه قبل المتابعة.',
@@ -320,7 +342,6 @@ export const AR = {
   'purchaseCreate.field.supplierReference': 'مرجع فاتورة المورد',
   'purchaseCreate.field.invoiceDate': 'تاريخ الفاتورة',
   'purchaseCreate.field.notes': 'الملاحظات',
-  'purchaseCreate.required': 'هذا الحقل مطلوب.',
   'purchaseCreate.save': 'حفظ',
   'purchaseCreate.saving': 'جارٍ الحفظ…',
   'purchaseCreate.cancel': 'إلغاء',
@@ -541,6 +562,20 @@ export const AR = {
   'adjustment.error.notFound': 'الدفعة غير موجودة.',
   'adjustment.error.unknown': 'تعذّر حفظ التسوية. أعد المحاولة.',
 
+  // Shared picker-load failure surface (STD-UX-041): a failed picker load
+  // never degrades to an empty list — one sentence pattern app-wide
+  // (STD-UX-054), retry via the shared «إعادة المحاولة».
+  'pickers.productsError': 'تعذّر تحميل قائمة المنتجات.',
+  'pickers.batchesError': 'تعذّر تحميل دفعات المنتج.',
+  'pickers.unitsError': 'تعذّر تحميل وحدات المنتج.',
+  // Product-editor lookups (C9) — same sentence pattern. NEW WORDINGS,
+  // pending owner review. `unitsListError` is the global units list; the
+  // existing `unitsError` names a product's own units (AP-16 — no borrowing).
+  'pickers.categoriesError': 'تعذّر تحميل قائمة التصنيفات.',
+  'pickers.manufacturersError': 'تعذّر تحميل قائمة الشركات المصنعة.',
+  'pickers.naturesError': 'تعذّر تحميل قائمة طبائع المنتج.',
+  'pickers.unitsListError': 'تعذّر تحميل قائمة الوحدات.',
+
   // Purchase returns — Epic 2 / C5 — purchasing/ui.md, REQ-PUR-006, DEC-PUR-010.
   // No reason key anywhere: returns carry no reason code (BR-INV-067).
   // No amount/total key either: a return has no financial effect (DEC-INV-035).
@@ -578,6 +613,10 @@ export const AR = {
   'purchaseReturn.error.conflict': 'تغيّرت الدفعة أثناء الحفظ. لم يُحفظ أيّ تغيير. أعد المحاولة.',
   'purchaseReturn.error.notFound': 'الفاتورة أو البند غير موجود.',
   'purchaseReturn.error.unknown': 'تعذّر تثبيت المرتجع. أعد المحاولة.',
+  // Sequence-state sentence (STD-UX-042): appended when the draft document was
+  // created before the sequence failed — a draft exists, nothing committed,
+  // no stock moved (BR-PUR-018).
+  'purchaseReturn.error.draftState': 'أُنشئت مسودة المرتجع ولم تُثبَّت، ولم يتحرّك أيّ مخزون.',
 
   // Sales returns — Epic 2 / C6 — sales/ui.md, REQ-SAL-004, DEC-SAL-010.
   // No reason key anywhere: returns carry no reason code (BR-INV-067).
@@ -620,6 +659,10 @@ export const AR = {
   'salesReturn.error.conflict': 'تغيّرت الدفعة أثناء الحفظ. لم يُحفظ أيّ تغيير. أعد المحاولة.',
   'salesReturn.error.notFound': 'الفاتورة أو البند غير موجود.',
   'salesReturn.error.unknown': 'تعذّر تثبيت المرتجع. أعد المحاولة.',
+  // Sequence-state sentence (STD-UX-042): appended when the draft document was
+  // created before the sequence failed — a draft exists, nothing committed,
+  // no stock moved (BR-SAL-018).
+  'salesReturn.error.draftState': 'أُنشئت مسودة المرتجع ولم تُثبَّت، ولم يتحرّك أيّ مخزون.',
 
   // Inventory write-off — Epic 2 / C4 — inventory/ui.md, REQ-INV-011 (closes R9)
   'nav.writeOff': 'إهلاك مخزون',
@@ -640,6 +683,16 @@ export const AR = {
   'writeOff.error.belowZero': 'الكمية المطلوب إهلاكها تتجاوز المتبقّي في الدفعة. لم تُنفَّذ العملية ولم يتغيّر أيّ رصيد.',
   'writeOff.error.reason': 'هذا السبب لا يخصّ الإهلاك. اختر سببًا من قائمة الإهلاك.',
   'writeOff.error.unknown': 'تعذّر حفظ الإهلاك. أعد المحاولة.',
+  // Key-ownership cleanup (validation gap AP-16): the write-off screen no
+  // longer borrows adjustment.* error keys. Sentences mirror the adjustment
+  // wordings; only the reason wording substitutes the operation noun per the
+  // standard's template rule (STD-UX-054).
+  'writeOff.error.productRequired': 'اختر المنتج.',
+  'writeOff.error.batchRequired': 'اختر الدفعة.',
+  'writeOff.error.quantityPositive': 'المقدار يجب أن يكون أكبر من صفر.',
+  'writeOff.error.reasonRequired': 'اختر سبب الإهلاك.',
+  'writeOff.error.conflict': 'تغيّرت الدفعة أثناء الحفظ. لم يُحفظ أيّ تغيير. أعد المحاولة.',
+  'writeOff.error.notFound': 'الدفعة غير موجودة.',
 
   // Sales — Sprint 7 «Sales MVP» — sales/ui.md, REQ-SAL-001..003, BR-SAL-001..013
   'nav.sales': 'المبيعات',
@@ -685,7 +738,6 @@ export const AR = {
   'saleCreate.field.customerName': 'اسم العميل',
   'saleCreate.field.saleDate': 'تاريخ البيع',
   'saleCreate.field.notes': 'الملاحظات',
-  'saleCreate.required': 'هذا الحقل مطلوب.',
   'saleCreate.save': 'حفظ',
   'saleCreate.saving': 'جارٍ الحفظ…',
   'saleCreate.error': 'تعذّر إنشاء فاتورة البيع. تحقق من الاتصال ثم أعد المحاولة.',
@@ -757,6 +809,67 @@ export const AR = {
   'saleDetails.lines.error.unit': 'اختر وحدة البيع.',
   'saleDetails.lines.error.quantity': 'الكمية يجب أن تكون أكبر من صفر.',
   'saleDetails.lines.error.notSplittable': 'هذا المنتج غير قابل للتجزئة — أدخِل كمية صحيحة.',
+
+  // Validation & guidance foundation — docs/ui/validation-and-guidance.md (§6, §11-§12).
+  // Shared field-rule copy (STD-UX-111 `validation.*`); «هذا الحقل مطلوب.» is the ruled
+  // canonical string (sales/ui.md, STD-UX-018). New sentences follow the §6 style guide
+  // and are flagged for owner review in the Phase 1 report.
+  'validation.required': 'هذا الحقل مطلوب.',
+  'validation.maxLength': 'يجب ألّا يتجاوز هذا الحقل {max} حرفًا.',
+  'validation.positive': 'القيمة يجب أن تكون أكبر من صفر.',
+  // Shared sentence for the non-negative rule (>= 0, zero allowed) — the
+  // return pages rendered the strictly-positive sentence for it, which lies
+  // about zero (found by the C12 browser sweep; STD-UX-017/054). NEW WORDING,
+  // pending owner review.
+  'validation.nonNegative': 'القيمة يجب أن تكون صفرًا أو أكثر.',
+  'validation.wholeNumber': 'أدخِل عددًا صحيحًا.',
+  'validation.invalid': 'راجع قيمة هذا الحقل.',
+  'validation.corrected': 'تم تصحيح هذا الحقل.',
+  'validation.summary.title': 'أكمل الحقول التالية ثم أعد الحفظ:',
+
+  // ApiErrorMapper defaults for the two status-shaped cases (STD-UX-040/043).
+  // `errors.system` reuses the backend catalog's `error.internal` wording verbatim.
+  'errors.system': 'حدث خطأ غير متوقع. أعد المحاولة، وإن تكرر تواصل مع الدعم الفني.',
+  'errors.notFound': 'العنصر المطلوب غير موجود.',
+  // The shared retry action label (STD-UX-033) — one wording everywhere.
+  'errors.retry': 'إعادة المحاولة',
+
+  // Code-mapped defaults (STD-UX-111 `errors.<code>`): wording mirrors the backend
+  // Error Catalog resources verbatim (ADR-0018; the two copies stay in sync — STD-UX-112).
+  // Ruled contextual wordings stay per-screen and override these (STD-UX-111).
+  'errors.VTF-VAL-001': 'الطلب غير صالح. راجع الحقول المذكورة.',
+  'errors.VTF-CAT-009': 'لا يمكن حفظ المنتج قبل استيفاء الحد الأدنى الإجباري للبيانات.',
+  'errors.VTF-CAT-016': 'ملف الوحدات غير سليم التكوين.',
+  'errors.VTF-CAT-020': 'وحدة المخزون يجب أن تكون إحدى وحدات ملف الوحدات.',
+  'errors.VTF-CAT-021': 'وحدة الشراء الافتراضية يجب أن تكون وحدة شراء من ملف الوحدات.',
+  'errors.VTF-CAT-022': 'وحدة البيع الافتراضية يجب أن تكون وحدة بيع من ملف الوحدات.',
+  'errors.VTF-CAT-025': 'سعر البيع يُسجَّل لوحدات البيع فقط.',
+  'errors.VTF-CAT-036': 'عند تفعيل «له صلاحية بعد الفتح» يجب إدخال مدة الصلاحية بعد الفتح.',
+  'errors.VTF-PUR-003': 'لا يمكن تعديل البنود إلا لفاتورة شراء مسودة.',
+  'errors.VTF-PUR-005': 'بند الشراء غير صالح. راجع المنتج ووحدة الشراء والكمية وسعر الوحدة.',
+  'errors.VTF-PUR-006': 'لا يمكن استلام فاتورة شراء بلا بنود. أضِف بندًا واحدًا على الأقل قبل الاستلام.',
+  'errors.VTF-PUR-007': 'هذا المنتج يتطلّب تاريخ صلاحية عند الاستلام.',
+  'errors.VTF-PUR-015': 'لا يمكن إنشاء مرتجع إلّا مقابل فاتورة شراء مستلَمة.',
+  'errors.VTF-PUR-016': 'الكمّية المرتجَعة تتجاوز المتبقّي القابل للإرجاع من هذا البند.',
+  'errors.VTF-PUR-017': 'بند المرتجع غير صالح. يجب أن تكون الكمّية أكبر من صفر.',
+  'errors.VTF-PUR-018': 'لا يمكن تعديل مرتجع مثبَّت أو إعادة تثبيته.',
+  'errors.VTF-PUR-019': 'لا يمكن تثبيت مرتجع بلا بنود. أضِف بندًا واحدًا على الأقل قبل التثبيت.',
+  'errors.VTF-SAL-003': 'لا يمكن تعديل البنود أو الإثبات إلا لفاتورة بيع مسودة.',
+  'errors.VTF-SAL-004': 'بند البيع غير صالح. راجع المنتج ووحدة البيع والكمية وسعر البيع المعرَّف في الكتالوج.',
+  'errors.VTF-SAL-009': 'لا يمكن إثبات فاتورة بيع بلا بنود. أضِف بندًا واحدًا على الأقل قبل الإثبات.',
+  'errors.VTF-SAL-012': 'تعذّر تحويل كمية أحد البنود إلى وحدة المخزون تحويلًا تامًّا. لم تُقرَّب الكمية ولم تُبتَر، والإثبات مرفوض.',
+  'errors.VTF-SAL-015': 'لا يمكن إنشاء مرتجع إلّا مقابل فاتورة بيع مثبَّتة.',
+  'errors.VTF-SAL-016': 'الكمّية المرتجَعة تتجاوز المتبقّي القابل للإرجاع من هذا البند.',
+  'errors.VTF-SAL-017': 'بند المرتجع غير صالح. يجب أن تكون الكمّية أكبر من صفر، وأن تكون عددًا صحيحًا للمنتج غير القابل للتجزئة.',
+  'errors.VTF-SAL-018': 'لا يمكن تعديل مرتجع مثبَّت أو إعادة تثبيته.',
+  'errors.VTF-SAL-019': 'لا يمكن تثبيت مرتجع بلا بنود. أضِف بندًا واحدًا على الأقل قبل التثبيت.',
+  'errors.VTF-SAL-020': 'تعذّر تحديد الدفعات التي خرجت منها الكمّية المرتجَعة، فلم يُنفَّذ التثبيت ولم يتغيّر أيّ مخزون.',
+  'errors.VTF-INV-046': 'طلب استهلاك المخزون غير صالح.',
+  'errors.VTF-INV-052': 'المخزون المتاح القابل للبيع لا يكفي. لم يتغيّر أيّ رصيد ولم تُخفَّض أيّ دفعة.',
+  'errors.VTF-INV-056': 'تغيّر المخزون أثناء إتمام البيع. لم يُحفظ أيّ تغيير. حاول مرة أخرى.',
+  'errors.VTF-INV-061': 'الكمية المطلوب خصمها تتجاوز المتبقّي في الدفعة. لم تُنفَّذ العملية ولم يتغيّر أيّ رصيد.',
+  'errors.VTF-INV-067': 'سبب غير مسموح به لهذه العملية. اختر سببًا من قائمة العملية نفسها.',
+  'errors.VTF-INV-068': 'تغيّرت الدفعة أثناء حفظ العملية. لم يُحفظ أيّ تغيير. حاول مرة أخرى.',
 } as const;
 
 export type MessageKey = keyof typeof AR;

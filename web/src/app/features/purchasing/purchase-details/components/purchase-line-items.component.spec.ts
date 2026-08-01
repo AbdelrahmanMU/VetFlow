@@ -77,4 +77,22 @@ describe('PurchaseLineItemsComponent', () => {
     expect(element.querySelector('vf-empty-state')).not.toBeNull();
     expect(element.querySelector('.total-value')?.textContent).toContain('0');
   });
+
+  it('a failed line removal renders a classified banner — never silent (STD-UX-004)', () => {
+    const fixture = setup(true);
+    const element: HTMLElement = fixture.nativeElement;
+
+    element.querySelector<HTMLButtonElement>('.action-col vf-button button')?.click();
+    http
+      .expectOne((request) => request.method === 'DELETE' && request.url === '/api/v1/purchase-invoices/inv-1/lines/l1')
+      .flush(
+        { type: 'about:blank', title: 'Server Error', status: 500 },
+        { status: 500, statusText: 'Internal Server Error' },
+      );
+    fixture.detectChanges();
+
+    const banner = element.querySelector('vf-banner');
+    expect(banner?.getAttribute('role')).toBe('alert');
+    expect(banner?.textContent).toContain('حدث خطأ غير متوقع');
+  });
 });

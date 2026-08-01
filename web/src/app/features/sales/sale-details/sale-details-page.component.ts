@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { FormatService } from '../../../core/i18n/format.service';
 import { TranslationService } from '../../../core/i18n/translation.service';
+import { ClassifiedFailure } from '../../../core/validation/api-error-mapper';
 import { VfButtonComponent } from '../../../shared/ui-kit/button/vf-button.component';
 import { VfEmptyStateComponent } from '../../../shared/ui-kit/empty-state/vf-empty-state.component';
 import { CommitSaleDialogComponent } from './components/commit-sale-dialog.component';
@@ -10,7 +11,6 @@ import { SaleLineItemsComponent } from './components/sale-line-items.component';
 import { SaleStatusBadgeComponent } from './components/sale-status-badge.component';
 import { SaleDetailsApiService } from './sale-details-api.service';
 import { SaleDetailsStore } from './sale-details.store';
-import { CommitRejection } from './sale-lines.models';
 import { SaleLinesApiService } from './sale-lines-api.service';
 import { SaleLinesStore } from './sale-lines.store';
 
@@ -140,6 +140,8 @@ import { SaleLinesStore } from './sale-lines.store';
           }
         }
       }
+
+      <p class="vf-visually-hidden" aria-live="polite">{{ announcement() }}</p>
     </div>
   `,
   styles: `
@@ -249,7 +251,8 @@ export class SaleDetailsPageComponent {
   readonly id = input.required<string>();
 
   protected readonly commitDialogVisible = signal(false);
-  protected readonly commitRejection = signal<CommitRejection | null>(null);
+  /** The classified commit refusal (ApiErrorMapper output), rendered inside the dialog (STD-UX-082). */
+  protected readonly commitRejection = signal<ClassifiedFailure | null>(null);
 
   constructor() {
     effect(() => {
@@ -263,6 +266,22 @@ export class SaleDetailsPageComponent {
     const view = this.store.view();
     return view.kind === 'ready' ? view.invoice : null;
   }
+
+  // Screen-level load outcomes for the polite live region (STD-UX-092):
+  // loading, error, not-found, and the loaded invoice by number.
+  protected readonly announcement = computed(() => {
+    const view = this.store.view();
+    switch (view.kind) {
+      case 'loading':
+        return this.t.t('saleDetails.loading');
+      case 'error':
+        return this.t.t('saleDetails.error.title');
+      case 'notFound':
+        return this.t.t('saleDetails.notFound.title');
+      default:
+        return view.invoice.number;
+    }
+  });
 
   protected goToNewSale(): void {
     void this.router.navigate(['/sales/new']);

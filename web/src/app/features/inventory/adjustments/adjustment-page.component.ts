@@ -1,26 +1,33 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  OnInit,
+  computed,
+  effect,
+  inject,
+  viewChild,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
-import { MessageKey } from '../../../core/i18n/ar';
 import { FormatService } from '../../../core/i18n/format.service';
 import { TranslationService } from '../../../core/i18n/translation.service';
+import { SubmitGuidanceDirective } from '../../../core/validation/submit-guidance.directive';
+import { ValidationFocusService } from '../../../core/validation/validation-focus.service';
+import { RuleMessageOverrides } from '../../../core/validation/validation-messages';
+import { vfValidators } from '../../../core/validation/validators';
+import { VfBannerComponent } from '../../../shared/ui-kit/banner/vf-banner.component';
 import { VfButtonComponent } from '../../../shared/ui-kit/button/vf-button.component';
+import { VfFormFieldComponent } from '../../../shared/ui-kit/form-field/vf-form-field.component';
 import { VfNumberInputComponent } from '../../../shared/ui-kit/input/vf-number-input.component';
 import { VfTextInputComponent } from '../../../shared/ui-kit/input/vf-text-input.component';
 import { VfTextareaComponent } from '../../../shared/ui-kit/input/vf-textarea.component';
 import { VfSelectComponent } from '../../../shared/ui-kit/select/vf-select.component';
 import { AdjustmentApiService } from './adjustment-api.service';
 import { AdjustmentStore } from './adjustment.store';
-import { ADJUSTMENT_REASONS, AdjustmentDirection, AdjustmentFailure, AdjustmentReason } from './adjustment.models';
-
-const FAILURE_MESSAGES: Readonly<Record<AdjustmentFailure, MessageKey>> = {
-  belowZero: 'adjustment.error.belowZero',
-  conflict: 'adjustment.error.conflict',
-  reason: 'adjustment.error.reason',
-  notFound: 'adjustment.error.notFound',
-  unknown: 'adjustment.error.unknown',
-};
+import { ADJUSTMENT_REASONS, AdjustmentDirection, AdjustmentReason } from './adjustment.models';
 
 /**
  * تسوية مخزون (inventory ui.md, REQ-INV-010) — the first Inventory screen that *changes* stock.
@@ -34,14 +41,27 @@ const FAILURE_MESSAGES: Readonly<Record<AdjustmentFailure, MessageKey>> = {
  * adjustment one only — «منتهي الصلاحية» and «ملوَّث» belong to write-off (DEC-INV-031). The actor
  * is an optional free-text field, shown because BR-INV-066 allows it and hiding it would make the
  * rule dead; it is never validated and never required (DEC-INV-030).
+ *
+ * Phase 1 proof-of-concept of the validation foundation
+ * (validation-and-guidance.md): a typed reactive form (STD-UX-126) whose
+ * fields render through `vf-form-field` with the ruled per-field wordings as
+ * overrides, submit guidance with first-invalid focus (STD-UX-122), the
+ * shared ApiErrorMapper in the store (STD-UX-123), a focusable rejection
+ * banner (STD-UX-071) that clears on any relevant edit (STD-UX-035), and a
+ * retry-labelled primary action on a concurrency conflict (STD-UX-033).
+ * Adoption Epic additions: the shared `vf-banner` (STD-UX-121) and surfaced
+ * picker-load failures with retry (STD-UX-041).
  */
 @Component({
   selector: 'app-adjustment-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [AdjustmentApiService, AdjustmentStore],
   imports: [
-    FormsModule,
+    ReactiveFormsModule,
     RouterLink,
+    SubmitGuidanceDirective,
+    VfBannerComponent,
+    VfFormFieldComponent,
     VfSelectComponent,
     VfNumberInputComponent,
     VfTextInputComponent,
@@ -55,89 +75,94 @@ const FAILURE_MESSAGES: Readonly<Record<AdjustmentFailure, MessageKey>> = {
         <p class="page-subtitle">{{ t.t('adjustment.subtitle') }}</p>
       </header>
 
-      <section class="form-card">
+      <form class="form-card" [formGroup]="form" [vfSubmitGuide]="form" (validSubmit)="save()">
         @if (submitState().kind === 'saved') {
-          <p class="banner banner--success" role="status">
+          <vf-banner tone="success">
             {{ t.t('adjustment.saved') }}
             <a class="history-link" routerLink="/inventory/history">{{ t.t('adjustment.saved.link') }}</a>
-          </p>
+          </vf-banner>
         }
 
         @if (failureMessage(); as message) {
-          <p class="banner banner--error" role="alert">{{ message }}</p>
+          <vf-banner tone="error" #failureBanner>{{ message }}</vf-banner>
         }
 
-        <vf-select
+        <vf-form-field
           [label]="t.t('adjustment.field.product')"
           [required]="true"
-          [filterable]="true"
-          [placeholder]="t.t('adjustment.field.productPlaceholder')"
-          [optionList]="productOptions()"
-          [value]="productId()"
-          (valueChange)="onProductChange($event)"
-          [error]="productError()"
-        />
+          [messages]="productMessages"
+        >
+          <vf-select
+            [formControl]="form.controls.productId"
+            [filterable]="true"
+            [placeholder]="t.t('adjustment.field.productPlaceholder')"
+            [optionList]="productOptions()"
+          />
+        </vf-form-field>
+        @if (store.productsError()) {
+          <vf-banner tone="error">
+            {{ t.t('pickers.productsError') }}
+            <button type="button" class="retry-link" (click)="store.loadProducts()">
+              {{ t.t('errors.retry') }}
+            </button>
+          </vf-banner>
+        }
 
-        <vf-select
-          [label]="t.t('adjustment.field.batch')"
-          [required]="true"
-          [placeholder]="batchPlaceholder()"
-          [optionList]="batchOptions()"
-          [value]="batchId()"
-          (valueChange)="batchId.set($event)"
-          [error]="batchError()"
-        />
+        <vf-form-field [label]="t.t('adjustment.field.batch')" [required]="true" [messages]="batchMessages">
+          <vf-select
+            [formControl]="form.controls.batchId"
+            [placeholder]="batchPlaceholder()"
+            [optionList]="batchOptions()"
+          />
+        </vf-form-field>
+        @if (store.batchesError()) {
+          <vf-banner tone="error">
+            {{ t.t('pickers.batchesError') }}
+            <button type="button" class="retry-link" (click)="store.loadBatches(form.controls.productId.value)">
+              {{ t.t('errors.retry') }}
+            </button>
+          </vf-banner>
+        }
 
-        <vf-select
-          [label]="t.t('adjustment.field.direction')"
-          [required]="true"
-          [optionList]="directionOptions()"
-          [value]="direction()"
-          (valueChange)="onDirectionChange($event)"
-        />
+        <vf-form-field [label]="t.t('adjustment.field.direction')" [required]="true">
+          <vf-select [formControl]="form.controls.direction" [clearable]="false" [optionList]="directionOptions()" />
+        </vf-form-field>
 
-        <vf-number-input
+        <vf-form-field
           [label]="t.t('adjustment.field.quantity')"
           [required]="true"
-          [ngModel]="quantity()"
-          (ngModelChange)="quantity.set($event)"
-          [ngModelOptions]="{ standalone: true }"
-          [error]="quantityError()"
-        />
+          [messages]="quantityMessages"
+        >
+          <vf-number-input [formControl]="form.controls.quantity" />
+        </vf-form-field>
 
-        <vf-select
-          [label]="t.t('adjustment.field.reason')"
-          [required]="true"
-          [placeholder]="t.t('adjustment.field.reasonPlaceholder')"
-          [optionList]="reasonOptions()"
-          [value]="reason()"
-          (valueChange)="onReasonChange($event)"
-          [error]="reasonError()"
-        />
+        <vf-form-field [label]="t.t('adjustment.field.reason')" [required]="true" [messages]="reasonMessages">
+          <vf-select
+            [formControl]="form.controls.reason"
+            [placeholder]="t.t('adjustment.field.reasonPlaceholder')"
+            [optionList]="reasonOptions()"
+          />
+        </vf-form-field>
 
-        <vf-textarea
-          [label]="t.t('adjustment.field.note')"
-          [rows]="3"
-          [ngModel]="note()"
-          (ngModelChange)="note.set($event)"
-          [ngModelOptions]="{ standalone: true }"
-        />
+        <vf-form-field [label]="t.t('adjustment.field.note')">
+          <vf-textarea [formControl]="form.controls.note" [rows]="3" />
+        </vf-form-field>
 
-        <vf-text-input
-          [label]="t.t('adjustment.field.actor')"
-          [placeholder]="t.t('adjustment.field.actorPlaceholder')"
-          [ngModel]="actor()"
-          (ngModelChange)="actor.set($event)"
-          [ngModelOptions]="{ standalone: true }"
-        />
-        <p class="field-hint">{{ t.t('adjustment.field.actorHint') }}</p>
+        <vf-form-field [label]="t.t('adjustment.field.actor')" [hint]="t.t('adjustment.field.actorHint')">
+          <vf-text-input
+            [formControl]="form.controls.actor"
+            [placeholder]="t.t('adjustment.field.actorPlaceholder')"
+          />
+        </vf-form-field>
 
         <div class="actions">
-          <vf-button variant="primary" [disabled]="submitState().kind === 'saving'" (pressed)="onSave()">
-            {{ t.t('adjustment.action.save') }}
+          <vf-button variant="primary" type="submit" [disabled]="submitState().kind === 'saving'">
+            {{ saveLabel() }}
           </vf-button>
         </div>
-      </section>
+      </form>
+
+      <p class="vf-visually-hidden" aria-live="polite">{{ announcement() }}</p>
     </div>
   `,
   styles: `
@@ -163,8 +188,7 @@ const FAILURE_MESSAGES: Readonly<Record<AdjustmentFailure, MessageKey>> = {
       font-weight: 700;
     }
 
-    .page-subtitle,
-    .field-hint {
+    .page-subtitle {
       margin: 0;
       color: var(--vf-text-secondary);
       font-size: var(--vf-text-caption);
@@ -181,26 +205,20 @@ const FAILURE_MESSAGES: Readonly<Record<AdjustmentFailure, MessageKey>> = {
       padding: var(--vf-space-5);
     }
 
-    .banner {
-      margin: 0;
-      padding: var(--vf-space-3);
-      border-radius: var(--vf-radius);
-      font-size: var(--vf-text-caption);
-    }
-
-    .banner--error {
-      background: var(--vf-danger-soft);
-      color: var(--vf-danger);
-    }
-
-    .banner--success {
-      background: var(--vf-success-soft);
-      color: var(--vf-success);
-    }
-
     .history-link {
       color: inherit;
       font-weight: 600;
+    }
+
+    .retry-link {
+      border: none;
+      background: none;
+      padding: 0;
+      color: inherit;
+      font: inherit;
+      font-weight: 600;
+      text-decoration: underline;
+      cursor: pointer;
     }
 
     .actions {
@@ -224,17 +242,34 @@ export class AdjustmentPageComponent implements OnInit {
   protected readonly t = inject(TranslationService);
   protected readonly format = inject(FormatService);
   protected readonly store = inject(AdjustmentStore);
+  private readonly focus = inject(ValidationFocusService);
 
-  protected readonly productId = signal<string | null>(null);
-  protected readonly batchId = signal<string | null>(null);
-  protected readonly direction = signal<AdjustmentDirection>('increase');
-  protected readonly quantity = signal<number | null>(null);
-  protected readonly reason = signal<AdjustmentReason | null>(null);
-  protected readonly note = signal('');
-  protected readonly actor = signal('');
-  protected readonly submitted = signal(false);
+  // Typed reactive form (STD-FE-016, STD-UX-126). The validators mirror the
+  // documented rules only (STD-UX-021): required per REQ-INV-010's mandatory
+  // inputs, positive per BR-INV-064 (the sign belongs to the server); note
+  // and actor are deliberately unvalidated (DEC-INV-030).
+  protected readonly form = new FormGroup({
+    productId: new FormControl<string | null>(null, vfValidators.required),
+    batchId: new FormControl<string | null>(null, vfValidators.required),
+    direction: new FormControl<AdjustmentDirection>('increase', { nonNullable: true }),
+    quantity: new FormControl<number | null>(null, [vfValidators.required, vfValidators.positive]),
+    reason: new FormControl<AdjustmentReason | null>(null, vfValidators.required),
+    note: new FormControl('', { nonNullable: true }),
+    actor: new FormControl('', { nonNullable: true }),
+  });
+
+  // The ruled per-field wordings (inventory ui.md) as overrides (STD-UX-111).
+  protected readonly productMessages: RuleMessageOverrides = { required: 'adjustment.error.productRequired' };
+  protected readonly batchMessages: RuleMessageOverrides = { required: 'adjustment.error.batchRequired' };
+  protected readonly quantityMessages: RuleMessageOverrides = {
+    required: 'adjustment.error.quantityPositive',
+    positive: 'adjustment.error.quantityPositive',
+  };
+  protected readonly reasonMessages: RuleMessageOverrides = { required: 'adjustment.error.reasonRequired' };
 
   protected readonly submitState = this.store.submit;
+
+  private readonly failureBanner = viewChild('failureBanner', { read: ElementRef });
 
   protected readonly productOptions = computed(() =>
     this.store.products().map((product) => ({ label: product.name, value: product.id })),
@@ -250,13 +285,13 @@ export class AdjustmentPageComponent implements OnInit {
   );
 
   protected readonly directionOptions = computed(() => [
-    { label: this.t.t('adjustment.direction.increase'), value: 'increase' },
-    { label: this.t.t('adjustment.direction.decrease'), value: 'decrease' },
+    { label: this.t.t('adjustment.direction.increase'), value: 'increase' as AdjustmentDirection },
+    { label: this.t.t('adjustment.direction.decrease'), value: 'decrease' as AdjustmentDirection },
   ]);
 
   protected readonly reasonOptions = computed(() =>
     ADJUSTMENT_REASONS.map((reason) => ({
-      label: this.t.t(`adjustment.reason.${reason}` as MessageKey),
+      label: this.t.t(`adjustment.reason.${reason}`),
       value: reason,
     })),
   );
@@ -264,75 +299,86 @@ export class AdjustmentPageComponent implements OnInit {
   protected readonly batchPlaceholder = computed(() =>
     this.store.batchesLoading()
       ? this.t.t('adjustment.field.batchLoading')
-      : this.productId()
+      : this.form.controls.productId.value
         ? this.t.t('adjustment.field.batchPlaceholder')
         : this.t.t('adjustment.field.batchPickProduct'),
   );
 
-  protected readonly productError = computed(() =>
-    this.submitted() && !this.productId() ? this.t.t('adjustment.error.productRequired') : null,
-  );
-
-  protected readonly batchError = computed(() =>
-    this.submitted() && !this.batchId() ? this.t.t('adjustment.error.batchRequired') : null,
-  );
-
-  protected readonly quantityError = computed(() => {
-    if (!this.submitted()) {
-      return null;
-    }
-
-    const quantity = this.quantity();
-    return quantity === null || quantity <= 0 ? this.t.t('adjustment.error.quantityPositive') : null;
-  });
-
-  protected readonly reasonError = computed(() =>
-    this.submitted() && !this.reason() ? this.t.t('adjustment.error.reasonRequired') : null,
-  );
-
   protected readonly failureMessage = computed(() => {
     const state = this.submitState();
-    return state.kind === 'failed' ? this.t.t(FAILURE_MESSAGES[state.failure]) : null;
+    return state.kind === 'failed' ? this.t.t(state.failure.messageKey, state.failure.params) : null;
   });
+
+  // Screen-level outcomes for the polite live region (STD-UX-092): the saved
+  // fact (its banner is a status insertion, which alone is not reliably
+  // announced) and the dependent-batches load. Rejections announce through
+  // their `role="alert"` surfaces.
+  protected readonly announcement = computed(() => {
+    if (this.submitState().kind === 'saved') {
+      return this.t.t('adjustment.saved');
+    }
+
+    return this.store.batchesLoading() ? this.t.t('adjustment.field.batchLoading') : '';
+  });
+
+  // A concurrency conflict re-offers the same action as a retry (STD-UX-033, BR-INV-068).
+  protected readonly saveLabel = computed(() => {
+    const state = this.submitState();
+    return state.kind === 'failed' && state.failure.retryable
+      ? this.t.t('errors.retry')
+      : this.t.t('adjustment.action.save');
+  });
+
+  constructor() {
+    // The picker of batches follows the chosen product; changing it always
+    // clears the dependent choice.
+    this.form.controls.productId.valueChanges.pipe(takeUntilDestroyed()).subscribe((productId) => {
+      this.form.controls.batchId.setValue(null);
+      this.store.loadBatches(productId);
+    });
+
+    // A rejection banner never survives the edit that addresses it
+    // (STD-UX-035); an edit after success starts a fresh operation.
+    this.form.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => {
+      const kind = this.store.submit().kind;
+      if (kind === 'failed' || kind === 'saved') {
+        this.store.reset();
+      }
+    });
+
+    // An operation-level rejection has no field target: the banner itself
+    // receives focus and is announced (STD-UX-071).
+    effect(() => {
+      if (this.submitState().kind !== 'failed') {
+        return;
+      }
+
+      const banner = this.failureBanner()?.nativeElement as HTMLElement | undefined;
+      if (banner) {
+        this.focus.focusMessage(banner);
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.store.loadProducts();
   }
 
-  protected onProductChange(productId: string | null): void {
-    this.productId.set(productId);
-    this.batchId.set(null);
-    this.store.reset();
-    this.store.loadBatches(productId);
-  }
-
-  protected onDirectionChange(value: string | null): void {
-    this.direction.set(value === 'decrease' ? 'decrease' : 'increase');
-    this.store.reset();
-  }
-
-  protected onReasonChange(value: string | null): void {
-    this.reason.set((value as AdjustmentReason | null) ?? null);
-    this.store.reset();
-  }
-
-  protected onSave(): void {
-    this.submitted.set(true);
-
-    const batchId = this.batchId();
-    const quantity = this.quantity();
-    const reason = this.reason();
-    if (!this.productId() || !batchId || quantity === null || quantity <= 0 || !reason) {
+  protected save(): void {
+    const { productId, batchId, direction, quantity, reason, note, actor } = this.form.getRawValue();
+    // The guidance emits validSubmit only on a valid form; the guard keeps the
+    // types honest without a non-null assertion (STD-FE-022).
+    if (!productId || !batchId || quantity === null || !reason) {
       return;
     }
 
     this.store.save({
       batchId,
-      direction: this.direction(),
+      direction,
       quantity,
       reason,
-      reasonNote: this.note().trim() || null,
-      actorName: this.actor().trim() || null,
+      reasonNote: note.trim() || null,
+      actorName: actor.trim() || null,
     });
   }
 }

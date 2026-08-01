@@ -48,6 +48,3 @@ export interface BatchPickerOption {
   readonly stockUnitName: string;
   readonly expiryDate: string | null;
 }
-
-/** Why an adjustment was refused — each maps to one documented rule. */
-export type AdjustmentFailure = 'belowZero' | 'conflict' | 'reason' | 'notFound' | 'unknown';

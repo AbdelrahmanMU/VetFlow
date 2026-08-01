@@ -9,7 +9,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <button
-      type="button"
+      [attr.type]="type()"
       class="vf-button"
       [class.vf-button--primary]="variant() === 'primary'"
       [class.vf-button--secondary]="variant() === 'secondary'"
@@ -82,5 +82,7 @@ export class VfButtonComponent {
   readonly variant = input<'primary' | 'secondary' | 'quiet'>('secondary');
   readonly icon = input<string | null>(null);
   readonly disabled = input(false);
+  /** `submit` participates in `form[vfSubmitGuide]` submission (STD-UX-122). */
+  readonly type = input<'button' | 'submit'>('button');
   readonly pressed = output<MouseEvent>();
 }

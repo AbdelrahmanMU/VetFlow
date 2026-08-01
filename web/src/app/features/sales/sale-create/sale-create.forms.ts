@@ -1,4 +1,6 @@
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
+
+import { vfValidators } from '../../../core/validation/validators';
 
 /**
  * The create-sale header form (STD-FE-016, REQ-SAL-001 / BR-SAL-001): the sale date is the only
@@ -14,7 +16,7 @@ export type SaleCreateForm = FormGroup<{
 export function buildSaleCreateForm(): SaleCreateForm {
   return new FormGroup({
     customerName: new FormControl('', { nonNullable: true }),
-    saleDate: new FormControl<string | null>(null, [Validators.required]),
+    saleDate: new FormControl<string | null>(null, [vfValidators.required]),
     notes: new FormControl('', { nonNullable: true }),
   });
 }

@@ -84,7 +84,12 @@ describe('PurchaseReturnStore', () => {
   it('skips lines with no quantity and refuses an empty return without calling the API', () => {
     store.save('invoice-1', '2026-07-31', null, quantities([['line-a', 0]]));
 
-    expect(store.submit()).toEqual({ kind: 'failed', failure: 'noLines' });
+    const state = store.submit();
+    expect(state.kind).toBe('failed');
+    if (state.kind === 'failed') {
+      expect(state.failure.messageKey).toBe('purchaseReturn.error.noLines');
+      expect(state.draftCreated).toBe(false);
+    }
     http.expectNone(() => true);
   });
 
@@ -102,7 +107,15 @@ describe('PurchaseReturnStore', () => {
         { status: 409, statusText: 'Conflict' },
       );
 
-    expect(store.submit()).toEqual({ kind: 'failed', failure: 'exceedsReturnable' });
+    const state = store.submit();
+    expect(state.kind).toBe('failed');
+    if (state.kind === 'failed') {
+      expect(state.failure.code).toBe('VTF-PUR-016');
+      expect(state.failure.messageKey).toBe('purchaseReturn.error.exceedsReturnable');
+      // The draft was created before the rejection — the page states the
+      // partial document state (STD-UX-042).
+      expect(state.draftCreated).toBe(true);
+    }
   });
 
   it('classifies the batch floor rejection, which is also the over-return guard (BR-INV-061)', () => {
@@ -121,7 +134,12 @@ describe('PurchaseReturnStore', () => {
         { status: 409, statusText: 'Conflict' },
       );
 
-    expect(store.submit()).toEqual({ kind: 'failed', failure: 'belowZero' });
+    const state = store.submit();
+    expect(state.kind).toBe('failed');
+    if (state.kind === 'failed') {
+      expect(state.failure.messageKey).toBe('purchaseReturn.error.belowZero');
+      expect(state.draftCreated).toBe(true);
+    }
   });
 
   it('classifies a return against a non-received invoice by its code (BR-PUR-015)', () => {
@@ -134,6 +152,12 @@ describe('PurchaseReturnStore', () => {
         { status: 409, statusText: 'Conflict' },
       );
 
-    expect(store.submit()).toEqual({ kind: 'failed', failure: 'invoiceNotReceived' });
+    const state = store.submit();
+    expect(state.kind).toBe('failed');
+    if (state.kind === 'failed') {
+      expect(state.failure.messageKey).toBe('purchaseReturn.error.invoiceNotReceived');
+      // The very first step failed — no draft exists and nothing needs stating.
+      expect(state.draftCreated).toBe(false);
+    }
   });
 });

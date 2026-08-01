@@ -1,11 +1,17 @@
-import { ChangeDetectionStrategy, Component, forwardRef, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, forwardRef, inject, input, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+
+import { VfFormFieldComponent } from '../form-field/vf-form-field.component';
 
 /**
  * Labelled single-line text field for reactive forms (STD-FE-016): a
- * ControlValueAccessor so features bind it with `[formControl]`. The field owns
- * its label, its required marker, and its error line (STD-FE-017) — features
- * never hand-roll validation UI.
+ * ControlValueAccessor so features bind it with `[formControl]`.
+ *
+ * Inside a `vf-form-field` (STD-UX-120) the wrapper owns the label, the
+ * message line, and the timing; this component then renders only the input,
+ * wired to the wrapper's `for`/`id` and `aria-describedby` (STD-UX-091).
+ * Standalone (legacy screens, until their phase migrates them) it keeps its
+ * own label and error line (STD-FE-017).
  */
 @Component({
   selector: 'vf-text-input',
@@ -15,25 +21,29 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
   ],
   template: `
     <label class="field">
-      <span class="field-caption">
-        {{ label() }}
-        @if (required()) {
-          <span class="field-required" aria-hidden="true">*</span>
-        }
-      </span>
+      @if (!formField) {
+        <span class="field-caption">
+          {{ label() }}
+          @if (required()) {
+            <span class="field-required" aria-hidden="true">*</span>
+          }
+        </span>
+      }
       <input
         class="field-input"
-        [class.field-input--invalid]="!!error()"
+        [class.field-input--invalid]="isInvalid()"
         [type]="type()"
         [value]="value()"
         [placeholder]="placeholder()"
         [disabled]="disabled()"
-        [attr.aria-label]="label()"
-        [attr.aria-invalid]="!!error()"
+        [attr.id]="formField?.controlId ?? null"
+        [attr.aria-label]="formField ? null : label()"
+        [attr.aria-describedby]="formField?.messageId ?? null"
+        [attr.aria-invalid]="isInvalid()"
         (input)="onInput($event)"
         (blur)="onTouched()"
       />
-      @if (error(); as message) {
+      @if (!formField && error(); as message) {
         <span class="field-error" role="alert">{{ message }}</span>
       }
     </label>
@@ -91,6 +101,8 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
   `,
 })
 export class VfTextInputComponent implements ControlValueAccessor {
+  protected readonly formField = inject(VfFormFieldComponent, { optional: true });
+
   readonly label = input('');
   readonly placeholder = input('');
   readonly required = input(false);
@@ -99,6 +111,10 @@ export class VfTextInputComponent implements ControlValueAccessor {
 
   protected readonly value = signal('');
   protected readonly disabled = signal(false);
+
+  protected readonly isInvalid = computed(() =>
+    this.formField ? this.formField.invalid() : !!this.error(),
+  );
 
   private onChange: (value: string) => void = () => undefined;
   protected onTouched: () => void = () => undefined;

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { FormatService } from '../../../core/i18n/format.service';
@@ -163,6 +163,8 @@ import { ProductDetailsStore } from './product-details.store';
           }
         }
       }
+
+      <p class="vf-visually-hidden" aria-live="polite">{{ announcement() }}</p>
     </div>
   `,
   styles: `
@@ -331,6 +333,22 @@ export class ProductDetailsPageComponent {
     const view = this.store.view();
     return view.kind === 'ready' ? view.product : null;
   }
+
+  // Screen-level load outcomes for the polite live region (STD-UX-092):
+  // loading, error, not-found, and the loaded product by name.
+  protected readonly announcement = computed(() => {
+    const view = this.store.view();
+    switch (view.kind) {
+      case 'loading':
+        return this.t.t('productDetails.loading');
+      case 'error':
+        return this.t.t('productDetails.error.title');
+      case 'notFound':
+        return this.t.t('productDetails.notFound.title');
+      default:
+        return view.product.arabicName;
+    }
+  });
 
   protected subtitle(product: { englishName: string | null; size: string | null; concentration: string | null }): string | null {
     const parts = [product.englishName, product.size, product.concentration].filter((part): part is string => !!part);
