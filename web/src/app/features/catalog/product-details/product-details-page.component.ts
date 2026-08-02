@@ -114,10 +114,10 @@ import { ProductDetailsStore } from './product-details.store';
                   <thead>
                     <tr>
                       <th>{{ t.t('productDetails.units.unit') }}</th>
-                      <th>{{ t.t('productDetails.units.conversion') }}</th>
+                      <th class="vf-num">{{ t.t('productDetails.units.conversion') }}</th>
                       <th>{{ t.t('productDetails.units.role') }}</th>
-                      <th>{{ t.t('productDetails.units.barcode') }}</th>
-                      <th>{{ t.t('productDetails.units.price') }}</th>
+                      <th class="vf-num">{{ t.t('productDetails.units.barcode') }}</th>
+                      <th class="vf-num">{{ t.t('productDetails.units.price') }}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -156,6 +156,62 @@ import { ProductDetailsStore } from './product-details.store';
               }
             </section>
 
+            <!-- Card 7 «المخزون» (catalog ui.md §4, owner amendment 2026-08-02). Every number
+                 here is supplied by Inventory (REQ-INV-012) and rendered as given — nothing is
+                 summed, converted or derived in this screen. -->
+            <section class="card">
+              <h2 class="card-title">{{ t.t('productDetails.section.inventory') }}</h2>
+              @switch (store.inventoryView().kind) {
+                @case ('loading') {
+                  <p class="state-inline" role="status">{{ t.t('productDetails.inventory.loading') }}</p>
+                }
+                @case ('error') {
+                  <div class="inventory-error" role="alert">
+                    <p>{{ t.t('productDetails.inventory.error') }}</p>
+                    <vf-button variant="secondary" icon="pi-refresh" (pressed)="store.retryInventory()">
+                      {{ t.t('productDetails.inventory.retry') }}
+                    </vf-button>
+                  </div>
+                }
+                @case ('ready') {
+                  @if (inventorySummary(); as stock) {
+                    @if (!stock.hasInventoryRecord) {
+                      <!-- Never received: an explicit sentence, not an unexplained 0. -->
+                      <p class="notes">{{ t.t('productDetails.inventory.never') }}</p>
+                    } @else {
+                      <dl class="facts">
+                        <div>
+                          <dt>{{ t.t('productDetails.inventory.onHand') }}</dt>
+                          <dd class="vf-num fact-strong">
+                            {{ format.decimal(stock.onHandQuantity) }}
+                            <span class="unit">{{ stock.stockUnitName }}</span>
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>{{ t.t('productDetails.inventory.batchCount') }}</dt>
+                          <dd class="vf-num">{{ format.integer(stock.batchCount) }}</dd>
+                        </div>
+                        <div>
+                          <dt>{{ t.t('productDetails.inventory.nearestExpiry') }}</dt>
+                          <dd class="vf-num">
+                            {{ stock.nearestExpiry ? format.date(stock.nearestExpiry) : t.t('productDetails.inventory.noExpiry') }}
+                          </dd>
+                        </div>
+                      </dl>
+                      @if (stock.onHandQuantity <= 0) {
+                        <p class="notice">{{ t.t('productDetails.inventory.outOfStock') }}</p>
+                      }
+                      <div class="inventory-actions">
+                        <vf-button variant="quiet" icon="pi-inbox" (pressed)="goToBatches()">
+                          {{ t.t('productDetails.inventory.viewBatches') }}
+                        </vf-button>
+                      </div>
+                    }
+                  }
+                }
+              }
+            </section>
+
             <section class="card">
               <h2 class="card-title">{{ t.t('productDetails.section.notes') }}</h2>
               <p class="notes">{{ product.internalNotes ?? t.t('productDetails.noNotes') }}</p>
@@ -168,6 +224,8 @@ import { ProductDetailsStore } from './product-details.store';
     </div>
   `,
   styles: `
+    @use '../../../shared/styles/numeric' as numeric;
+
     .page {
       display: flex;
       flex-direction: column;
@@ -281,6 +339,11 @@ import { ProductDetailsStore } from './product-details.store';
       font-weight: 600;
     }
 
+    /* Conversion factor, barcode and price follow the one numeric standard (§6). */
+    .units {
+      @include numeric.cells;
+    }
+
     .unit-name {
       font-weight: 500;
     }
@@ -301,6 +364,38 @@ import { ProductDetailsStore } from './product-details.store';
       margin: var(--vf-space-3) 0 0;
       color: var(--vf-warning);
       font-weight: 500;
+    }
+
+    .state-inline {
+      margin: 0;
+      color: var(--vf-text-secondary);
+    }
+
+    .fact-strong {
+      font-weight: 600;
+    }
+
+    .unit {
+      font-weight: 400;
+      color: var(--vf-text-secondary);
+      margin-inline-start: var(--vf-space-1);
+    }
+
+    .inventory-error {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--vf-space-3);
+      flex-wrap: wrap;
+      color: var(--vf-danger);
+    }
+
+    .inventory-error p {
+      margin: 0;
+    }
+
+    .inventory-actions {
+      margin-block-start: var(--vf-space-3);
     }
 
     .notes {
@@ -332,6 +427,16 @@ export class ProductDetailsPageComponent {
   protected readyProduct() {
     const view = this.store.view();
     return view.kind === 'ready' ? view.product : null;
+  }
+
+  protected inventorySummary() {
+    const view = this.store.inventoryView();
+    return view.kind === 'ready' ? view.summary : null;
+  }
+
+  /** The batch viewer is Inventory's own screen — this card links to it, it does not embed it. */
+  protected goToBatches(): void {
+    void this.router.navigate(['/inventory', this.id()]);
   }
 
   // Screen-level load outcomes for the polite live region (STD-UX-092):

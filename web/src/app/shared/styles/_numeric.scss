@@ -1,0 +1,26 @@
+/// The single presentation standard for numeric and monetary values in tables.
+///
+/// Design language §6 rules it once, for the whole product:
+/// «محاذاة: النص لليمين والأرقام لليسار بأرقام ثابتة العرض حتى تصطف الخانات».
+/// Under `dir="rtl"` the inline end *is* the left edge, so `text-align: end`
+/// puts the digits on a fixed edge and columns of money line up down the page.
+///
+/// `<vf-table>` already applies this to columns declared `numeric` — this
+/// partial exists for the raw `<table>` deviations that TD-007 accepted for the
+/// Pilot, so that they follow the same rule from the same definition instead of
+/// each inventing its own alignment.
+///
+/// Usage — include inside the component's table scope so it outranks that
+/// component's own base cell rule:
+///
+/// ```scss
+/// @use '../../shared/styles/numeric' as numeric;
+///
+/// .lines { @include numeric.cells; }
+/// ```
+@mixin cells {
+  th.vf-num,
+  td.vf-num {
+    text-align: end;
+  }
+}

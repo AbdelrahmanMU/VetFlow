@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 
 import { FormatService } from '../../../../core/i18n/format.service';
 import { TranslationService } from '../../../../core/i18n/translation.service';
@@ -17,7 +17,13 @@ import { ProductStatusBadgesComponent } from './product-status-badges.component'
   template: `
     <ul class="cards">
       @for (product of rows(); track product.id) {
-        <li class="card">
+        <li
+          class="card"
+          tabindex="0"
+          [attr.aria-label]="t.t('products.row.open', { name: product.arabicName })"
+          (click)="open.emit(product.id)"
+          (keydown.enter)="open.emit(product.id)"
+        >
           <div class="card-main">
             <span class="card-name">{{ product.arabicName }}</span>
             <span class="card-secondary">
@@ -57,6 +63,7 @@ import { ProductStatusBadgesComponent } from './product-status-badges.component'
       border-radius: var(--vf-radius);
       padding: var(--vf-space-3) var(--vf-space-4);
       min-block-size: 4rem;
+      cursor: pointer;
     }
 
     .card-main {
@@ -97,4 +104,5 @@ export class ProductCardsComponent {
   protected readonly format = inject(FormatService);
 
   readonly rows = input.required<readonly ProductListItem[]>();
+  readonly open = output<string>();
 }

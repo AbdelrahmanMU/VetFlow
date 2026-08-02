@@ -55,7 +55,12 @@ const SOURCE_LABELS: Readonly<Record<MovementSource, MessageKey>> = {
           @for (col of cols; track col.id) {
             @switch (col.id) {
               @case ('date') {
-                <td class="cell-secondary vf-num">{{ format.dateTime(item.occurredAt) }}</td>
+                <!-- Date over time (owner ruling, 2026-08-02): the column is scanned
+                     for the day first, and the time only settles ties within it. -->
+                <td class="cell-secondary vf-num">
+                  <span class="stamp-date">{{ format.dateTimeParts(item.occurredAt).date }}</span>
+                  <span class="stamp-time">{{ format.dateTimeParts(item.occurredAt).time }}</span>
+                </td>
               }
               @case ('type') {
                 <td><app-movement-type-badge [type]="item.type" /></td>
@@ -112,6 +117,16 @@ const SOURCE_LABELS: Readonly<Record<MovementSource, MessageKey>> = {
     :host {
       display: block;
       min-block-size: 0;
+    }
+
+    .stamp-date {
+      display: block;
+    }
+
+    .stamp-time {
+      display: block;
+      font-size: var(--vf-text-caption);
+      color: var(--vf-text-faint);
     }
 
     .product {

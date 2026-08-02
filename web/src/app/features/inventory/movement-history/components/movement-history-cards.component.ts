@@ -27,7 +27,11 @@ const SOURCE_LABELS: Readonly<Record<MovementSource, MessageKey>> = {
         <li class="card">
           <div class="card-head">
             <app-movement-type-badge [type]="item.type" />
-            <span class="card-date vf-num">{{ format.dateTime(item.occurredAt) }}</span>
+            <!-- The same two-line stamp as the table, so one habit reads both. -->
+            <span class="card-date vf-num">
+              <span class="stamp-date">{{ format.dateTimeParts(item.occurredAt).date }}</span>
+              <span class="stamp-time">{{ format.dateTimeParts(item.occurredAt).time }}</span>
+            </span>
           </div>
 
           <span class="card-product">{{ item.productName }}</span>
@@ -111,6 +115,19 @@ const SOURCE_LABELS: Readonly<Record<MovementSource, MessageKey>> = {
     .card-source {
       font-size: var(--vf-text-caption);
       color: var(--vf-text-secondary);
+    }
+
+    .card-date {
+      text-align: end;
+    }
+
+    .stamp-date,
+    .stamp-time {
+      display: block;
+    }
+
+    .stamp-time {
+      color: var(--vf-text-faint);
     }
 
     .card-quantity {

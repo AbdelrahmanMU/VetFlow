@@ -20,6 +20,9 @@ export const PRODUCT_COLUMNS: readonly ProductColumnDef[] = [
   { id: 'price', labelKey: 'products.column.price', sortable: true, numeric: true, hideable: true },
   { id: 'capabilities', labelKey: 'products.column.capabilities', sortable: false, numeric: false, hideable: true },
   { id: 'status', labelKey: 'products.column.status', sortable: true, numeric: false, hideable: true },
+  // Always present: it carries the row's way into the details screen, so hiding it
+  // would hide the affordance catalog ui.md §3 requires.
+  { id: 'actions', labelKey: 'products.column.actions', sortable: false, numeric: false, hideable: false },
 ];
 
 /**

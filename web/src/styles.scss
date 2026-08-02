@@ -53,6 +53,10 @@
   --vf-radius: 8px;
   --vf-radius-small: 6px;
   --vf-shadow-panel: 0 1px 2px rgb(28 25 23 / 4%);
+
+  /* The overlay pair, for surfaces that cover the page (the navigation drawer, §5). */
+  --vf-overlay: rgb(28 25 23 / 45%);
+  --vf-shadow-overlay: 0 0 2rem rgb(28 25 23 / 18%);
   --vf-focus-ring: 0 0 0 3px rgb(15 118 110 / 25%);
   --vf-content-max-width: 1440px;
   --vf-sidebar-width: 232px;

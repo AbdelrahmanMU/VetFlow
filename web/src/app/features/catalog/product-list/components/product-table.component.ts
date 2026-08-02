@@ -30,7 +30,13 @@ import { ProductStatusBadgesComponent } from './product-status-badges.component'
       (sortChange)="onSortChange($event)"
     >
       <ng-template #row let-product let-cols="columns">
-        <tr tabindex="0">
+        <tr
+          tabindex="0"
+          class="clickable-row"
+          [attr.aria-label]="t.t('products.row.open', { name: product.arabicName })"
+          (click)="open.emit(product.id)"
+          (keydown.enter)="open.emit(product.id)"
+        >
           @for (col of cols; track col.id) {
             @switch (col.id) {
               @case ('name') {
@@ -79,6 +85,16 @@ import { ProductStatusBadgesComponent } from './product-status-badges.component'
               @case ('status') {
                 <td><app-product-status-badges [product]="product" /></td>
               }
+              @case ('actions') {
+                <td class="action-col">
+                  <!-- The row itself opens details; this makes that discoverable
+                       rather than leaving the row looking like static text
+                       (catalog ui.md §3 «إجراءات مباشرة على الصف»). -->
+                  <button type="button" class="row-action" (click)="onOpenAction($event, product.id)">
+                    {{ t.t('products.details.open') }}
+                  </button>
+                </td>
+              }
             }
           }
         </tr>
@@ -89,6 +105,47 @@ import { ProductStatusBadgesComponent } from './product-status-badges.component'
     :host {
       display: block;
       min-block-size: 0;
+    }
+
+    .clickable-row {
+      cursor: pointer;
+    }
+
+    .action-col {
+      text-align: end;
+      white-space: nowrap;
+    }
+
+    .row-action {
+      padding: var(--vf-space-1) var(--vf-space-2);
+      border: 1px solid var(--vf-border);
+      border-radius: var(--vf-radius-small);
+      background: var(--vf-surface);
+      color: var(--vf-text-secondary);
+      font-family: inherit;
+      font-size: var(--vf-text-caption);
+      cursor: pointer;
+      /* §3: row actions surface on hover and do not clutter the resting row. */
+      opacity: 0;
+      transition: opacity 120ms ease;
+    }
+
+    .clickable-row:hover .row-action,
+    .clickable-row:focus-within .row-action,
+    .row-action:focus-visible {
+      opacity: 1;
+    }
+
+    /* Touch has no hover, so the affordance must simply be there (§5 اللمس أولًا). */
+    @media (hover: none) {
+      .row-action {
+        opacity: 1;
+      }
+    }
+
+    .row-action:hover {
+      color: var(--vf-text);
+      border-color: var(--vf-border-strong);
     }
 
     .name {
@@ -131,6 +188,13 @@ export class ProductTableComponent {
   readonly rows = input.required<readonly ProductListItem[]>();
   readonly sort = input.required<ProductSort>();
   readonly sortChange = output<ProductSort>();
+  readonly open = output<string>();
+
+  /** The row is clickable too, so the action must not open details twice. */
+  protected onOpenAction(event: Event, productId: string): void {
+    event.stopPropagation();
+    this.open.emit(productId);
+  }
 
   protected readonly tableColumns = computed(() =>
     this.columnPreferences.toTableColumns((key) => this.t.t(key)),

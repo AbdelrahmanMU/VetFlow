@@ -29,6 +29,11 @@ export class FormatService {
     minute: '2-digit',
   });
 
+  private readonly timeFormat = new Intl.DateTimeFormat(FormatService.Locale, {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
   private readonly decimalFormats = new Map<number, Intl.NumberFormat>();
 
   integer(value: number): string {
@@ -78,6 +83,24 @@ export class FormatService {
     }
 
     return this.dateTimeFormat.format(parsed);
+  }
+
+  /**
+   * The same instant as {@link dateTime}, split into its two lines: the date above
+   * the time (owner ruling, 2026-08-02). One definition, so no screen decides its
+   * own date presentation — the timestamp is parsed once here and the parts are
+   * formatted by the same locale as everything else, meridiem included (ص/م).
+   *
+   * An unparseable value degrades exactly as {@link dateTime} does: the raw string
+   * on the date line and nothing on the time line, never `Invalid Date`.
+   */
+  dateTimeParts(isoTimestamp: string): { readonly date: string; readonly time: string } {
+    const parsed = new Date(isoTimestamp);
+    if (Number.isNaN(parsed.getTime())) {
+      return { date: isoTimestamp, time: '' };
+    }
+
+    return { date: this.dateFormat.format(parsed), time: this.timeFormat.format(parsed) };
   }
 
   money(amount: number, currency: string): string {

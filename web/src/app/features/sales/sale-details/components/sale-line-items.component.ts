@@ -143,6 +143,8 @@ import { AddSaleLineDialogComponent } from './add-sale-line-dialog.component';
     </section>
   `,
   styles: `
+    @use '../../../../shared/styles/numeric' as numeric;
+
     .card {
       background: var(--vf-surface);
       border: 1px solid var(--vf-border);
@@ -196,6 +198,11 @@ import { AddSaleLineDialogComponent } from './add-sale-line-dialog.component';
       font-size: var(--vf-text-caption);
       color: var(--vf-text-faint);
       font-weight: 600;
+    }
+
+    /* Quantity, unit price and line total follow the one numeric standard (§6). */
+    .lines {
+      @include numeric.cells;
     }
 
     .fact-strong {

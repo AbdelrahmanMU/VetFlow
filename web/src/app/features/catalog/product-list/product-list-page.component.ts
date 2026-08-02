@@ -135,12 +135,13 @@ import { ProductsApiService } from './products-api.service';
               @default {
                 @if (readyView(); as view) {
                   @if (isMobile()) {
-                    <app-product-cards [rows]="view.items" />
+                    <app-product-cards [rows]="view.items" (open)="openDetails($event)" />
                   } @else {
                     <app-product-table
                       [rows]="view.items"
                       [sort]="store.sort()"
                       (sortChange)="store.setSort($event)"
+                      (open)="openDetails($event)"
                     />
                   }
                   <vf-pagination
@@ -319,5 +320,10 @@ export class ProductListPageComponent {
 
   protected goToCreate(): void {
     void this.router.navigate(['/catalog/products/new']);
+  }
+
+  /** S1 → S2 (catalog ui.md §3): inspecting a product must not go through the editor. */
+  protected openDetails(productId: string): void {
+    void this.router.navigate(['/catalog/products', productId]);
   }
 }

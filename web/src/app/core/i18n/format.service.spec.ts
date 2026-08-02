@@ -35,4 +35,33 @@ describe('FormatService', () => {
     // (BR-INV-059/060) and must not be fed an instant.
     expect(format.date('2026-07-31T02:31:28+00:00')).toBe('2026-07-31T02:31:28+00:00');
   });
+
+  describe('dateTimeParts — the two-line stamp (owner ruling, 2026-08-02)', () => {
+    it('splits the instant into a date line and a time line', () => {
+      const parts = format.dateTimeParts('2026-07-31T14:35:00+00:00');
+
+      // The date line is exactly what date() renders for the same day, so the two
+      // presentations can never drift apart.
+      expect(parts.date).toBe(format.date('2026-07-31'));
+      expect(parts.time).not.toBe('');
+      expect(parts.time).not.toContain('2026');
+      // Together they carry no more and no less than the single-line form.
+      expect(parts.date).not.toContain(':');
+      expect(parts.time).toMatch(/\d/);
+    });
+
+    it('keeps the Arabic meridiem rather than switching the UI to AM/PM', () => {
+      const morning = format.dateTimeParts('2026-07-31T06:00:00Z').time;
+      const evening = format.dateTimeParts('2026-07-31T18:00:00Z').time;
+
+      // ar-EG renders ص/م natively; the ruling kept it (the owner's AM/PM example
+      // was read as illustrating the two-line layout, not the language).
+      expect(`${morning}${evening}`).not.toMatch(/AM|PM/);
+      expect(morning).not.toBe(evening);
+    });
+
+    it('degrades like dateTime() instead of rendering "Invalid Date"', () => {
+      expect(format.dateTimeParts('not-a-timestamp')).toEqual({ date: 'not-a-timestamp', time: '' });
+    });
+  });
 });

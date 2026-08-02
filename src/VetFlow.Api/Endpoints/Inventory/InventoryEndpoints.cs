@@ -5,6 +5,7 @@ using VetFlow.Application.Inventory.Queries.BatchViewer;
 using VetFlow.Application.Inventory.Queries.ExpiryMonitoring;
 using VetFlow.Application.Inventory.Queries.InventoryHistory;
 using VetFlow.Application.Inventory.Queries.InventoryProjection;
+using VetFlow.Application.Inventory.Queries.ProductInventorySummary;
 
 namespace VetFlow.Api.Endpoints.Inventory;
 
@@ -80,6 +81,25 @@ public static class InventoryEndpoints
                 IQueryHandler<InventoryHistoryQuery, PagedResult<InventoryHistoryItemDto>> handler,
                 CancellationToken cancellationToken) =>
                 Results.Ok(await handler.HandleAsync(request.ToQuery(), cancellationToken)));
+
+        // The per-product inventory summary (REQ-INV-012) — the four inventory facts for one
+        // product, so a screen outside Inventory can show them without reading Inventory's
+        // tables or paging its batches. A null result means the product does not exist → 404
+        // (the REQ-INV-003 precedent, AC-INV-022); a product that exists but was never
+        // received is a valid summary of zero, not a 404. Registered before the {productId}
+        // batch route for the same reason that one sits last: distinct literal suffixes.
+        // Read-only: no write surface (BR-INV-006).
+        app.MapGet(
+            "/api/v1/inventory/{productId:guid}/summary",
+            async (
+                Guid productId,
+                IQueryHandler<ProductInventorySummaryQuery, ProductInventorySummaryDto?> handler,
+                CancellationToken cancellationToken) =>
+            {
+                var result = await handler.HandleAsync(
+                    new ProductInventorySummaryQuery { ProductId = productId }, cancellationToken);
+                return result is null ? Results.NotFound() : Results.Ok(result);
+            });
 
         // The batch viewer — a read-only per-product view of every inventory batch
         // (REQ-INV-003). A null result means the product does not exist → 404 (AC-INV-022).

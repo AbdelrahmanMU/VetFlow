@@ -79,6 +79,7 @@ public static class DependencyInjection
         services.AddScoped<CommitPurchaseReturnCommandHandler>();
         services.AddScoped<InventoryProjectionQueryHandler>();
         services.AddScoped<BatchViewerQueryHandler>();
+        services.AddScoped<ProductInventorySummaryQueryHandler>();
         services.AddScoped<ExpiryMonitoringQueryHandler>();
         services.AddScoped<InventoryHistoryQueryHandler>();
         services.AddScoped<BatchOperationWriter>();

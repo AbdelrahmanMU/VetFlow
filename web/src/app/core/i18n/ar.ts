@@ -6,6 +6,14 @@
  */
 export const AR = {
   'app.name': 'VetFlow',
+
+  // NEW WORDINGS — pending owner review. The navigation drawer of the
+  // design-language §5 amendment (2026-08-02); accessible names only, never
+  // rendered as visible text.
+  'nav.primary': 'التنقّل الرئيسي',
+  'nav.menu.open': 'فتح قائمة التنقّل',
+  'nav.menu.close': 'إغلاق قائمة التنقّل',
+
   'nav.catalog': 'الكتالوج',
   'nav.products': 'المنتجات',
   'nav.categories': 'التصنيفات',
@@ -43,6 +51,9 @@ export const AR = {
   'products.column.price': 'السعر',
   'products.column.capabilities': 'الخصائص',
   'products.column.status': 'الحالة',
+  // NEW WORDINGS — pending owner review. The row's route into S2 (catalog ui.md §3).
+  'products.column.actions': 'إجراءات',
+  'products.row.open': 'عرض تفاصيل المنتج {name}',
 
   'products.status.active': 'نشط',
   'products.status.disabled': 'معطَّل',
@@ -174,6 +185,7 @@ export const AR = {
   'productDetails.section.capabilities': 'القدرات',
   'productDetails.section.units': 'ملف الوحدات',
   'productDetails.section.prices': 'الأسعار',
+  'productDetails.section.inventory': 'المخزون',
   'productDetails.section.notes': 'الملاحظات الداخلية',
   'productDetails.internalCode': 'الكود الداخلي',
   'productDetails.category': 'التصنيف',
@@ -192,6 +204,20 @@ export const AR = {
   'productDetails.units.defaultSale': 'بيع افتراضي',
   'productDetails.units.defaultPurchase': 'شراء افتراضي',
   'productDetails.noNotes': 'لا توجد ملاحظات داخلية.',
+
+  // NEW WORDINGS — pending owner review. Card 7 «المخزون» (catalog ui.md §4,
+  // owner amendment 2026-08-02). The numbers come from Inventory (REQ-INV-012);
+  // this copy only labels them.
+  'productDetails.inventory.onHand': 'الرصيد الحالي',
+  'productDetails.inventory.batchCount': 'عدد الدفعات',
+  'productDetails.inventory.nearestExpiry': 'أقرب صلاحية',
+  'productDetails.inventory.noExpiry': 'لا توجد صلاحية',
+  'productDetails.inventory.never': 'لم يُستلَم هذا المنتج بعد، فلا يوجد له مخزون.',
+  'productDetails.inventory.outOfStock': 'نفد المخزون من هذا المنتج.',
+  'productDetails.inventory.viewBatches': 'عرض الدفعات',
+  'productDetails.inventory.loading': 'جارٍ تحميل المخزون…',
+  'productDetails.inventory.error': 'تعذّر تحميل بيانات المخزون. بقيّة بيانات المنتج صحيحة.',
+  'productDetails.inventory.retry': 'إعادة المحاولة',
 
   // Categories (managed data) — categories/ui.md, REQ-CTG-001..004
   'categories.title': 'التصنيفات',

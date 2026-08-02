@@ -1,22 +1,100 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { BreakpointObserver } from '@angular/cdk/layout';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  computed,
+  effect,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { filter, map } from 'rxjs';
 
 import { TranslationService } from '../i18n/translation.service';
+import { VfLogoComponent } from '../../shared/ui-kit/logo/vf-logo.component';
 
 /**
  * The application shell (design language §5): the navigation sidebar sits on
  * the right — where Arabic reading starts — calm, without color blocks; the
  * active module is marked by a thin accent. Cross-module top-bar concerns
  * (global search, notifications, account) arrive with their own slices.
+ *
+ * <b>Below 768 px the same sidebar becomes a drawer</b> — one component, not a
+ * second navigation — per the owner's amendment to design-language §5
+ * (2026-08-02), which replaced «تنقّل سفلي» with a collapsible sidebar on the
+ * mobile tier as well. It slides from the right (reading direction), and closes
+ * on the backdrop, on `Esc`, and on choosing a destination. <b>Desktop is
+ * untouched:</b> every rule above the breakpoint is exactly what it was.
+ *
+ * The drawer is `position: fixed`, so opening it neither reflows nor shifts the
+ * content behind it.
  */
 @Component({
   selector: 'app-shell',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, VfLogoComponent],
+  // On the host rather than the <nav>: Esc must work wherever focus sits while the
+  // drawer covers the page, and the Tab trap reads document.activeElement anyway.
+  // The handler is inert unless the drawer is actually open on the compact tier.
+  host: { '(keydown)': 'onDrawerKeydown($event)' },
   template: `
-    <div class="shell">
-      <nav class="sidebar" [attr.aria-label]="t.t('nav.catalog')">
-        <div class="brand">{{ t.t('app.name') }}</div>
+    <div class="shell" [class.shell--compact]="isCompact()">
+      @if (isCompact()) {
+        <header class="topbar">
+          <button
+            #menuButton
+            type="button"
+            class="menu-button"
+            aria-controls="app-nav"
+            [attr.aria-expanded]="drawerOpen()"
+            [attr.aria-label]="t.t('nav.menu.open')"
+            (click)="toggleDrawer()"
+          >
+            <i class="pi pi-bars" aria-hidden="true"></i>
+          </button>
+          <vf-logo [height]="26" />
+        </header>
+      }
+
+      @if (isCompact() && drawerOpen()) {
+        <!-- A real button, so dismissing by pointer is not a click handler bolted
+             onto a div. The keyboard never lands here — focus is trapped inside the
+             drawer — so Esc and the drawer's own close button are the keyboard
+             routes out; this carries the same name for the same action. -->
+        <button
+          type="button"
+          class="backdrop"
+          [attr.aria-label]="t.t('nav.menu.close')"
+          (click)="closeDrawer()"
+        ></button>
+      }
+
+      <nav
+        #drawer
+        id="app-nav"
+        class="sidebar"
+        [class.sidebar--drawer]="isCompact()"
+        [class.sidebar--open]="drawerOpen()"
+        [attr.aria-label]="t.t('nav.primary')"
+        [attr.aria-hidden]="hidden() ? 'true' : null"
+        [attr.inert]="hidden() ? '' : null"
+      >
+        <div class="drawer-head">
+          <vf-logo [height]="30" />
+          @if (isCompact()) {
+            <button
+              type="button"
+              class="menu-button close-button"
+              [attr.aria-label]="t.t('nav.menu.close')"
+              (click)="closeDrawer()"
+            >
+              <i class="pi pi-times" aria-hidden="true"></i>
+            </button>
+          }
+        </div>
         <ul class="nav-list">
           <li class="nav-module">{{ t.t('nav.catalog') }}</li>
           <li>
@@ -157,11 +235,17 @@ import { TranslationService } from '../i18n/translation.service';
       padding: var(--vf-space-5) var(--vf-space-4);
     }
 
-    .brand {
-      font-size: var(--vf-text-section-title);
-      font-weight: 700;
-      color: var(--vf-primary);
+    .drawer-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--vf-space-2);
       margin-block-end: var(--vf-space-6);
+    }
+
+    /* The wordmark used to be styled text here; it is now <vf-logo>, which owns
+       its own presentation. Only the alignment padding stays. */
+    .drawer-head vf-logo {
       padding-inline: var(--vf-space-2);
     }
 
@@ -215,18 +299,220 @@ import { TranslationService } from '../i18n/translation.service';
       flex-direction: column;
     }
 
-    @media (max-width: 768px) {
-      .shell {
-        grid-template-columns: 1fr;
-        grid-template-areas: 'content';
-      }
+    /* ---- The compact tier (≤768 px): the same sidebar, as a drawer ----
+       Driven by a class, not only a media query, so the component's own
+       breakpoint signal and the styling agree on exactly one source of truth. */
 
-      .sidebar {
-        display: none;
-      }
+    .shell--compact {
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        'topbar'
+        'content';
+      grid-template-rows: auto 1fr;
+    }
+
+    .topbar {
+      grid-area: topbar;
+      display: flex;
+      align-items: center;
+      gap: var(--vf-space-2);
+      padding: var(--vf-space-2) var(--vf-space-3);
+      background: var(--vf-surface);
+      border-block-end: 1px solid var(--vf-border);
+    }
+
+    /* ≥44×44 px touch target (design language §14 / §5 amendment). */
+    .menu-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      inline-size: 2.75rem;
+      block-size: 2.75rem;
+      padding: 0;
+      border: 1px solid transparent;
+      border-radius: var(--vf-radius-small);
+      background: transparent;
+      color: var(--vf-text);
+      font-size: 1.25rem;
+      cursor: pointer;
+    }
+
+    .menu-button:hover {
+      background: var(--vf-bg);
+    }
+
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      background: var(--vf-overlay);
+    }
+
+    /* Fixed, so opening the drawer never reflows or shifts the content behind it.
+       It docks on the inline-start edge — the same edge the permanent sidebar
+       occupies on desktop, which under dir="rtl" is the right. */
+    .sidebar--drawer {
+      position: fixed;
+      z-index: 50;
+      inset-block: 0;
+      inset-inline-start: 0;
+      inline-size: min(var(--vf-sidebar-width), 82vw);
+      overflow-y: auto;
+      border-inline-start: 0;
+      border-inline-end: 1px solid var(--vf-border);
+      box-shadow: var(--vf-shadow-overlay);
+      /* Hidden once the slide-out has finished, so the closed drawer is neither
+         focusable nor announced. The delay is on the CLOSE direction only —
+         opening flips it immediately (see .sidebar--open), because an element
+         whose visibility is mid-transition cannot take focus, and the drawer
+         must be focusable the moment it opens. */
+      visibility: hidden;
+      transition:
+        transform 200ms ease,
+        visibility 0s linear 200ms;
+      /* Closed: parked off-screen past the inline-start edge. translateX is
+         physical, so the direction is spelled out per writing mode rather than
+         assumed — under RTL the inline-start edge is the right one. */
+      transform: translateX(-100%);
+    }
+
+    :host-context([dir='rtl']) .sidebar--drawer {
+      transform: translateX(100%);
+    }
+
+    :host-context([dir='rtl']) .sidebar--drawer.sidebar--open {
+      transform: translateX(0);
+    }
+
+    .sidebar--drawer.sidebar--open {
+      transform: translateX(0);
+      visibility: visible;
+      transition:
+        transform 200ms ease,
+        visibility 0s;
+    }
+
+    .sidebar--drawer .nav-link {
+      min-block-size: 2.75rem;
     }
   `,
 })
 export class ShellComponent {
   protected readonly t = inject(TranslationService);
+  private readonly breakpoints = inject(BreakpointObserver);
+  private readonly router = inject(Router);
+
+  private readonly menuButton = viewChild<ElementRef<HTMLButtonElement>>('menuButton');
+  private readonly drawer = viewChild<ElementRef<HTMLElement>>('drawer');
+
+  /** The compact tier of design-language §5 — tablet and mobile share one pattern. */
+  protected readonly isCompact = toSignal(
+    this.breakpoints.observe('(max-width: 768px)').pipe(map((state) => state.matches)),
+    { initialValue: false },
+  );
+
+  protected readonly drawerOpen = signal(false);
+
+  /**
+   * The drawer is hidden from assistive technology and taken out of the tab order
+   * while closed. `inert` matters as much as `aria-hidden`: a translated-away
+   * element is still focusable, and Tab would otherwise walk into an invisible menu.
+   */
+  protected readonly hidden = computed(() => this.isCompact() && !this.drawerOpen());
+
+  constructor() {
+    // Crossing back to desktop must not leave the drawer state armed: the sidebar
+    // becomes permanent there, and a stale `true` would re-open it on the way back.
+    effect(() => {
+      if (!this.isCompact()) {
+        this.drawerOpen.set(false);
+      }
+    });
+
+    // Focus follows the drawer, in both directions (design language §14).
+    //
+    // Deferred by a task on purpose. `inert` is removed by the same change that
+    // opens the drawer, and focus() inside a still-inert subtree is silently
+    // ignored — the drawer opened with focus left behind on the page underneath.
+    // Browser verification caught this; jsdom cannot, because it does not
+    // implement `inert` at all, so the unit test focused happily either way.
+    effect(() => {
+      if (!this.isCompact() || !this.drawerOpen()) {
+        return;
+      }
+
+      setTimeout(() => {
+        if (this.drawerOpen()) {
+          this.firstFocusable()?.focus();
+        }
+      });
+    });
+
+    // Choosing a destination closes the drawer. Keyed off the router rather than a
+    // click on the list, so it closes when navigation actually happens — and it
+    // stays correct for the keyboard, where Enter on a link is not a list click.
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntilDestroyed(),
+      )
+      .subscribe(() => this.closeDrawer());
+  }
+
+  protected toggleDrawer(): void {
+    this.drawerOpen.update((open) => !open);
+  }
+
+  protected closeDrawer(): void {
+    if (!this.drawerOpen()) {
+      return;
+    }
+
+    this.drawerOpen.set(false);
+    this.menuButton()?.nativeElement.focus();
+  }
+
+
+  protected onDrawerKeydown(event: KeyboardEvent): void {
+    if (!this.isCompact() || !this.drawerOpen()) {
+      return;
+    }
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      this.closeDrawer();
+      return;
+    }
+
+    if (event.key !== 'Tab') {
+      return;
+    }
+
+    // Focus stays inside the open drawer: it covers the page behind it, so tabbing
+    // out would land on content the user cannot see.
+    const focusable = this.focusableElements();
+    const first = focusable.at(0);
+    const last = focusable.at(-1);
+    if (!first || !last) {
+      return;
+    }
+
+    const active = document.activeElement;
+    if (event.shiftKey && active === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && active === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  private focusableElements(): HTMLElement[] {
+    const root = this.drawer()?.nativeElement;
+    return root ? Array.from(root.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')) : [];
+  }
+
+  private firstFocusable(): HTMLElement | undefined {
+    return this.focusableElements().at(0);
+  }
 }
