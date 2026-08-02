@@ -135,6 +135,32 @@ app.UseSerilogRequestLogging();
 app.UseRequestLocalization();
 app.UseCors(CorsOptions.PolicyName);
 
+// Pilot deployment hosting (PRS WS1): when the published Angular bundle is present
+// (the Docker image copies it into wwwroot), the API serves it same-origin — no
+// second server, no new tool, and CORS becomes moot. Development is untouched:
+// there is no wwwroot/index.html there, so nothing here activates, and `ng serve`
+// keeps proxying.
+var spaIndex = Path.Combine(app.Environment.WebRootPath ?? "wwwroot", "index.html");
+var hostsSpa = File.Exists(spaIndex);
+
+// <b>Before the authorization middleware, deliberately.</b> The fallback policy demands an
+// authenticated user for every request that reaches that middleware — including one that matched
+// no endpoint at all, which is what a bundle file is. Served afterwards, every script and
+// stylesheet came back 401.
+//
+// REQ-IDN-006 names this exact exception: the sign-in endpoint, "and what the interface needs in
+// order to be shown before signing in". These files are that, and nothing more — every business
+// endpoint below still demands a token.
+//
+// The index document needs its own exemption further down: routing matches the SPA fallback
+// endpoint first, and the static-file middleware steps aside whenever an endpoint is already
+// matched. Both halves are required, and each is pinned by a test.
+if (hostsSpa)
+{
+    app.UseDefaultFiles();
+    app.UseStaticFiles();
+}
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -150,17 +176,15 @@ app.MapInventoryEndpoints();
 app.MapSalesInvoiceEndpoints();
 app.MapSalesReturnEndpoints();
 
-// Pilot deployment hosting (PRS WS1): when the published Angular bundle is present
-// (the Docker image copies it into wwwroot), the API serves it same-origin — no
-// second server, no new tool, and CORS becomes moot. Development is untouched:
-// there is no wwwroot/index.html there, so nothing below activates, and `ng serve`
-// keeps proxying. Unmatched /api/* paths still return the canonical ProblemDetails
-// 404 — the SPA fallback deliberately never swallows an API route.
-var spaIndex = Path.Combine(app.Environment.WebRootPath ?? "wwwroot", "index.html");
-if (File.Exists(spaIndex))
+// The client-side routes (/login, /catalog/products, …) all resolve to the one index document.
+// Unmatched /api/* paths still return the canonical ProblemDetails 404 — the SPA fallback
+// deliberately never swallows an API route.
+//
+// <b>Anonymous, like the files above and for the same reason.</b> This endpoint answers "/", so
+// the fallback policy would otherwise refuse the application shell to the very users it exists to
+// let sign in — and refuse Render's health check with it.
+if (hostsSpa)
 {
-    app.UseDefaultFiles();
-    app.UseStaticFiles();
     app.MapFallback(async context =>
     {
         if (context.Request.Path.StartsWithSegments("/api"))
@@ -172,7 +196,7 @@ if (File.Exists(spaIndex))
 
         context.Response.ContentType = "text/html; charset=utf-8";
         await context.Response.SendFileAsync(spaIndex);
-    });
+    }).AllowAnonymous();
 }
 
 await VetFlow.Infrastructure.DependencyInjection.ApplyMigrationsIfConfiguredAsync(app.Services);
