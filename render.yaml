@@ -74,9 +74,28 @@ services:
       - key: Database__SeedDevelopmentDataAtStartup
         value: "false"
 
+      # The access-token signing key (ADR-0022 §7, REQ-IDN-003). The app REFUSES
+      # TO BOOT without it, deliberately: a predictable signing key would let
+      # anyone mint a token for any tenant, which defeats every isolation
+      # guarantee in ADR-0022 at once. Refusing is the safe failure — and it is
+      # what stopped the first deploy of this Epic.
+      #
+      # `generateValue` has Render create a strong random secret and store it on
+      # the service. It is never committed, never printed, and never passes
+      # through a transcript — which matters here, because a live credential
+      # pasted into one is already an open item from the sixteenth cycle.
+      #
+      # Rotating it invalidates every issued token: with a 12-hour lifetime and
+      # no refresh (DEC-IDN-003/009), everyone signs in again. That is the whole
+      # cost, and it is acceptable — but it is why this is not rotated casually.
+      - key: Jwt__SigningKey
+        generateValue: true
+
       # BR-INV-060: the clinic's local date comes from ONE configured zone and
-      # must never fall back to UTC — ClinicClock throws if it cannot resolve.
-      # The Debian-based runtime image carries tzdata; an Alpine base would break
-      # this at startup (ADR-0021 §Consequences 8).
+      # must never fall back to UTC — the clock throws if it cannot resolve one.
+      # Since DEC-ORG-007 the running source is the TENANT's zone; this value is
+      # what the first clinic is seeded with, and it still refuses to boot when
+      # absent or unresolvable. The Debian-based runtime image carries tzdata; an
+      # Alpine base would break this at startup (ADR-0021 §Consequences 8).
       - key: Clinic__TimeZone
         value: Africa/Cairo
