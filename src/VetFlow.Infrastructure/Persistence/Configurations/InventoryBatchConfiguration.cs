@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using VetFlow.Domain.Inventory;
+using VetFlow.Infrastructure.Persistence.Tenancy;
 
 namespace VetFlow.Infrastructure.Persistence.Configurations;
 
@@ -8,6 +9,8 @@ public sealed class InventoryBatchConfiguration : IEntityTypeConfiguration<Inven
 {
     public void Configure(EntityTypeBuilder<InventoryBatch> builder)
     {
+        builder.ScopedToBranch();
+
         builder.HasKey(batch => batch.Id);
 
         // The id is assigned by the write kernel (Guid), never by the store.

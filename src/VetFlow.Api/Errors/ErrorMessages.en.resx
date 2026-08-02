@@ -258,4 +258,10 @@
   <data name="VTF-INV-068" xml:space="preserve">
     <value>The batch changed while the operation was being saved. Nothing was saved. Try again.</value>
   </data>
+  <data name="VTF-IDN-001" xml:space="preserve">
+    <value>The phone number or password is incorrect.</value>
+  </data>
+  <data name="VTF-IDN-002" xml:space="preserve">
+    <value>Your session has ended. Sign in again.</value>
+  </data>
 </root>

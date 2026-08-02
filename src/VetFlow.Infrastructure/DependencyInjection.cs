@@ -2,14 +2,21 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using VetFlow.Application.Common;
+using VetFlow.Application.Identity;
 using VetFlow.Application.Inventory;
 using VetFlow.Infrastructure.Catalog;
 using VetFlow.Infrastructure.Categories;
 using VetFlow.Infrastructure.Common;
+using VetFlow.Infrastructure.Identity;
 using VetFlow.Infrastructure.Inventory;
+using VetFlow.Infrastructure.Organization;
 using VetFlow.Infrastructure.Persistence;
+using VetFlow.Infrastructure.Persistence.Attribution;
+using VetFlow.Infrastructure.Persistence.Numbering;
+using VetFlow.Infrastructure.Persistence.Tenancy;
 using VetFlow.Infrastructure.Purchasing;
 using VetFlow.Infrastructure.Sales;
+using VetFlow.Infrastructure.Tenancy;
 
 namespace VetFlow.Infrastructure;
 
@@ -28,9 +35,10 @@ public static class DependencyInjection
                 "Database:ConnectionString must be configured.")
             .ValidateOnStart();
 
-        // The clinic's business date comes from one configured time zone (BR-INV-060). An absent or
-        // unresolvable zone refuses to boot: running with an unknown time zone would make the
-        // expiry safety decision undefined, and silently falling back to UTC is prohibited.
+        // The zone a newly seeded clinic starts with (DEC-ORG-007 moved the running source onto the
+        // tenant). An absent or unresolvable zone still refuses to boot: seeding a clinic with a
+        // zone nobody checked would make the expiry safety decision undefined from its first day,
+        // and silently falling back to UTC is prohibited (BR-INV-060, BR-ORG-007).
         services.AddOptions<ClinicTimeOptions>()
             .BindConfiguration(ClinicTimeOptions.SectionName)
             .Validate(
@@ -40,15 +48,47 @@ public static class DependencyInjection
             .ValidateOnStart();
 
         services.AddSingleton(TimeProvider.System);
+
+        // The clock is tenant-resolved (DEC-ORG-007, AC-ORG-009) and singleton like the tenant
+        // context it reads: it resolves the current request's tenant on every access, so one
+        // instance is correct for every clinic instead of for one.
+        services.AddSingleton<TenantTimeZones>();
         services.AddSingleton<IClinicClock, ClinicClock>();
         services.AddSingleton<SearchTextInterceptor>();
+
+        // Singleton, matching the interceptor beside it and the tenant context it depends on.
+        // Reads are filtered by the model; writes are stamped here — one mechanism per direction,
+        // neither of them a parameter any handler passes (BR-ORG-003, ADR-0022 §12.5).
+        services.AddSingleton<TenantStampInterceptor>();
+
+        // The database-level second net (ADR-0022 §8.2): it publishes the tenant to the session
+        // that the row-level-security policies read. Singleton for the same reason as the two
+        // above — it resolves the scope per connection, not per registration.
+        services.AddSingleton<TenantSessionInterceptor>();
+
+        // Attribution (REQ-IDN-008, BR-INV-066 as amended): every movement records the signed-in
+        // user, stamped here rather than passed by a writer.
+        services.AddSingleton<ActorStampInterceptor>();
+
         services.AddDbContext<VetFlowDbContext>((serviceProvider, options) =>
         {
             var databaseOptions = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value;
             options
                 .UseNpgsql(databaseOptions.ConnectionString)
-                .AddInterceptors(serviceProvider.GetRequiredService<SearchTextInterceptor>());
+                .AddInterceptors(
+                    serviceProvider.GetRequiredService<SearchTextInterceptor>(),
+                    serviceProvider.GetRequiredService<TenantStampInterceptor>(),
+                    serviceProvider.GetRequiredService<ActorStampInterceptor>(),
+                    serviceProvider.GetRequiredService<TenantSessionInterceptor>());
         });
+
+        // Document numbering (ADR-0022 §6). Scoped, because it allocates inside the caller's
+        // DbContext and the caller's transaction — which is what makes the series gapless.
+        services.AddScoped<DocumentNumbers>();
+
+        services.AddSingleton<IPasswordHasher, PasswordHasherAdapter>();
+        services.AddScoped<SignInCommandHandler>();
+        services.AddScoped<OrganizationSeeder>();
 
         services.AddScoped<ProductListQueryHandler>();
         services.AddScoped<ProductDetailsQueryHandler>();
@@ -148,6 +188,23 @@ public static class DependencyInjection
     }
 
     /// <summary>
+    /// Creates the Pilot clinic if it is not already there (ADR-0022 §10). Runs after migrations
+    /// and before the first request, because the application has no anonymous path: without a
+    /// tenant, a branch and an owner there is nobody who could sign in.
+    /// </summary>
+    public static async Task SeedOrganizationAsync(IServiceProvider serviceProvider)
+    {
+        await using var scope = serviceProvider.CreateAsyncScope();
+        var clinicTime = scope.ServiceProvider.GetRequiredService<IOptions<ClinicTimeOptions>>().Value;
+        var seeder = scope.ServiceProvider.GetRequiredService<OrganizationSeeder>();
+
+        // The tenant's own time zone starts as the configured one, so the Pilot's clinic date is
+        // byte-identical to what it was before (BR-INV-060 unchanged, DEC-ORG-007 — the source
+        // moved, the rule did not).
+        await seeder.SeedAsync(clinicTime.TimeZone);
+    }
+
+    /// <summary>
     /// Seeds sample purchase invoices when Database:SeedDevelopmentDataAtStartup is
     /// enabled (development only — DEC-PUR-001). Idempotent and off by default.
     /// </summary>
@@ -160,7 +217,16 @@ public static class DependencyInjection
             return;
         }
 
+        // Development data belongs to the seeded clinic like any other row. Seeding runs before
+        // anyone has signed in, so the scope is stated explicitly here rather than resolved from
+        // a principal that does not exist yet — the one legitimate use of SystemTenantScope
+        // alongside bootstrap and tests.
+        using var tenantScope = SystemTenantScope.Begin(
+            OrganizationSeeder.PilotScope.TenantId,
+            OrganizationSeeder.PilotScope.BranchId);
+
         var dbContext = scope.ServiceProvider.GetRequiredService<VetFlowDbContext>();
-        await PurchaseInvoiceDevelopmentSeeder.SeedAsync(dbContext, TimeProvider.System);
+        var documentNumbers = scope.ServiceProvider.GetRequiredService<DocumentNumbers>();
+        await PurchaseInvoiceDevelopmentSeeder.SeedAsync(dbContext, documentNumbers, TimeProvider.System);
     }
 }

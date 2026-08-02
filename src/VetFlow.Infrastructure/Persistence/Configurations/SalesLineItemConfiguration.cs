@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using VetFlow.Domain.Sales;
+using VetFlow.Infrastructure.Persistence.Tenancy;
 
 namespace VetFlow.Infrastructure.Persistence.Configurations;
 
@@ -8,6 +9,8 @@ public sealed class SalesLineItemConfiguration : IEntityTypeConfiguration<SalesL
 {
     public void Configure(EntityTypeBuilder<SalesLineItem> builder)
     {
+        builder.ScopedToBranch();
+
         builder.HasKey(line => line.Id);
 
         // The id is assigned by the domain (Guid), never by the store — so a line added to an

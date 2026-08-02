@@ -4,12 +4,13 @@ using VetFlow.Application.Sales.Commands.CreateSalesReturn;
 using VetFlow.Domain.Common;
 using VetFlow.Domain.Sales;
 using VetFlow.Infrastructure.Persistence;
+using VetFlow.Infrastructure.Persistence.Numbering;
 
 namespace VetFlow.Infrastructure.Sales;
 
 /// <summary>
 /// Create-sales-return write path (REQ-SAL-004, AC-SAL-014). It allocates the <c>SRT-</c> number
-/// from its PostgreSQL sequence (BR-SAL-014 — the same mechanism as <c>SAL-</c>, not a second one),
+/// from its branch's counter (BR-SAL-014 — the same mechanism as <c>SAL-</c>, not a second one),
 /// snapshots the customer from the originating invoice, and persists the draft in a single
 /// <c>SaveChanges</c> (STD-BE-024).
 ///
@@ -18,7 +19,10 @@ namespace VetFlow.Infrastructure.Sales;
 /// consumed stock, so there is no consumption trace to return along — the return could only ever
 /// fail later, and rejecting here makes it early and legible instead of late and cryptic.</para>
 /// </summary>
-public sealed class CreateSalesReturnCommandHandler(VetFlowDbContext dbContext, TimeProvider timeProvider)
+public sealed class CreateSalesReturnCommandHandler(
+    VetFlowDbContext dbContext,
+    DocumentNumbers documentNumbers,
+    TimeProvider timeProvider)
     : ICommandHandler<CreateSalesReturnCommand, CreateSalesReturnResult?>
 {
     public async Task<CreateSalesReturnResult?> HandleAsync(
@@ -43,10 +47,12 @@ public sealed class CreateSalesReturnCommandHandler(VetFlowDbContext dbContext, 
                 new Dictionary<string, string> { ["status"] = invoice.Status.ToString() });
         }
 
-        var sequenceValue = await dbContext.Database
-            .SqlQueryRaw<long>($"SELECT nextval('{InternalSalesReturnNumber.SequenceName}') AS \"Value\"")
-            .SingleAsync(cancellationToken);
-        var number = InternalSalesReturnNumber.Format(sequenceValue);
+        // The number is allocated inside the transaction that inserts the return, so a failed save
+        // gives it back (ADR-0022 §6 — gapless by owner ruling).
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+        var number = InternalSalesReturnNumber.Format(
+            await documentNumbers.NextAsync(DocumentSeries.SalesReturn, cancellationToken));
 
         var salesReturn = new SalesReturn(
             Guid.NewGuid(),
@@ -59,6 +65,7 @@ public sealed class CreateSalesReturnCommandHandler(VetFlowDbContext dbContext, 
 
         dbContext.SalesReturns.Add(salesReturn);
         await dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return new CreateSalesReturnResult { Id = salesReturn.Id, Number = salesReturn.Number };
     }

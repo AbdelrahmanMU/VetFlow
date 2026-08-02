@@ -896,6 +896,18 @@ export const AR = {
   'errors.VTF-INV-061': 'الكمية المطلوب خصمها تتجاوز المتبقّي في الدفعة. لم تُنفَّذ العملية ولم يتغيّر أيّ رصيد.',
   'errors.VTF-INV-067': 'سبب غير مسموح به لهذه العملية. اختر سببًا من قائمة العملية نفسها.',
   'errors.VTF-INV-068': 'تغيّرت الدفعة أثناء حفظ العملية. لم يُحفظ أيّ تغيير. حاول مرة أخرى.',
+
+  // Identity (identity/ui.md — the nine strings the owner approved on 2026-08-02, OQ-IDN-3).
+  // Used verbatim; none of them is paraphrased, and no tenth string was invented.
+  'login.title': 'تسجيل الدخول',
+  'login.phone': 'رقم الهاتف',
+  'login.password': 'كلمة المرور',
+  'login.submit': 'دخول',
+  'login.submitting': 'جارٍ تسجيل الدخول…',
+  'login.error.invalid': 'رقم الهاتف أو كلمة المرور غير صحيح.',
+  'login.error.system': 'تعذّر تسجيل الدخول الآن. أعد المحاولة.',
+  'session.expired': 'انتهت جلستك. سجّل الدخول من جديد.',
+  'nav.logout': 'تسجيل الخروج',
 } as const;
 
 export type MessageKey = keyof typeof AR;

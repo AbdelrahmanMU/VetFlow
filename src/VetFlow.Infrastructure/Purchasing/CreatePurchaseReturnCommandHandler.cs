@@ -4,12 +4,13 @@ using VetFlow.Application.Purchasing.Commands.CreatePurchaseReturn;
 using VetFlow.Domain.Common;
 using VetFlow.Domain.Purchasing;
 using VetFlow.Infrastructure.Persistence;
+using VetFlow.Infrastructure.Persistence.Numbering;
 
 namespace VetFlow.Infrastructure.Purchasing;
 
 /// <summary>
 /// Create-purchase-return write path (REQ-PUR-006, AC-PUR-019). It allocates the <c>PRT-</c>
-/// number from its PostgreSQL sequence (BR-PUR-014 — the same mechanism as <c>PUR-</c>, not a
+/// number from its branch's counter (BR-PUR-014 — the same mechanism as <c>PUR-</c>, not a
 /// second one), snapshots the supplier from the originating invoice, and persists the draft in a
 /// single <c>SaveChanges</c> (STD-BE-024).
 ///
@@ -18,7 +19,10 @@ namespace VetFlow.Infrastructure.Purchasing;
 /// and a cancelled one never will, so a return against either could only ever fail later at the
 /// floor rule — rejecting here makes it early and legible instead of late and cryptic.</para>
 /// </summary>
-public sealed class CreatePurchaseReturnCommandHandler(VetFlowDbContext dbContext, TimeProvider timeProvider)
+public sealed class CreatePurchaseReturnCommandHandler(
+    VetFlowDbContext dbContext,
+    DocumentNumbers documentNumbers,
+    TimeProvider timeProvider)
     : ICommandHandler<CreatePurchaseReturnCommand, CreatePurchaseReturnResult?>
 {
     public async Task<CreatePurchaseReturnResult?> HandleAsync(
@@ -43,10 +47,12 @@ public sealed class CreatePurchaseReturnCommandHandler(VetFlowDbContext dbContex
                 new Dictionary<string, string> { ["status"] = invoice.Status.ToString() });
         }
 
-        var sequenceValue = await dbContext.Database
-            .SqlQueryRaw<long>($"SELECT nextval('{InternalPurchaseReturnNumber.SequenceName}') AS \"Value\"")
-            .SingleAsync(cancellationToken);
-        var number = InternalPurchaseReturnNumber.Format(sequenceValue);
+        // The number is allocated inside the transaction that inserts the return, so a failed save
+        // gives it back (ADR-0022 §6 — gapless by owner ruling).
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+        var number = InternalPurchaseReturnNumber.Format(
+            await documentNumbers.NextAsync(DocumentSeries.PurchaseReturn, cancellationToken));
 
         var purchaseReturn = new PurchaseReturn(
             Guid.NewGuid(),
@@ -59,6 +65,7 @@ public sealed class CreatePurchaseReturnCommandHandler(VetFlowDbContext dbContex
 
         dbContext.PurchaseReturns.Add(purchaseReturn);
         await dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return new CreatePurchaseReturnResult { Id = purchaseReturn.Id, Number = purchaseReturn.Number };
     }

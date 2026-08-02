@@ -11,7 +11,7 @@
 
 | English | العربية | Definition |
 |---|---|---|
-| Veterinary clinic | العيادة البيطرية | The business VetFlow manages: a single clinic (multi-branch is post-MVP). |
+| Veterinary clinic | العيادة البيطرية | The business VetFlow manages. **Amended 2026-08-02 (ADR-0022):** the platform hosts many clinics, each a **Tenant** with one or more **Branches**; the Pilot runs one tenant with one branch, and branch *management* remains post-MVP. *(Superseded wording, kept for history: "a single clinic (multi-branch is post-MVP)".)* |
 | Owner (Veterinary Doctor) | الطبيب البيطري (المالك) | Owner of the clinic and of all business decisions. |
 | Cashier / Assistant | الكاشير / المساعد | Staff member handling day-to-day sales and recording. |
 | Customer | عميل | A person the clinic sells to. MVP keeps customer data minimal. |
@@ -81,6 +81,22 @@
 | Local backup | النسخ الاحتياطي المحلي | A safety copy of the clinic's data, kept locally. |
 | Settings | الإعدادات | Clinic-level configuration. Scope TODO (Settings module docs). |
 | Business event | حدث عمل | A named business occurrence crossing module boundaries (see `events.md`). |
+
+## Organization & identity — التنظيم والهويّة
+
+> Added 2026-08-02 with ADR-0022. Arabic forms pending owner approval.
+
+| English | العربية | Definition |
+|---|---|---|
+| Tenant | المنشأة | The commercial customer: one veterinary business. The boundary of data ownership, security and subscription. Every business row belongs to exactly one (BR-ORG-001). |
+| Branch | الفرع | A physical site belonging to one tenant. The scope of business documents and their numbering (BR-ORG-002). A future warehouse is modelled as a branch, not as a level below it (ADR-0022 §11.1). |
+| Membership | العضوية | The link between a user and a tenant, carrying the user's role. Access is derived from it, never from a field on the user (BR-ORG-005). |
+| User | مستخدم | A person who signs in and to whom every operation is attributed. Identified by phone number, unique platform-wide (BR-IDN-001). |
+| Role | الدور | What a membership permits: **Owner (مالك)** or **Cashier (كاشير)** — closed set, per BD-PRD-003 (BR-ORG-006). |
+| Sign in | تسجيل الدخول | Phone number + password only. No email, username, OTP or MFA (DEC-IDN-001). |
+| Access token | رمز الوصول | The JWT issued on successful sign-in, carrying user, tenant, branch and role. No refresh token exists (DEC-IDN-003). |
+| Tenant context | سياق المنشأة | The current tenant, branch and user, resolved **only** from authenticated claims — never from configuration, header, route or body (BR-IDN-004). |
+| Document number counter | عدّاد أرقام المستندات | The per-`(tenant, branch, series)` counter that replaces the global database sequences; allocated inside the document's transaction, so numbering is gapless (ADR-0022 §6). |
 
 ## TODO — أسئلة للمالك
 

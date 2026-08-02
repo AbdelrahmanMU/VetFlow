@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using VetFlow.Domain.Catalog;
+using VetFlow.Infrastructure.Persistence.Tenancy;
 
 namespace VetFlow.Infrastructure.Persistence.Configurations;
 
@@ -8,12 +9,17 @@ public sealed class ProductNatureConfiguration : IEntityTypeConfiguration<Produc
 {
     public void Configure(EntityTypeBuilder<ProductNature> builder)
     {
+        // Shared vocabulary, like units (BR-ORG-001, DEC-ORG-004, ADR-0022 §12.4).
+        builder.PlatformGlobal();
+
         builder.HasKey(nature => nature.Id);
         builder.Property(nature => nature.Name).HasMaxLength(200).IsRequired();
 
         builder.Property<string>(SearchableText.PropertyName)
             .HasMaxLength(SearchableText.MaxLength)
             .IsRequired();
+        // Not rescoped, and deliberately so: product natures are platform-global shared
+        // vocabulary with no tenant to lead with (DEC-ORG-004, ADR-0022 §12.4).
         builder.HasIndex(SearchableText.PropertyName).HasMethod("gin").HasOperators("gin_trgm_ops");
 
         // The initial extensible nature list (REQ-CAT-011, AC-CAT-011).

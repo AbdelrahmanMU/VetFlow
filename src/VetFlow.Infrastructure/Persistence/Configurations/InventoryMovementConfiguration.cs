@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using VetFlow.Domain.Inventory;
+using VetFlow.Infrastructure.Persistence.Attribution;
+using VetFlow.Infrastructure.Persistence.Tenancy;
 
 namespace VetFlow.Infrastructure.Persistence.Configurations;
 
@@ -12,6 +14,12 @@ public sealed class InventoryMovementConfiguration : IEntityTypeConfiguration<In
 {
     public void Configure(EntityTypeBuilder<InventoryMovement> builder)
     {
+        builder.ScopedToBranch();
+
+        // Every movement records the signed-in user who wrote it (BR-INV-066 as amended
+        // 2026-08-02, REQ-IDN-008). Derived from the token's claims, never passed in.
+        builder.AttributedToUser();
+
         builder.HasKey(movement => movement.Id);
 
         // The id is assigned by the writer (Guid), never by the store.
@@ -33,8 +41,9 @@ public sealed class InventoryMovementConfiguration : IEntityTypeConfiguration<In
         builder.Property(movement => movement.Reason);
         builder.Property(movement => movement.ReasonNote).HasMaxLength(500);
 
-        // Free text by owner ruling: no users module, no authentication, no validation
-        // (BR-INV-066, DEC-INV-030).
+        // A historical field since the 2026-08-02 amendment: values recorded before authentication
+        // existed stay readable exactly as they are, and are neither deleted nor rewritten. It is
+        // simply no longer the source of attribution — the stamped performer above is.
         builder.Property(movement => movement.ActorName).HasMaxLength(200);
 
         builder.Property(movement => movement.OccurredAt).IsRequired();

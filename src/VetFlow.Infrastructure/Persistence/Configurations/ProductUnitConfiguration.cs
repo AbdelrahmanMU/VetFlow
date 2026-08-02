@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using VetFlow.Domain.Catalog;
+using VetFlow.Infrastructure.Persistence.Tenancy;
 
 namespace VetFlow.Infrastructure.Persistence.Configurations;
 
@@ -10,6 +11,8 @@ public sealed class ProductUnitConfiguration : IEntityTypeConfiguration<ProductU
 
     public void Configure(EntityTypeBuilder<ProductUnit> builder)
     {
+        builder.ScopedToTenant();
+
         builder.HasKey(productUnit => productUnit.Id);
 
         // The id is assigned by the domain (Guid), never by the store. Declaring this

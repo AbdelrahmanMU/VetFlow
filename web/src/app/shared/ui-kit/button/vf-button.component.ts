@@ -11,6 +11,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
     <button
       [attr.type]="type()"
       class="vf-button"
+      [class.vf-button--full]="full()"
       [class.vf-button--primary]="variant() === 'primary'"
       [class.vf-button--secondary]="variant() === 'secondary'"
       [class.vf-button--quiet]="variant() === 'quiet'"
@@ -42,6 +43,16 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
     .vf-button:disabled {
       opacity: 0.55;
       cursor: default;
+    }
+
+    /* A single full-width action, as the login screen rules (identity/ui.md S1).
+       It carries the same 44 px minimum the compact tier's navigation holds itself
+       to (design language §5 amendment / §14: «أهداف لمس مريحة»), because on a phone
+       this is the only thing on the screen to press. */
+    .vf-button--full {
+      inline-size: 100%;
+      justify-content: center;
+      min-block-size: 2.75rem;
     }
 
     .vf-button--primary {
@@ -82,6 +93,8 @@ export class VfButtonComponent {
   readonly variant = input<'primary' | 'secondary' | 'quiet'>('secondary');
   readonly icon = input<string | null>(null);
   readonly disabled = input(false);
+  /** Stretches to the container's width — the login screen's single action (identity/ui.md S1). */
+  readonly full = input(false);
   /** `submit` participates in `form[vfSubmitGuide]` submission (STD-UX-122). */
   readonly type = input<'button' | 'submit'>('button');
   readonly pressed = output<MouseEvent>();

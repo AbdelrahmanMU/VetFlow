@@ -20,6 +20,7 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                 .HasAnnotation("ProductVersion", "10.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "btree_gin");
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "pg_trgm");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
@@ -46,20 +47,29 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(700)")
                         .HasColumnName("search_text");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
                     b.HasKey("Id")
                         .HasName("pk_manufacturers");
 
-                    b.HasIndex("SearchText")
-                        .HasDatabaseName("ix_manufacturers_search_text");
+                    b.HasAlternateKey("TenantId", "Id")
+                        .HasName("ak_manufacturers_tenant_id_id");
 
-                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("SearchText"), "gin");
-                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("SearchText"), new[] { "gin_trgm_ops" });
+                    b.HasIndex("TenantId", "SearchText")
+                        .HasDatabaseName("ix_manufacturers_tenant_id_search_text");
 
-                    b.HasIndex(new[] { "SearchText" }, "ix_manufacturers_name_unique")
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("TenantId", "SearchText"), "gin");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("TenantId", "SearchText"), new[] { "uuid_ops", "gin_trgm_ops" });
+
+                    b.HasIndex(new[] { "TenantId", "SearchText" }, "ix_manufacturers_name_unique")
                         .IsUnique()
                         .HasDatabaseName("ix_manufacturers_name_unique");
 
                     b.ToTable("manufacturers");
+
+                    b.HasAnnotation("VetFlow:TenantScope", "Tenant");
                 });
 
             modelBuilder.Entity("VetFlow.Domain.Catalog.Product", b =>
@@ -163,17 +173,15 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("storage_unit_id");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
                     b.HasKey("Id")
                         .HasName("pk_products");
 
-                    b.HasIndex("ArabicNameNormalized")
-                        .HasDatabaseName("ix_products_arabic_name_normalized");
-
-                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("ArabicNameNormalized"), "gin");
-                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("ArabicNameNormalized"), new[] { "gin_trgm_ops" });
-
-                    b.HasIndex("CategoryId")
-                        .HasDatabaseName("ix_products_category_id");
+                    b.HasAlternateKey("TenantId", "Id")
+                        .HasName("ak_products_tenant_id_id");
 
                     b.HasIndex("DefaultPurchaseUnitId")
                         .HasDatabaseName("ix_products_default_purchase_unit_id");
@@ -181,21 +189,8 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                     b.HasIndex("DefaultSaleUnitId")
                         .HasDatabaseName("ix_products_default_sale_unit_id");
 
-                    b.HasIndex("InternalCode")
-                        .IsUnique()
-                        .HasDatabaseName("ix_products_internal_code");
-
-                    b.HasIndex("ManufacturerId")
-                        .HasDatabaseName("ix_products_manufacturer_id");
-
                     b.HasIndex("NatureId")
                         .HasDatabaseName("ix_products_nature_id");
-
-                    b.HasIndex("SearchText")
-                        .HasDatabaseName("ix_products_search_text");
-
-                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("SearchText"), "gin");
-                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("SearchText"), new[] { "gin_trgm_ops" });
 
                     b.HasIndex("Status")
                         .HasDatabaseName("ix_products_status");
@@ -203,7 +198,31 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                     b.HasIndex("StorageUnitId")
                         .HasDatabaseName("ix_products_storage_unit_id");
 
+                    b.HasIndex("TenantId", "ArabicNameNormalized")
+                        .HasDatabaseName("ix_products_tenant_id_arabic_name_normalized");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("TenantId", "ArabicNameNormalized"), "gin");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("TenantId", "ArabicNameNormalized"), new[] { "uuid_ops", "gin_trgm_ops" });
+
+                    b.HasIndex("TenantId", "CategoryId")
+                        .HasDatabaseName("ix_products_tenant_id_category_id");
+
+                    b.HasIndex("TenantId", "InternalCode")
+                        .IsUnique()
+                        .HasDatabaseName("ix_products_tenant_id_internal_code");
+
+                    b.HasIndex("TenantId", "ManufacturerId")
+                        .HasDatabaseName("ix_products_tenant_id_manufacturer_id");
+
+                    b.HasIndex("TenantId", "SearchText")
+                        .HasDatabaseName("ix_products_tenant_id_search_text");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("TenantId", "SearchText"), "gin");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("TenantId", "SearchText"), new[] { "uuid_ops", "gin_trgm_ops" });
+
                     b.ToTable("products");
+
+                    b.HasAnnotation("VetFlow:TenantScope", "Tenant");
                 });
 
             modelBuilder.Entity("VetFlow.Domain.Catalog.ProductNature", b =>
@@ -235,6 +254,8 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                     NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("SearchText"), new[] { "gin_trgm_ops" });
 
                     b.ToTable("product_natures");
+
+                    b.HasAnnotation("VetFlow:TenantScope", "Global");
 
                     b.HasData(
                         new
@@ -306,6 +327,10 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .HasColumnType("numeric(12,2)")
                         .HasColumnName("selling_price");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
                     b.Property<Guid>("UnitId")
                         .HasColumnType("uuid")
                         .HasColumnName("unit_id");
@@ -316,13 +341,15 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                     b.HasIndex("Barcode")
                         .HasDatabaseName("ix_product_units_barcode");
 
-                    b.HasIndex("ProductId")
-                        .HasDatabaseName("ix_product_units_product_id");
-
                     b.HasIndex("UnitId")
                         .HasDatabaseName("ix_product_units_unit_id");
 
+                    b.HasIndex("TenantId", "ProductId")
+                        .HasDatabaseName("ix_product_units_tenant_id_product_id");
+
                     b.ToTable("product_units");
+
+                    b.HasAnnotation("VetFlow:TenantScope", "Tenant");
                 });
 
             modelBuilder.Entity("VetFlow.Domain.Catalog.Unit", b =>
@@ -342,6 +369,8 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .HasName("pk_units");
 
                     b.ToTable("units");
+
+                    b.HasAnnotation("VetFlow:TenantScope", "Global");
 
                     b.HasData(
                         new
@@ -434,20 +463,65 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(700)")
                         .HasColumnName("search_text");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
                     b.HasKey("Id")
                         .HasName("pk_categories");
 
-                    b.HasIndex("SearchText")
-                        .HasDatabaseName("ix_categories_search_text");
+                    b.HasAlternateKey("TenantId", "Id")
+                        .HasName("ak_categories_tenant_id_id");
 
-                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("SearchText"), "gin");
-                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("SearchText"), new[] { "gin_trgm_ops" });
+                    b.HasIndex("TenantId", "SearchText")
+                        .HasDatabaseName("ix_categories_tenant_id_search_text");
 
-                    b.HasIndex(new[] { "SearchText" }, "ix_categories_name_unique")
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("TenantId", "SearchText"), "gin");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("TenantId", "SearchText"), new[] { "uuid_ops", "gin_trgm_ops" });
+
+                    b.HasIndex(new[] { "TenantId", "SearchText" }, "ix_categories_name_unique")
                         .IsUnique()
                         .HasDatabaseName("ix_categories_name_unique");
 
                     b.ToTable("categories");
+
+                    b.HasAnnotation("VetFlow:TenantScope", "Tenant");
+                });
+
+            modelBuilder.Entity("VetFlow.Domain.Identity.User", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("display_name");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("password_hash");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("phone_number");
+
+                    b.HasKey("Id")
+                        .HasName("pk_users");
+
+                    b.HasIndex("PhoneNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_phone_number");
+
+                    b.ToTable("users");
+
+                    b.HasAnnotation("VetFlow:TenantScope", "Global");
                 });
 
             modelBuilder.Entity("VetFlow.Domain.Inventory.InventoryBatch", b =>
@@ -455,6 +529,10 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("branch_id");
 
                     b.Property<DateOnly?>("ExpiryDate")
                         .HasColumnType("date")
@@ -482,6 +560,10 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .HasColumnType("numeric(18,3)")
                         .HasColumnName("remaining_quantity");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
                     b.Property<decimal>("UnitCostSnapshot")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
@@ -503,6 +585,8 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_inventory_batches_purchase_line_id");
 
                     b.ToTable("inventory_batches");
+
+                    b.HasAnnotation("VetFlow:TenantScope", "Branch");
                 });
 
             modelBuilder.Entity("VetFlow.Domain.Inventory.InventoryMovement", b =>
@@ -520,9 +604,17 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("batch_id");
 
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("branch_id");
+
                     b.Property<DateTimeOffset>("OccurredAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("occurred_at");
+
+                    b.Property<Guid>("PerformedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("performed_by_user_id");
 
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uuid")
@@ -550,6 +642,10 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("source");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
                     b.Property<int>("Type")
                         .HasColumnType("integer")
                         .HasColumnName("type");
@@ -570,10 +666,22 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_inventory_movements_occurred_at_id");
 
                     b.ToTable("inventory_movements");
+
+                    b
+                        .HasAnnotation("VetFlow:AttributedToUser", true)
+                        .HasAnnotation("VetFlow:TenantScope", "Branch");
                 });
 
             modelBuilder.Entity("VetFlow.Domain.Inventory.ProductOnHand", b =>
                 {
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("branch_id");
+
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uuid")
                         .HasColumnName("product_id");
@@ -583,10 +691,111 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .HasColumnType("numeric(18,3)")
                         .HasColumnName("on_hand_quantity");
 
-                    b.HasKey("ProductId")
+                    b.HasKey("TenantId", "BranchId", "ProductId")
                         .HasName("pk_product_on_hands");
 
                     b.ToTable("product_on_hands");
+
+                    b.HasAnnotation("VetFlow:TenantScope", "Branch");
+                });
+
+            modelBuilder.Entity("VetFlow.Domain.Organization.Branch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_branches");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("ix_branches_tenant_id");
+
+                    b.ToTable("branches");
+
+                    b.HasAnnotation("VetFlow:TenantScope", "Global");
+                });
+
+            modelBuilder.Entity("VetFlow.Domain.Organization.Membership", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("branch_id");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("role");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_memberships");
+
+                    b.HasIndex("BranchId")
+                        .HasDatabaseName("ix_memberships_branch_id");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_memberships_user_id");
+
+                    b.HasIndex("TenantId", "UserId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_memberships_tenant_id_user_id");
+
+                    b.ToTable("memberships");
+
+                    b.HasAnnotation("VetFlow:TenantScope", "Global");
+                });
+
+            modelBuilder.Entity("VetFlow.Domain.Organization.Tenant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("TimeZone")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("time_zone");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tenants");
+
+                    b.HasIndex("Id")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tenants_id");
+
+                    b.ToTable("tenants");
+
+                    b.HasAnnotation("VetFlow:TenantScope", "Global");
                 });
 
             modelBuilder.Entity("VetFlow.Domain.Purchasing.PurchaseInvoice", b =>
@@ -595,6 +804,10 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("branch_id");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -638,6 +851,10 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(300)")
                         .HasColumnName("supplier_name");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
                     b.Property<decimal>("TotalAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
@@ -646,23 +863,28 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_purchase_invoices");
 
+                    b.HasAlternateKey("TenantId", "Id")
+                        .HasName("ak_purchase_invoices_tenant_id_id");
+
                     b.HasIndex("InvoiceDate")
                         .HasDatabaseName("ix_purchase_invoices_invoice_date");
-
-                    b.HasIndex("Number")
-                        .IsUnique()
-                        .HasDatabaseName("ix_purchase_invoices_number");
-
-                    b.HasIndex("SearchText")
-                        .HasDatabaseName("ix_purchase_invoices_search_text");
-
-                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("SearchText"), "gin");
-                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("SearchText"), new[] { "gin_trgm_ops" });
 
                     b.HasIndex("Status")
                         .HasDatabaseName("ix_purchase_invoices_status");
 
+                    b.HasIndex("TenantId", "SearchText")
+                        .HasDatabaseName("ix_purchase_invoices_tenant_id_search_text");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("TenantId", "SearchText"), "gin");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("TenantId", "SearchText"), new[] { "uuid_ops", "gin_trgm_ops" });
+
+                    b.HasIndex("TenantId", "BranchId", "Number")
+                        .IsUnique()
+                        .HasDatabaseName("ix_purchase_invoices_tenant_id_branch_id_number");
+
                     b.ToTable("purchase_invoices");
+
+                    b.HasAnnotation("VetFlow:TenantScope", "Branch");
                 });
 
             modelBuilder.Entity("VetFlow.Domain.Purchasing.PurchaseLineItem", b =>
@@ -674,6 +896,10 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("AddedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("added_at");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("branch_id");
 
                     b.Property<decimal>("LineTotal")
                         .HasPrecision(18, 2)
@@ -709,6 +935,10 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .HasColumnType("numeric(18,3)")
                         .HasColumnName("quantity");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
                     b.Property<decimal>("UnitPrice")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
@@ -720,10 +950,12 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                     b.HasIndex("ProductId")
                         .HasDatabaseName("ix_purchase_line_items_product_id");
 
-                    b.HasIndex("PurchaseInvoiceId")
-                        .HasDatabaseName("ix_purchase_line_items_purchase_invoice_id");
+                    b.HasIndex("TenantId", "PurchaseInvoiceId")
+                        .HasDatabaseName("ix_purchase_line_items_tenant_id_purchase_invoice_id");
 
                     b.ToTable("purchase_line_items");
+
+                    b.HasAnnotation("VetFlow:TenantScope", "Branch");
                 });
 
             modelBuilder.Entity("VetFlow.Domain.Purchasing.PurchaseReturn", b =>
@@ -732,6 +964,10 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("branch_id");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -767,12 +1003,15 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(300)")
                         .HasColumnName("supplier_name");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
                     b.HasKey("Id")
                         .HasName("pk_purchase_returns");
 
-                    b.HasIndex("Number")
-                        .IsUnique()
-                        .HasDatabaseName("ix_purchase_returns_number");
+                    b.HasAlternateKey("TenantId", "Id")
+                        .HasName("ak_purchase_returns_tenant_id_id");
 
                     b.HasIndex("PurchaseInvoiceId")
                         .HasDatabaseName("ix_purchase_returns_purchase_invoice_id");
@@ -780,7 +1019,13 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                     b.HasIndex("Status")
                         .HasDatabaseName("ix_purchase_returns_status");
 
+                    b.HasIndex("TenantId", "BranchId", "Number")
+                        .IsUnique()
+                        .HasDatabaseName("ix_purchase_returns_tenant_id_branch_id_number");
+
                     b.ToTable("purchase_returns");
+
+                    b.HasAnnotation("VetFlow:TenantScope", "Branch");
                 });
 
             modelBuilder.Entity("VetFlow.Domain.Purchasing.PurchaseReturnLine", b =>
@@ -796,6 +1041,10 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("BatchId")
                         .HasColumnType("uuid")
                         .HasColumnName("batch_id");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("branch_id");
 
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uuid")
@@ -820,6 +1069,10 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .HasColumnType("numeric(18,3)")
                         .HasColumnName("quantity");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
                     b.HasKey("Id")
                         .HasName("pk_purchase_return_lines");
 
@@ -829,10 +1082,12 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                     b.HasIndex("PurchaseLineItemId")
                         .HasDatabaseName("ix_purchase_return_lines_purchase_line_item_id");
 
-                    b.HasIndex("PurchaseReturnId")
-                        .HasDatabaseName("ix_purchase_return_lines_purchase_return_id");
+                    b.HasIndex("TenantId", "PurchaseReturnId")
+                        .HasDatabaseName("ix_purchase_return_lines_tenant_id_purchase_return_id");
 
                     b.ToTable("purchase_return_lines");
+
+                    b.HasAnnotation("VetFlow:TenantScope", "Branch");
                 });
 
             modelBuilder.Entity("VetFlow.Domain.Sales.SalesInvoice", b =>
@@ -841,6 +1096,10 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("branch_id");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -878,6 +1137,10 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("status");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
                     b.Property<decimal>("TotalAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
@@ -886,23 +1149,28 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_sales_invoices");
 
-                    b.HasIndex("Number")
-                        .IsUnique()
-                        .HasDatabaseName("ix_sales_invoices_number");
+                    b.HasAlternateKey("TenantId", "Id")
+                        .HasName("ak_sales_invoices_tenant_id_id");
 
                     b.HasIndex("SaleDate")
                         .HasDatabaseName("ix_sales_invoices_sale_date");
 
-                    b.HasIndex("SearchText")
-                        .HasDatabaseName("ix_sales_invoices_search_text");
-
-                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("SearchText"), "gin");
-                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("SearchText"), new[] { "gin_trgm_ops" });
-
                     b.HasIndex("Status")
                         .HasDatabaseName("ix_sales_invoices_status");
 
+                    b.HasIndex("TenantId", "SearchText")
+                        .HasDatabaseName("ix_sales_invoices_tenant_id_search_text");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("TenantId", "SearchText"), "gin");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("TenantId", "SearchText"), new[] { "uuid_ops", "gin_trgm_ops" });
+
+                    b.HasIndex("TenantId", "BranchId", "Number")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sales_invoices_tenant_id_branch_id_number");
+
                     b.ToTable("sales_invoices");
+
+                    b.HasAnnotation("VetFlow:TenantScope", "Branch");
                 });
 
             modelBuilder.Entity("VetFlow.Domain.Sales.SalesLineItem", b =>
@@ -914,6 +1182,10 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("AddedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("added_at");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("branch_id");
 
                     b.Property<decimal>("LineTotal")
                         .HasPrecision(18, 2)
@@ -949,6 +1221,10 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("sales_invoice_id");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
                     b.Property<decimal>("UnitPrice")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
@@ -960,10 +1236,12 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                     b.HasIndex("ProductId")
                         .HasDatabaseName("ix_sales_line_items_product_id");
 
-                    b.HasIndex("SalesInvoiceId")
-                        .HasDatabaseName("ix_sales_line_items_sales_invoice_id");
+                    b.HasIndex("TenantId", "SalesInvoiceId")
+                        .HasDatabaseName("ix_sales_line_items_tenant_id_sales_invoice_id");
 
                     b.ToTable("sales_line_items");
+
+                    b.HasAnnotation("VetFlow:TenantScope", "Branch");
                 });
 
             modelBuilder.Entity("VetFlow.Domain.Sales.SalesReturn", b =>
@@ -972,6 +1250,10 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("branch_id");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -1007,12 +1289,15 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("status");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
                     b.HasKey("Id")
                         .HasName("pk_sales_returns");
 
-                    b.HasIndex("Number")
-                        .IsUnique()
-                        .HasDatabaseName("ix_sales_returns_number");
+                    b.HasAlternateKey("TenantId", "Id")
+                        .HasName("ak_sales_returns_tenant_id_id");
 
                     b.HasIndex("SalesInvoiceId")
                         .HasDatabaseName("ix_sales_returns_sales_invoice_id");
@@ -1020,7 +1305,13 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                     b.HasIndex("Status")
                         .HasDatabaseName("ix_sales_returns_status");
 
+                    b.HasIndex("TenantId", "BranchId", "Number")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sales_returns_tenant_id_branch_id_number");
+
                     b.ToTable("sales_returns");
+
+                    b.HasAnnotation("VetFlow:TenantScope", "Branch");
                 });
 
             modelBuilder.Entity("VetFlow.Domain.Sales.SalesReturnLine", b =>
@@ -1032,6 +1323,10 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("AddedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("added_at");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("branch_id");
 
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uuid")
@@ -1056,27 +1351,53 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("sales_return_id");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
                     b.HasKey("Id")
                         .HasName("pk_sales_return_lines");
 
                     b.HasIndex("SalesLineItemId")
                         .HasDatabaseName("ix_sales_return_lines_sales_line_item_id");
 
-                    b.HasIndex("SalesReturnId")
-                        .HasDatabaseName("ix_sales_return_lines_sales_return_id");
+                    b.HasIndex("TenantId", "SalesReturnId")
+                        .HasDatabaseName("ix_sales_return_lines_tenant_id_sales_return_id");
 
                     b.ToTable("sales_return_lines");
+
+                    b.HasAnnotation("VetFlow:TenantScope", "Branch");
+                });
+
+            modelBuilder.Entity("VetFlow.Infrastructure.Persistence.Numbering.DocumentCounter", b =>
+                {
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<Guid>("ScopeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("scope_id");
+
+                    b.Property<string>("Series")
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
+                        .HasColumnName("series");
+
+                    b.Property<long>("LastValue")
+                        .HasColumnType("bigint")
+                        .HasColumnName("last_value");
+
+                    b.HasKey("TenantId", "ScopeId", "Series")
+                        .HasName("pk_document_counters");
+
+                    b.ToTable("document_counters", (string)null);
+
+                    b.HasAnnotation("VetFlow:TenantScope", "Tenant");
                 });
 
             modelBuilder.Entity("VetFlow.Domain.Catalog.Product", b =>
                 {
-                    b.HasOne("VetFlow.Domain.Categories.Category", null)
-                        .WithMany()
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_products_categories_category_id");
-
                     b.HasOne("VetFlow.Domain.Catalog.Unit", null)
                         .WithMany()
                         .HasForeignKey("DefaultPurchaseUnitId")
@@ -1091,13 +1412,6 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_products_units_default_sale_unit_id");
 
-                    b.HasOne("VetFlow.Domain.Catalog.Manufacturer", null)
-                        .WithMany()
-                        .HasForeignKey("ManufacturerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_products_manufacturers_manufacturer_id");
-
                     b.HasOne("VetFlow.Domain.Catalog.ProductNature", null)
                         .WithMany()
                         .HasForeignKey("NatureId")
@@ -1111,63 +1425,118 @@ namespace VetFlow.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_products_units_storage_unit_id");
+
+                    b.HasOne("VetFlow.Domain.Categories.Category", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId", "CategoryId")
+                        .HasPrincipalKey("TenantId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_products_categories_tenant_id_category_id");
+
+                    b.HasOne("VetFlow.Domain.Catalog.Manufacturer", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId", "ManufacturerId")
+                        .HasPrincipalKey("TenantId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_products_manufacturers_tenant_id_manufacturer_id");
                 });
 
             modelBuilder.Entity("VetFlow.Domain.Catalog.ProductUnit", b =>
                 {
-                    b.HasOne("VetFlow.Domain.Catalog.Product", null)
-                        .WithMany("Units")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_product_units_products_product_id");
-
                     b.HasOne("VetFlow.Domain.Catalog.Unit", null)
                         .WithMany()
                         .HasForeignKey("UnitId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_product_units_units_unit_id");
+
+                    b.HasOne("VetFlow.Domain.Catalog.Product", null)
+                        .WithMany("Units")
+                        .HasForeignKey("TenantId", "ProductId")
+                        .HasPrincipalKey("TenantId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_product_units_products_tenant_id_product_id");
+                });
+
+            modelBuilder.Entity("VetFlow.Domain.Organization.Branch", b =>
+                {
+                    b.HasOne("VetFlow.Domain.Organization.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_branches_tenants_tenant_id");
+                });
+
+            modelBuilder.Entity("VetFlow.Domain.Organization.Membership", b =>
+                {
+                    b.HasOne("VetFlow.Domain.Organization.Branch", null)
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_memberships_branches_branch_id");
+
+                    b.HasOne("VetFlow.Domain.Organization.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_memberships_tenants_tenant_id");
+
+                    b.HasOne("VetFlow.Domain.Identity.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_memberships_users_user_id");
                 });
 
             modelBuilder.Entity("VetFlow.Domain.Purchasing.PurchaseLineItem", b =>
                 {
                     b.HasOne("VetFlow.Domain.Purchasing.PurchaseInvoice", null)
                         .WithMany("Lines")
-                        .HasForeignKey("PurchaseInvoiceId")
+                        .HasForeignKey("TenantId", "PurchaseInvoiceId")
+                        .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_purchase_line_items_purchase_invoices_purchase_invoice_id");
+                        .HasConstraintName("fk_purchase_line_items_purchase_invoices_tenant_id_purchase_in~");
                 });
 
             modelBuilder.Entity("VetFlow.Domain.Purchasing.PurchaseReturnLine", b =>
                 {
                     b.HasOne("VetFlow.Domain.Purchasing.PurchaseReturn", null)
                         .WithMany("Lines")
-                        .HasForeignKey("PurchaseReturnId")
+                        .HasForeignKey("TenantId", "PurchaseReturnId")
+                        .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_purchase_return_lines_purchase_returns_purchase_return_id");
+                        .HasConstraintName("fk_purchase_return_lines_purchase_returns_tenant_id_purchase_r~");
                 });
 
             modelBuilder.Entity("VetFlow.Domain.Sales.SalesLineItem", b =>
                 {
                     b.HasOne("VetFlow.Domain.Sales.SalesInvoice", null)
                         .WithMany("Lines")
-                        .HasForeignKey("SalesInvoiceId")
+                        .HasForeignKey("TenantId", "SalesInvoiceId")
+                        .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_sales_line_items_sales_invoices_sales_invoice_id");
+                        .HasConstraintName("fk_sales_line_items_sales_invoices_tenant_id_sales_invoice_id");
                 });
 
             modelBuilder.Entity("VetFlow.Domain.Sales.SalesReturnLine", b =>
                 {
                     b.HasOne("VetFlow.Domain.Sales.SalesReturn", null)
                         .WithMany("Lines")
-                        .HasForeignKey("SalesReturnId")
+                        .HasForeignKey("TenantId", "SalesReturnId")
+                        .HasPrincipalKey("TenantId", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_sales_return_lines_sales_returns_sales_return_id");
+                        .HasConstraintName("fk_sales_return_lines_sales_returns_tenant_id_sales_return_id");
                 });
 
             modelBuilder.Entity("VetFlow.Domain.Catalog.Product", b =>

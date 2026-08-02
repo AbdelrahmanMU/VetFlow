@@ -1,14 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using VetFlow.Domain.Purchasing;
 using VetFlow.Infrastructure.Persistence;
+using VetFlow.Infrastructure.Persistence.Numbering;
 using VetFlow.Infrastructure.Purchasing;
 
 namespace VetFlow.IntegrationTests;
 
 /// <summary>
 /// Builds purchase invoices through the domain constructor — never raw rows —
-/// allocating the real <c>PUR-</c> number from the same PostgreSQL sequence the
-/// production path uses (BR-PUR-002). Received/cancelled states are written
+/// allocating the real <c>PUR-</c> number from the same branch counter the
+/// production path uses (BR-PUR-002, ADR-0022 §6). Received/cancelled states are written
 /// directly (the transitions belong to later slices — the same approach as
 /// Catalog's disabled-state seed).
 /// </summary>
@@ -25,9 +26,7 @@ public static class PurchasingSeeder
         string? notes = null,
         DateTimeOffset? createdAt = null)
     {
-        var sequenceValue = await dbContext.Database
-            .SqlQueryRaw<long>($"SELECT nextval('{InternalPurchaseInvoiceNumber.SequenceName}') AS \"Value\"")
-            .SingleAsync();
+        var sequenceValue = await TestDocumentNumbers.NextAsync(dbContext, DocumentSeries.PurchaseInvoice);
 
         var invoice = new PurchaseInvoice(
             Guid.NewGuid(),

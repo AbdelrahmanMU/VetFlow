@@ -5,7 +5,11 @@
 
 ## Product
 
-- **VetFlow** — veterinary clinic management platform for a single clinic.
+- **VetFlow** — veterinary clinic management platform. **Amended 2026-08-02
+  (BD-PRD-001, ADR-0022):** a commercial multi-tenant SaaS product — each clinic
+  is a **Tenant** with one or more **Branches**; the Pilot runs one tenant with
+  one branch, and branch *management* remains a future capability.
+  *(Superseded wording, kept for history: "for a single clinic".)*
 - **Users:** Veterinary Doctor (owner), Cashier/Assistant — see
   `docs/shared/personas.md`.
 - **UI language:** Arabic (RTL). See

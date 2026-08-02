@@ -3,7 +3,7 @@ import { ApiErrorMapper } from './api-error-mapper';
 import { VTF_ERROR_REGISTRY } from './validation-registry';
 
 /**
- * The published Error Catalog (ADR-0018): 33 codes. The registry must cover
+ * The published Error Catalog (ADR-0018): 35 codes. The registry must cover
  * every one (STD-UX-113) — a backend code without a frontend mapping would
  * silently fall to the generic fallback (STD-UX-036).
  */
@@ -41,6 +41,8 @@ const CATALOG_CODES = [
   'VTF-INV-061',
   'VTF-INV-067',
   'VTF-INV-068',
+  'VTF-IDN-001',
+  'VTF-IDN-002',
 ];
 
 function apiError(status: number, errorCode?: string, extras?: object): ApiError {

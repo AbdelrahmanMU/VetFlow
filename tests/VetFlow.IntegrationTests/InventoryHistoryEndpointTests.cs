@@ -7,6 +7,7 @@ using Shouldly;
 using VetFlow.Application.Inventory.Queries.InventoryHistory;
 using VetFlow.Infrastructure.Inventory;
 using VetFlow.Infrastructure.Persistence;
+using VetFlow.Infrastructure.Persistence.Tenancy;
 
 namespace VetFlow.IntegrationTests;
 
@@ -273,10 +274,18 @@ public sealed class InventoryHistoryEndpointTests(ApiFixture fixture)
     private async Task<int> CountReadsAsync(int pageSize)
     {
         var counter = new CommandCountingInterceptor();
+
+        // The session interceptor publishes the tenant that row-level security reads; without it
+        // this context would meet the policies with no tenant and read nothing (ADR-0022 §8.2).
+        // It opens the connection rather than issuing a reader, so it does not disturb the count.
+        var tenantContext = new TestTenantContext();
         var builder = new DbContextOptionsBuilder<VetFlowDbContext>()
             .UseNpgsql(fixture.ConnectionString)
-            .AddInterceptors(counter);
-        await using var dbContext = new VetFlowDbContext(builder.Options);
+            .AddInterceptors(
+                new TenantSessionInterceptor(tenantContext),
+                new TenantStampInterceptor(tenantContext),
+                counter);
+        await using var dbContext = new VetFlowDbContext(builder.Options, tenantContext);
 
         var handler = new InventoryHistoryQueryHandler(dbContext);
         counter.Reset();

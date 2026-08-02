@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using VetFlow.Domain.Purchasing;
+using VetFlow.Infrastructure.Persistence.Tenancy;
 
 namespace VetFlow.Infrastructure.Persistence.Configurations;
 
@@ -8,7 +9,10 @@ public sealed class PurchaseReturnConfiguration : IEntityTypeConfiguration<Purch
 {
     public void Configure(EntityTypeBuilder<PurchaseReturn> builder)
     {
+        builder.ScopedToBranch();
+
         builder.HasKey(purchaseReturn => purchaseReturn.Id);
+        builder.HasAlternateKey(TenantScope.TenantIdProperty, nameof(PurchaseReturn.Id));
 
         builder.Property(purchaseReturn => purchaseReturn.Number).HasMaxLength(50).IsRequired();
         // Optional, because the supplier name it snapshots is itself optional free text (BR-PUR-001).
@@ -26,12 +30,15 @@ public sealed class PurchaseReturnConfiguration : IEntityTypeConfiguration<Purch
         // the purchase-invoice and sales-invoice precedent.
         builder.HasMany(purchaseReturn => purchaseReturn.Lines)
             .WithOne()
-            .HasForeignKey("PurchaseReturnId")
+            .HasForeignKey(TenantScope.TenantIdProperty, "PurchaseReturnId")
+            .HasPrincipalKey(TenantScope.TenantIdProperty, nameof(PurchaseReturn.Id))
             .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
         builder.Navigation(purchaseReturn => purchaseReturn.Lines).UsePropertyAccessMode(PropertyAccessMode.Field);
 
-        builder.HasIndex(purchaseReturn => purchaseReturn.Number).IsUnique();
+        builder.HasIndex(
+                [TenantScope.TenantIdProperty, TenantScope.BranchIdProperty, nameof(PurchaseReturn.Number)])
+            .IsUnique();
         builder.HasIndex(purchaseReturn => purchaseReturn.Status);
         // The returnable-quantity check (BR-PUR-016) reads every committed return for one invoice,
         // so that lookup gets an index rather than a sequential scan as returns accumulate.

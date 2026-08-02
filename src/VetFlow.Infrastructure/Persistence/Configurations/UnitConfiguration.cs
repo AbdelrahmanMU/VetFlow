@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using VetFlow.Domain.Catalog;
+using VetFlow.Infrastructure.Persistence.Tenancy;
 
 namespace VetFlow.Infrastructure.Persistence.Configurations;
 
@@ -8,6 +9,11 @@ public sealed class UnitConfiguration : IEntityTypeConfiguration<Unit>
 {
     public void Configure(EntityTypeBuilder<Unit> builder)
     {
+        // Shared vocabulary, owned by no tenant and written by none (BR-ORG-001, DEC-ORG-004).
+        // If tenant-specific units are ever needed, the discriminator arrives as a NULLABLE
+        // column where NULL means global — an addition, never a split (ADR-0022 §12.4).
+        builder.PlatformGlobal();
+
         builder.HasKey(unit => unit.Id);
         builder.Property(unit => unit.Name).HasMaxLength(100).IsRequired();
 

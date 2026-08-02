@@ -10,6 +10,7 @@ using VetFlow.Domain.Inventory;
 using VetFlow.Domain.Sales;
 using VetFlow.Infrastructure.Inventory;
 using VetFlow.Infrastructure.Persistence;
+using VetFlow.Infrastructure.Persistence.Tenancy;
 
 namespace VetFlow.IntegrationTests;
 
@@ -208,13 +209,25 @@ public sealed class InventoryConsumptionConcurrencyTests(ApiFixture fixture)
 
     private VetFlowDbContext NewDbContext(IInterceptor? interceptor = null)
     {
-        var builder = new DbContextOptionsBuilder<VetFlowDbContext>().UseNpgsql(fixture.ConnectionString);
+        // A hand-built context still meets row-level security, because the application role these
+        // tests connect as is unprivileged like the deployed one. It therefore carries the same
+        // two interceptors the composition root registers: the session one publishes the tenant
+        // the policies read, and the stamp one labels inserted rows with it (ADR-0022 §8.2,
+        // BR-ORG-003). Without the pair, this context would read an empty database and write rows
+        // belonging to no tenant.
+        var tenantContext = new TestTenantContext();
+        var builder = new DbContextOptionsBuilder<VetFlowDbContext>()
+            .UseNpgsql(fixture.ConnectionString)
+            .AddInterceptors(
+                new TenantSessionInterceptor(tenantContext),
+                new TenantStampInterceptor(tenantContext));
+
         if (interceptor is not null)
         {
             builder.AddInterceptors(interceptor);
         }
 
-        return new VetFlowDbContext(builder.Options);
+        return new VetFlowDbContext(builder.Options, tenantContext);
     }
 
     private static InventoryConsumptionRequest Request(Guid productId, decimal quantity) =>

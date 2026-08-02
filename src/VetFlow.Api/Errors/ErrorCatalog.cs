@@ -1,5 +1,6 @@
 using VetFlow.Domain.Catalog;
 using VetFlow.Domain.Common;
+using VetFlow.Domain.Identity;
 using VetFlow.Domain.Inventory;
 using VetFlow.Domain.Purchasing;
 using VetFlow.Domain.Sales;
@@ -220,6 +221,21 @@ public static class ErrorCatalog
                 Code = InventoryErrorCodes.OperationConcurrencyConflict,
                 Status = StatusCodes.Status409Conflict,
                 Title = "The batch changed while the operation was being written; retry",
+            },
+            new()
+            {
+                // One entry for every sign-in failure. The title is deliberately as
+                // uninformative as the message: an unknown phone number and a wrong password
+                // must be indistinguishable (BR-IDN-003).
+                Code = IdentityErrorCodes.SignInFailed,
+                Status = StatusCodes.Status401Unauthorized,
+                Title = "Sign-in failed",
+            },
+            new()
+            {
+                Code = IdentityErrorCodes.NotAuthenticated,
+                Status = StatusCodes.Status401Unauthorized,
+                Title = "Authentication is required",
             },
         }.ToDictionary(entry => entry.Code);
 

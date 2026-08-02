@@ -57,6 +57,26 @@ overlap:**
 the accepted risk bounded: shipping without auth is accepted; **publishing real
 clinic data without auth is not part of this decision.**
 
+### Amended 2026-08-02 (owner ruling, ADR-0022)
+
+**Phase 2 now lands before the Pilot begins, not after Phase 1 ships.** The owner
+ruled that VetFlow becomes SaaS-ready — organization model, authentication and
+scope-owned numbering — **before the first real operational entry**. The phase
+table above is unchanged in content and in order; what changes is that **no real
+clinic data is ever entered while Phase 2 is outstanding**, in any environment.
+
+This **strengthens** the boundary this ADR drew rather than relaxing it: the
+original wording permitted real data on the clinic machine while the cloud
+awaited authentication, and that gap is now closed. The sentence "The application
+ships **before authentication exists**" (above) remains an accurate record of the
+2026-08-01 decision, and is **superseded in practice** by the 2026-08-02 ruling —
+preserved rather than rewritten, per the amendment convention.
+
+**Topology is confirmed, not amended.** ADR-0022 §2 rules one shared database
+with a tenant discriminator, so this ADR's one Render service + one Neon database
+remains correct, and `numInstances: 1` with start-up migrations stays valid.
+A database-per-clinic ruling would have invalidated all three; it was rejected.
+
 ## Consequences
 
 ### Accepted, with eyes open

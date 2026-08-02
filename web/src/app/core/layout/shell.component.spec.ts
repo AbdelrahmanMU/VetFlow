@@ -1,8 +1,10 @@
 import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
+import { provideHttpClient } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 
+import { AuthService } from '../auth/auth.service';
 import { ShellComponent } from './shell.component';
 
 /**
@@ -28,6 +30,9 @@ describe('ShellComponent — responsive navigation', () => {
       imports: [ShellComponent],
       providers: [
         provideRouter([{ path: '**', children: [] }]),
+        // The sidebar's sign-out reaches AuthService, which reaches ApiClient for sign-in only;
+        // the shell never calls it, but the injector still has to be able to build it.
+        provideHttpClient(),
         { provide: BreakpointObserver, useValue: { observe: () => matches.asObservable() } },
       ],
     });
@@ -155,6 +160,39 @@ describe('ShellComponent — responsive navigation', () => {
       await settle();
       expect(document.activeElement).toBe(focusable.at(-1));
     });
+  });
+
+  /**
+   * Moved here from `app.spec.ts` when the shell stopped being the application root: it is the
+   * shell that carries the brand, and this exact assertion caught the accessible name going
+   * missing when the text brand became a mark.
+   */
+  it('brands the sidebar with the shared logo, keeping the product name announceable', async () => {
+    await renderAt(false);
+    const logo = (fixture.nativeElement as HTMLElement).querySelector('vf-logo img');
+
+    expect(logo).toBeTruthy();
+    expect(logo?.getAttribute('alt')).toBe('VetFlow');
+    // Referenced, never inlined, so the artwork stays out of the JS bundle (TD-107).
+    expect(logo?.getAttribute('src')).toContain('assets/branding/');
+  });
+
+  it('offers signing out at the foot of the navigation, and it ends the session (TS-IDN-011, AC-IDN-009)', async () => {
+    await renderAt(false);
+
+    const logout = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.nav-logout');
+    expect(logout?.textContent?.trim()).toBe('تسجيل الخروج');
+
+    const auth = TestBed.inject(AuthService);
+    const router = TestBed.inject(Router);
+    const signOut = vi.spyOn(auth, 'signOut');
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    logout!.click();
+    await settle();
+
+    expect(signOut).toHaveBeenCalled();
+    expect(navigate).toHaveBeenCalledWith(['/login']);
   });
 
   it('disarms the drawer when the viewport grows back to desktop', async () => {

@@ -32,11 +32,14 @@ import { VfFormFieldComponent } from '../form-field/vf-form-field.component';
       <input
         class="field-input"
         [class.field-input--invalid]="isInvalid()"
+        [class.field-input--ltr]="digitsFirst()"
         [type]="type()"
         [value]="value()"
         [placeholder]="placeholder()"
         [disabled]="disabled()"
         [attr.id]="formField?.controlId ?? null"
+        [attr.inputmode]="inputMode() || null"
+        [attr.autocomplete]="autocomplete() || null"
         [attr.aria-label]="formField ? null : label()"
         [attr.aria-describedby]="formField?.messageId ?? null"
         [attr.aria-invalid]="isInvalid()"
@@ -89,6 +92,14 @@ import { VfFormFieldComponent } from '../form-field/vf-form-field.component';
       border-color: var(--vf-danger, #b42318);
     }
 
+    /* «الأرقام لليسار» (design language §6) applied to a field whose content is
+       digits: the value reads left-to-right and sits on the left edge, while the
+       label and the rest of the screen stay RTL. */
+    .field-input--ltr {
+      direction: ltr;
+      text-align: left;
+    }
+
     .field-input:disabled {
       opacity: 0.55;
       cursor: default;
@@ -107,7 +118,18 @@ export class VfTextInputComponent implements ControlValueAccessor {
   readonly placeholder = input('');
   readonly required = input(false);
   readonly error = input<string | null>(null);
-  readonly type = input<'text' | 'search'>('text');
+  readonly type = input<'text' | 'search' | 'password' | 'tel'>('text');
+
+  /** `inputmode`, so a phone field opens the numeric keypad on a touch device (identity/ui.md). */
+  readonly inputMode = input('');
+
+  readonly autocomplete = input('');
+
+  /**
+   * Renders the value left-to-right and left-aligned: design language §6's «الأرقام لليسار» for a
+   * field whose content is digits. It is presentation only — the value is unchanged.
+   */
+  readonly digitsFirst = input(false);
 
   protected readonly value = signal('');
   protected readonly disabled = signal(false);

@@ -49,6 +49,18 @@ standards-based providers.
   refresh-token rotation vs alternatives) and the permission-based
   authorization model were recommended but not explicitly approved; they
   will be specified during engineering documentation for owner review.
+
+  **AMENDED 2026-08-02 (owner ruling, ADR-0022 §7) — the token mechanism is
+  now specified, exactly as this clause anticipated.** The Pilot ships **one
+  JWT access token and no refresh-token rotation**, carrying user, tenant,
+  branch and role. This clause is superseded **for the token mechanism only**;
+  **the permission-based authorization model remains unruled** — the Pilot
+  uses the closed two-role set of BD-PRD-003 carried on the membership
+  (BR-ORG-006), not a permission system. Implementation choices recorded under
+  this ADR's §2 abstraction mandate: `PasswordHasher<T>` from ASP.NET Core
+  Identity behind the authentication abstraction, with
+  `Microsoft.AspNetCore.Authentication.JwtBearer` for token validation
+  (DEC-IDN-004). Module documentation: `docs/modules/identity/`.
 - Presupposes a layered backend (Application vs Infrastructure); the backend
   layering itself is not yet recorded in any ADR — flagged as a pending
   architecture decision.

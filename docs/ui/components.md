@@ -37,6 +37,15 @@ contract preserved for filter drawers), `vf-text-input`/`vf-number-input`/
 `vf-textarea` cooperate with `vf-form-field` (wrapper owns label + message;
 standalone behavior unchanged), `vf-button` gained `type="submit"`.
 
+**UI Kit repairs shipped with the SaaS Foundation Epic (2026-08-02):**
+`vf-text-input` gained `type="password"`/`type="tel"`, `inputMode`,
+`autocomplete`, and `digitsFirst` (renders the value left-to-right and
+left-aligned — design language §6's «الأرقام لليسار» applied to a field whose
+content is digits); `vf-button` gained `full` (stretches to the container, the
+login screen's single action). All additive: every existing call site keeps its
+behaviour. **No `autofocus` attribute was added** — the accessibility lint rules
+it out, so the login screen places first focus in code instead.
+
 **UI Kit repairs shipped with the Adoption Epic (2026-08-01):** `vf-checkbox`
 is now a ControlValueAccessor with an explicit `id`/`for` label association
 and the error channel — `aria-invalid` + `aria-describedby` inputs, wrapper

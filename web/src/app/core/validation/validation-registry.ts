@@ -76,4 +76,11 @@ export const VTF_ERROR_REGISTRY: Readonly<Record<string, ValidationRegistryEntry
   'VTF-INV-061': business('errors.VTF-INV-061'),
   'VTF-INV-067': business('errors.VTF-INV-067'),
   'VTF-INV-068': concurrency('errors.VTF-INV-068'),
+
+  // Identity (BR-IDN-003/008). These two point at the approved identity keys instead of the
+  // usual `errors.<code>` ones because identity/ui.md already rules this exact wording, and the
+  // backend resources carry the same two sentences verbatim (STD-UX-112). A second copy under a
+  // second key would be the same approved sentence twice, free to drift.
+  'VTF-IDN-001': business('login.error.invalid'),
+  'VTF-IDN-002': business('session.expired'),
 };

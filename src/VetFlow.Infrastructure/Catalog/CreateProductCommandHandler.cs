@@ -1,8 +1,8 @@
-using Microsoft.EntityFrameworkCore;
 using VetFlow.Application.Catalog.Commands.CreateProduct;
 using VetFlow.Application.Common;
 using VetFlow.Domain.Catalog;
 using VetFlow.Infrastructure.Persistence;
+using VetFlow.Infrastructure.Persistence.Numbering;
 
 namespace VetFlow.Infrastructure.Catalog;
 
@@ -15,17 +15,21 @@ namespace VetFlow.Infrastructure.Catalog;
 /// The possible-duplicate warning is a separate advisory read and never blocks
 /// this write (BR-CAT-042 / DEC-CAT-018).
 /// </summary>
-public sealed class CreateProductCommandHandler(VetFlowDbContext dbContext)
+public sealed class CreateProductCommandHandler(VetFlowDbContext dbContext, DocumentNumbers documentNumbers)
     : ICommandHandler<CreateProductCommand, CreateProductResult>
 {
     public async Task<CreateProductResult> HandleAsync(
         CreateProductCommand command,
         CancellationToken cancellationToken)
     {
-        var sequenceValue = await dbContext.Database
-            .SqlQueryRaw<long>($"SELECT nextval('{InternalProductCode.SequenceName}') AS \"Value\"")
-            .SingleAsync(cancellationToken);
-        var internalCode = InternalProductCode.Format(sequenceValue);
+        // One transaction around the allocation and the insert: a failed save returns the code
+        // instead of burning it (ADR-0022 §6 — gapless by owner ruling). The product code counts
+        // per tenant, not per branch: the catalog is shared across a clinic's branches
+        // (DEC-ORG-006), so one product must not acquire a second code at a second branch.
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+        var internalCode = InternalProductCode.Format(
+            await documentNumbers.NextAsync(DocumentSeries.ProductCode, cancellationToken));
 
         var units = command.Units
             .Select(unit => new ProductUnit(
@@ -67,6 +71,7 @@ public sealed class CreateProductCommandHandler(VetFlowDbContext dbContext)
 
         dbContext.Products.Add(product);
         await dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return new CreateProductResult { Id = product.Id, InternalCode = product.InternalCode };
     }

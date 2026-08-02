@@ -13,6 +13,7 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
 
+import { AuthService } from '../auth/auth.service';
 import { TranslationService } from '../i18n/translation.service';
 import { VfLogoComponent } from '../../shared/ui-kit/logo/vf-logo.component';
 
@@ -212,6 +213,16 @@ import { VfLogoComponent } from '../../shared/ui-kit/logo/vf-logo.component';
             </a>
           </li>
         </ul>
+
+        <!-- Signing out lives at the foot of the sidebar, separated from the navigation links
+             (identity/ui.md). It is not a destination, so it is a button, not a link — and there
+             is no settings screen to put it in, because none exists. -->
+        <div class="nav-footer">
+          <button type="button" class="nav-link nav-logout" (click)="signOut()">
+            <i class="pi pi-sign-out nav-icon" aria-hidden="true"></i>
+            {{ t.t('nav.logout') }}
+          </button>
+        </div>
       </nav>
       <main class="content">
         <router-outlet />
@@ -290,6 +301,24 @@ import { VfLogoComponent } from '../../shared/ui-kit/logo/vf-logo.component';
 
     .nav-icon {
       font-size: 1rem;
+    }
+
+    .nav-footer {
+      margin-block-start: var(--vf-space-5);
+      padding-block-start: var(--vf-space-3);
+      border-block-start: 1px solid var(--vf-border);
+    }
+
+    /* A button styled as a navigation row: same target size and rhythm as the links
+       beside it, without pretending to be a destination. */
+    .nav-logout {
+      inline-size: 100%;
+      font: inherit;
+      background: none;
+      cursor: pointer;
+      border-block: 0;
+      border-inline-end: 0;
+      text-align: start;
     }
 
     .content {
@@ -401,6 +430,7 @@ export class ShellComponent {
   protected readonly t = inject(TranslationService);
   private readonly breakpoints = inject(BreakpointObserver);
   private readonly router = inject(Router);
+  private readonly auth = inject(AuthService);
 
   private readonly menuButton = viewChild<ElementRef<HTMLButtonElement>>('menuButton');
   private readonly drawer = viewChild<ElementRef<HTMLElement>>('drawer');
@@ -457,6 +487,16 @@ export class ShellComponent {
         takeUntilDestroyed(),
       )
       .subscribe(() => this.closeDrawer());
+  }
+
+  /**
+   * Signing out is an explicit act and ends the session immediately (BR-IDN-009, AC-IDN-009):
+   * the token is discarded and the login screen replaces the app. No confirmation dialog — the
+   * cost of signing out by accident is signing in again, and no ruled flow asks for one.
+   */
+  protected signOut(): void {
+    this.auth.signOut();
+    void this.router.navigate(['/login']);
   }
 
   protected toggleDrawer(): void {
