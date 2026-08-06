@@ -81,7 +81,7 @@ const PURCHASE_COLUMNS: readonly PurchaseColumn[] = [
                 </td>
               }
               @case ('createdAt') {
-                <td class="cell-faint vf-num">{{ format.date(invoice.createdAt.slice(0, 10)) }}</td>
+                <td class="cell-faint vf-num">{{ format.dateOfInstant(invoice.createdAt) }}</td>
               }
             }
           }

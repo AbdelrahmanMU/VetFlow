@@ -9,6 +9,9 @@ import { Injectable } from '@angular/core';
 export class FormatService {
   private static readonly Locale = 'ar-EG-u-nu-latn';
 
+  /** What an unrenderable value shows as — never machine text (design language §10). */
+  private static readonly Unavailable = '—';
+
   private readonly integerFormat = new Intl.NumberFormat(FormatService.Locale, {
     maximumFractionDigits: 0,
   });
@@ -36,6 +39,11 @@ export class FormatService {
 
   private readonly decimalFormats = new Map<number, Intl.NumberFormat>();
 
+  private readonly moneyAmountFormat = new Intl.NumberFormat(FormatService.Locale, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
   integer(value: number): string {
     return this.integerFormat.format(value);
   }
@@ -55,14 +63,36 @@ export class FormatService {
    * Formats an ISO `yyyy-mm-dd` date-only string. The parts are read directly and
    * a local Date is built so the displayed day always equals the stored day — never
    * shifted by a timezone (`new Date('yyyy-mm-dd')` would parse as UTC midnight).
+   *
+   * <b>It still refuses an instant</b> — a timestamp is not a business date, and
+   * deriving one from it in the browser is BR-INV-059/060's decision, not ours. What
+   * changed on 2026-08-06 is only the <i>degrade</i>: a refused value now renders as
+   * a dash instead of being echoed back, because echoing put
+   * `2026-08-02T22:17:31.25352+00:00` on the screen of a real clinic. Machine text
+   * never reaches the user (design language §10). Use {@link dateOfInstant} for a
+   * timestamp.
    */
   date(isoDate: string): string {
     const [year, month, day] = isoDate.split('-').map(Number);
     if (!year || !month || !day) {
-      return isoDate;
+      return FormatService.Unavailable;
     }
 
     return this.dateFormat.format(new Date(year, month - 1, day));
+  }
+
+  /**
+   * The date line of an instant — {@link dateTimeParts} without the time, for the
+   * columns that record *when a row was created or received* rather than a business
+   * date the clinic chose.
+   *
+   * One definition, so those columns cannot drift from the two-line stamp: this is
+   * literally `dateTimeParts().date`. It replaces the `createdAt.slice(0, 10)` that
+   * four screens each wrote by hand — which read the day off the raw UTC text and so
+   * could name a different day than the stamp beside it.
+   */
+  dateOfInstant(isoTimestamp: string): string {
+    return this.dateTimeParts(isoTimestamp).date;
   }
 
   /**
@@ -79,7 +109,7 @@ export class FormatService {
   dateTime(isoTimestamp: string): string {
     const parsed = new Date(isoTimestamp);
     if (Number.isNaN(parsed.getTime())) {
-      return isoTimestamp;
+      return FormatService.Unavailable;
     }
 
     return this.dateTimeFormat.format(parsed);
@@ -91,13 +121,14 @@ export class FormatService {
    * own date presentation — the timestamp is parsed once here and the parts are
    * formatted by the same locale as everything else, meridiem included (ص/م).
    *
-   * An unparseable value degrades exactly as {@link dateTime} does: the raw string
-   * on the date line and nothing on the time line, never `Invalid Date`.
+   * An unparseable value degrades exactly as {@link dateTime} does: a dash on the
+   * date line and nothing on the time line — never `Invalid Date`, and never the raw
+   * machine string.
    */
   dateTimeParts(isoTimestamp: string): { readonly date: string; readonly time: string } {
     const parsed = new Date(isoTimestamp);
     if (Number.isNaN(parsed.getTime())) {
-      return { date: isoTimestamp, time: '' };
+      return { date: FormatService.Unavailable, time: '' };
     }
 
     return { date: this.dateFormat.format(parsed), time: this.timeFormat.format(parsed) };
@@ -115,5 +146,19 @@ export class FormatService {
     }
 
     return format.format(amount);
+  }
+
+  /**
+   * A money amount with no symbol, at the same precision {@link money} renders —
+   * for the one read contract that carries an amount without a currency code (the
+   * batch unit-cost snapshot, which pairs with its own approved «ج.م.» label).
+   *
+   * It exists so that screen stops reaching for {@link decimal}: at up to three
+   * fraction digits, the same 12.50 showed as «12.5» there and «12.50» everywhere
+   * else, and two precisions in one product is exactly what §10's single money
+   * presentation forbids. No currency is invented here — only the digits are.
+   */
+  moneyAmount(amount: number): string {
+    return this.moneyAmountFormat.format(amount);
   }
 }

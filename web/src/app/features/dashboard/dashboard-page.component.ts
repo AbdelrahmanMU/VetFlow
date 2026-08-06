@@ -167,7 +167,7 @@ import { DashboardStore } from './dashboard.store';
                         <span class="movement-quantity vf-num">
                           {{ format.decimal(movement.quantity) }} {{ movement.stockUnitName }}
                         </span>
-                        <span class="movement-time">{{ occurredAt(movement.occurredAt) }}</span>
+                        <span class="movement-time vf-num">{{ occurredAt(movement.occurredAt) }}</span>
                       </li>
                     }
                   </ul>

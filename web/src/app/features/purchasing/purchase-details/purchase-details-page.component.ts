@@ -104,7 +104,7 @@ import { ReceivePurchaseInvoicePayload } from './purchase-lines.models';
                   <dt>{{ t.t('purchaseDetails.total') }}</dt>
                   <dd class="fact-strong vf-num">{{ format.money(invoice.total.amount, invoice.total.currency) }}</dd>
                 </div>
-                <div><dt>{{ t.t('purchaseDetails.createdAt') }}</dt><dd class="vf-num">{{ format.date(invoice.createdAt.slice(0, 10)) }}</dd></div>
+                <div><dt>{{ t.t('purchaseDetails.createdAt') }}</dt><dd class="vf-num">{{ format.dateOfInstant(invoice.createdAt) }}</dd></div>
               </dl>
             </section>
 

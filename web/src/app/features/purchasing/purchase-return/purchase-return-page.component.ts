@@ -130,8 +130,8 @@ function nonNegative(control: AbstractControl): ValidationErrors | null {
             <thead>
               <tr>
                 <th scope="col">{{ t.t('purchaseReturn.column.product') }}</th>
-                <th scope="col">{{ t.t('purchaseReturn.column.originalQuantity') }}</th>
-                <th scope="col">{{ t.t('purchaseReturn.column.returnable') }}</th>
+                <th scope="col" class="vf-num">{{ t.t('purchaseReturn.column.originalQuantity') }}</th>
+                <th scope="col" class="vf-num">{{ t.t('purchaseReturn.column.returnable') }}</th>
                 <th scope="col">{{ t.t('purchaseReturn.column.returnQuantity') }}</th>
               </tr>
             </thead>
@@ -139,8 +139,8 @@ function nonNegative(control: AbstractControl): ValidationErrors | null {
               @for (line of store.lines(); track line.purchaseLineItemId) {
                 <tr>
                   <td>{{ line.productName }}</td>
-                  <td>{{ format.decimal(line.quantity) }} {{ line.purchaseUnitName }}</td>
-                  <td>{{ format.decimal(line.returnableQuantity) }} {{ line.purchaseUnitName }}</td>
+                  <td class="vf-num">{{ format.decimal(line.quantity) }} {{ line.purchaseUnitName }}</td>
+                  <td class="vf-num">{{ format.decimal(line.returnableQuantity) }} {{ line.purchaseUnitName }}</td>
                   <td>
                     <!--
                       The returnable remainder is enforced by the server (BR-PUR-016), the only place
@@ -189,6 +189,8 @@ function nonNegative(control: AbstractControl): ValidationErrors | null {
     </div>
   `,
   styles: `
+    @use '../../../shared/styles/numeric' as numeric;
+
     .page {
       max-inline-size: var(--vf-content-max-width);
       inline-size: 100%;
@@ -268,6 +270,14 @@ function nonNegative(control: AbstractControl): ValidationErrors | null {
       font-size: var(--vf-text-caption);
       color: var(--vf-text-secondary);
       font-weight: 600;
+    }
+
+    /* The two read-only quantity columns follow the one numeric standard (§6) —
+       they followed none at all before, which is how an editable form table drifts
+       away from every list in the product. The entry column is left alone: it holds
+       a field, not a figure. */
+    .vf-table {
+      @include numeric.cells;
     }
 
     .vf-table tbody tr:last-child td {

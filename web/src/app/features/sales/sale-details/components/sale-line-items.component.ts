@@ -84,9 +84,9 @@ import { AddSaleLineDialogComponent } from './add-sale-line-dialog.component';
                     <tr>
                       <th>{{ t.t('saleDetails.lines.col.product') }}</th>
                       <th>{{ t.t('saleDetails.lines.col.unit') }}</th>
-                      <th>{{ t.t('saleDetails.lines.col.quantity') }}</th>
-                      <th>{{ t.t('saleDetails.lines.col.unitPrice') }}</th>
-                      <th>{{ t.t('saleDetails.lines.col.lineTotal') }}</th>
+                      <th class="vf-num">{{ t.t('saleDetails.lines.col.quantity') }}</th>
+                      <th class="vf-num">{{ t.t('saleDetails.lines.col.unitPrice') }}</th>
+                      <th class="vf-num">{{ t.t('saleDetails.lines.col.lineTotal') }}</th>
                       <th class="action-col"><span class="sr-only">{{ t.t('saleDetails.lines.col.actions') }}</span></th>
                     </tr>
                   </thead>

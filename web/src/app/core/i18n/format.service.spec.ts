@@ -26,14 +26,56 @@ describe('FormatService', () => {
     expect(rendered).toContain('2026');
   });
 
-  it('echoes an unparseable timestamp rather than rendering "Invalid Date"', () => {
-    expect(format.dateTime('not-a-timestamp')).toBe('not-a-timestamp');
+  it('renders a dash for an unparseable timestamp — never "Invalid Date", never the raw string', () => {
+    expect(format.dateTime('not-a-timestamp')).toBe('—');
   });
 
-  it('date() still refuses a timestamp, which is why dateTime() is separate', () => {
+  it('date() still refuses a timestamp, which is why dateOfInstant() is separate', () => {
     // Documents the boundary deliberately: date() is for clinic-local business dates
-    // (BR-INV-059/060) and must not be fed an instant.
-    expect(format.date('2026-07-31T02:31:28+00:00')).toBe('2026-07-31T02:31:28+00:00');
+    // (BR-INV-059/060) and must not be fed an instant — it must not silently derive a
+    // business day from one. It refuses; it just no longer refuses *out loud*.
+    const rendered = format.date('2026-07-31T02:31:28+00:00');
+
+    expect(rendered).toBe('—');
+    expect(rendered).not.toContain('T');
+    expect(rendered).not.toContain('+00:00');
+  });
+
+  describe('dateOfInstant — the date line of a timestamp (owner ruling, 2026-08-06)', () => {
+    it('renders a timestamp as a date, with no ISO text and no timezone offset', () => {
+      // The defect it exists for: receiveDate is a DateTimeOffset, and feeding it to
+      // date() put "2026-08-02T22:17:31.25352+00:00" in the batch viewer's column.
+      const rendered = format.dateOfInstant('2026-08-02T22:17:31.25352+00:00');
+
+      expect(rendered).not.toContain('T');
+      expect(rendered).not.toContain('+00:00');
+      expect(rendered).not.toContain(':');
+      expect(rendered).toContain('2026');
+    });
+
+    it('cannot drift from the two-line stamp, because it is that stamp’s date line', () => {
+      const timestamp = '2026-08-02T22:17:31.25352+00:00';
+
+      expect(format.dateOfInstant(timestamp)).toBe(format.dateTimeParts(timestamp).date);
+    });
+
+    it('degrades to a dash like every other formatter', () => {
+      expect(format.dateOfInstant('not-a-timestamp')).toBe('—');
+    });
+  });
+
+  describe('moneyAmount — one money precision across the product (§10)', () => {
+    it('renders the same two fraction digits money() does', () => {
+      // The drift it closes: decimal() allowed up to three places, so the batch
+      // unit cost showed "12.5" while every other amount showed "12.50".
+      expect(format.moneyAmount(12.5)).toBe('12.50');
+      expect(format.moneyAmount(5)).toBe('5.00');
+      expect(format.money(12.5, 'EGP')).toContain('12.50');
+    });
+
+    it('carries no currency symbol — the caller supplies its own approved label', () => {
+      expect(format.moneyAmount(12.5)).not.toContain('ج');
+    });
   });
 
   describe('dateTimeParts — the two-line stamp (owner ruling, 2026-08-02)', () => {
@@ -61,7 +103,7 @@ describe('FormatService', () => {
     });
 
     it('degrades like dateTime() instead of rendering "Invalid Date"', () => {
-      expect(format.dateTimeParts('not-a-timestamp')).toEqual({ date: 'not-a-timestamp', time: '' });
+      expect(format.dateTimeParts('not-a-timestamp')).toEqual({ date: '—', time: '' });
     });
   });
 });

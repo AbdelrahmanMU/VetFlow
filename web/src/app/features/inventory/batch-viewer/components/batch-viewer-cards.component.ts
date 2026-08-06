@@ -32,12 +32,12 @@ import { BatchStatusBadgeComponent } from './batch-status-badge.component';
               {{ item.stockUnitName }}
             </span>
             <span class="card-meta vf-num">
-              {{ t.t('batchViewer.column.receiveDate') }}: {{ format.date(item.receiveDate) }}
+              {{ t.t('batchViewer.column.receiveDate') }}: {{ format.dateOfInstant(item.receiveDate) }}
               · {{ t.t('batchViewer.column.expiryDate') }}:
               {{ item.expiryDate ? format.date(item.expiryDate) : '—' }}
             </span>
             <span class="card-meta vf-num">
-              {{ t.t('batchViewer.column.unitCost') }}: {{ format.decimal(item.unitCostSnapshot) }}
+              {{ t.t('batchViewer.column.unitCost') }}: {{ format.moneyAmount(item.unitCostSnapshot) }}
               {{ t.t('batchViewer.currency') }}
             </span>
           </div>

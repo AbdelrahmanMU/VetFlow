@@ -42,6 +42,20 @@ product, not to one screen.**
 | `vf-card` | UI Kit component (`shared/ui-kit/card/`) | The single section container. Grouping device, **not** decoration (design-language §5): thin border, no heavy shadow, **no coloured background** (§11). Inputs: `heading` (optional section title), `headingLevel` (`h2`\|`h3`, so a page keeps one heading outline). Projects content, plus an optional `card-actions` slot for a quiet trailing link. Separation is **by space first** — never space + rule + card together (§15.4) |
 | `vf-stat-tile` | UI Kit component (`shared/ui-kit/stat-tile/`) | A **clickable** labelled number. Inputs: `label`, `value`, `icon`, `tone` (`neutral`\|`warning`\|`danger`), `routerLink`, `queryParams`, `actionLabel`. **Meaning never rides on colour alone** (§11/§14): the tone is always accompanied by icon **and** text. The **whole tile** is the hit target (≥44×44, §14), it is a real link (keyboard-focusable, `Enter` opens), and the number is rendered with tabular figures (§10). **No trend arrow, no percentage delta, no comparison** — those belong to a statistics dashboard, which BR-DSH-017 excludes |
 
+**UI Kit repairs shipped with the table presentation polish (2026-08-06):**
+`vf-table` now applies the **whole** numeric standard from the column
+declaration — a column declared `numeric` gets inline-start alignment, tabular
+figures and content width without the screen adding anything, so a table can no
+longer half-comply. Row rhythm was set with it (`space-3`/`space-4` padding,
+`line-height: 1.6` → a 44–64 px row). The raw-`<table>` deviations TD-007
+accepted read the identical rule from `shared/styles/_numeric.scss`, whose mixin
+was widened from alignment alone to the same three properties. **The alignment
+edge changed by owner ruling — design language §6 as amended that day; the
+measurement and the reason live there, not here.** `FormatService` gained
+`dateOfInstant()` (the one way to render a timestamp as a date) and
+`moneyAmount()` (money precision without a symbol); **no formatter can emit
+machine text any more** — every degrade is `—`.
+
 **UI Kit repairs shipped with Phase 1:** `vf-select` is now a
 ControlValueAccessor (touched on blur/panel-close; `aria-invalid`/
 `aria-describedby` stamped on its combobox), `vf-date-input` is now a
@@ -53,8 +67,12 @@ standalone behavior unchanged), `vf-button` gained `type="submit"`.
 **UI Kit repairs shipped with the SaaS Foundation Epic (2026-08-02):**
 `vf-text-input` gained `type="password"`/`type="tel"`, `inputMode`,
 `autocomplete`, and `digitsFirst` (renders the value left-to-right and
-left-aligned — design language §6's «الأرقام لليسار» applied to a field whose
-content is digits); `vf-button` gained `full` (stretches to the container, the
+left-aligned — **a field, not a column**: its content is an LTR run of digits
+typed and read left-to-right inside an RTL form. *Clarified 2026-08-06: this had
+cited design language §6's «الأرقام لليسار», and §6 was amended that day to
+inline-start alignment for **table columns**. `digitsFirst` is deliberately
+unaffected — start-aligning a phone field would break how the number reads.*);
+`vf-button` gained `full` (stretches to the container, the
 login screen's single action). All additive: every existing call site keeps its
 behaviour. **No `autofocus` attribute was added** — the accessibility lint rules
 it out, so the login screen places first focus in code instead.

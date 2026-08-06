@@ -69,7 +69,12 @@ const BATCH_COLUMNS: readonly BatchColumn[] = [
                 </td>
               }
               @case ('receiveDate') {
-                <td class="cell-secondary vf-num">{{ format.date(item.receiveDate) }}</td>
+                <!--
+                  An instant, not a business date (the contract sends a DateTimeOffset),
+                  so it needs dateOfInstant: date() refuses a timestamp, and until
+                  2026-08-06 that refusal echoed the raw ISO string into this column.
+                -->
+                <td class="cell-secondary vf-num">{{ format.dateOfInstant(item.receiveDate) }}</td>
               }
               @case ('originalQuantity') {
                 <td class="vf-td--numeric vf-num">{{ format.decimal(item.originalQuantity) }}</td>
@@ -84,7 +89,7 @@ const BATCH_COLUMNS: readonly BatchColumn[] = [
               }
               @case ('unitCost') {
                 <td class="vf-td--numeric cell-secondary vf-num">
-                  {{ format.decimal(item.unitCostSnapshot) }} {{ t.t('batchViewer.currency') }}
+                  {{ format.moneyAmount(item.unitCostSnapshot) }} {{ t.t('batchViewer.currency') }}
                 </td>
               }
               @case ('expiryDate') {

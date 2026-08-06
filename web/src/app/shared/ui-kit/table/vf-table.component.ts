@@ -93,6 +93,14 @@ export interface VfSortState {
     ::ng-deep .vf-table {
       font-family: var(--vf-font);
       font-size: var(--vf-text-body);
+
+      /*
+        A touch tighter than the page's 1.8 (§10 gives Arabic prose that room), so a
+        row reads as one line of data rather than a paragraph: with the block padding
+        below this lands a row at ~48 px — comfortable for long reading without the
+        dissipated feel §6 warns against («لا ضيق خانق ولا تباعد مبدَّد»).
+      */
+      line-height: 1.6;
     }
 
     ::ng-deep .vf-table .p-datatable-table {
@@ -106,7 +114,7 @@ export interface VfSortState {
       font-weight: 600;
       text-align: start;
       border-block-end: 1px solid var(--vf-border);
-      padding: var(--vf-space-2) var(--vf-space-3);
+      padding: var(--vf-space-3) var(--vf-space-4);
       white-space: nowrap;
     }
 
@@ -128,13 +136,30 @@ export interface VfSortState {
     ::ng-deep .vf-table .p-datatable-tbody > tr > td {
       border: none;
       border-block-end: 1px solid var(--vf-border);
-      padding: var(--vf-space-3) var(--vf-space-3);
+      padding: var(--vf-space-3) var(--vf-space-4);
       vertical-align: middle;
     }
 
+    /*
+      The one numeric standard (§6 as amended by the owner 2026-08-06), applied from
+      the column declaration so no screen has to remember it — the same three
+      properties shared/styles/_numeric.scss gives the raw-table deviations.
+
+      The inline START edge, not the end: the page is RTL but a number is still an
+      LTR run, so the end edge pins its *most significant* digit and the units place
+      scatters. The start edge pins the trailing digit, so decimals line up down the
+      column and the header — which sits on that same edge — lands directly above
+      its value.
+    */
     ::ng-deep .vf-table .vf-th--numeric,
     ::ng-deep .vf-table .vf-td--numeric {
-      text-align: end;
+      text-align: start;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+
+      /* Content width, not an equal share: an over-wide column strands the value
+         far from its header. 1% is shrink-to-fit under this table's auto layout. */
+      inline-size: 1%;
     }
 
     .vf-sort {

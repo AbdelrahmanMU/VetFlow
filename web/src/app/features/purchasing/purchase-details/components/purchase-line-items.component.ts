@@ -81,9 +81,9 @@ import { AddPurchaseLineDialogComponent } from './add-purchase-line-dialog.compo
                     <tr>
                       <th>{{ t.t('purchaseDetails.lines.col.product') }}</th>
                       <th>{{ t.t('purchaseDetails.lines.col.unit') }}</th>
-                      <th>{{ t.t('purchaseDetails.lines.col.quantity') }}</th>
-                      <th>{{ t.t('purchaseDetails.lines.col.unitPrice') }}</th>
-                      <th>{{ t.t('purchaseDetails.lines.col.lineTotal') }}</th>
+                      <th class="vf-num">{{ t.t('purchaseDetails.lines.col.quantity') }}</th>
+                      <th class="vf-num">{{ t.t('purchaseDetails.lines.col.unitPrice') }}</th>
+                      <th class="vf-num">{{ t.t('purchaseDetails.lines.col.lineTotal') }}</th>
                       <th class="action-col"><span class="sr-only">{{ t.t('purchaseDetails.lines.col.actions') }}</span></th>
                     </tr>
                   </thead>

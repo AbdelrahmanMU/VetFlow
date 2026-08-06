@@ -1,11 +1,22 @@
 /// The single presentation standard for numeric and monetary values in tables.
 ///
-/// Design language §6 rules it once, for the whole product:
-/// «محاذاة: النص لليمين والأرقام لليسار بأرقام ثابتة العرض حتى تصطف الخانات».
-/// Under `dir="rtl"` the inline end *is* the left edge, so `text-align: end`
-/// puts the digits on a fixed edge and columns of money line up down the page.
+/// Design language §6 rules it once, for the whole product — as amended by the
+/// owner on 2026-08-06:
+/// «محاذاة: النص والأرقام معًا إلى حافة البداية (اليمين في العربية) بأرقام ثابتة
+/// العرض حتى تصطف الخانات، ورأس العمود الرقميّ يُحاذى بالحافة نفسها».
 ///
-/// `<vf-table>` already applies this to columns declared `numeric` — this
+/// Why the inline **start** edge and not the end: the page is RTL but a number is
+/// still an LTR run, so pinning its inline-end (left) edge pins the *most
+/// significant* digit and lets the units place scatter — measured in the browser,
+/// 1,234.50 / 5.00 / 87.25 shared a left edge and ended at three different x. The
+/// start edge pins the trailing digit instead, so the decimal separators line up
+/// down the page and the column header — aligned to that same edge — sits directly
+/// above its value. That is §6's own stated purpose, «حتى تصطف الخانات».
+///
+/// Three properties, never one: the alignment alone does not make columns line up
+/// without fixed-width figures, and neither survives a value that wraps.
+///
+/// `<vf-table>` applies the identical rule to columns declared `numeric` — this
 /// partial exists for the raw `<table>` deviations that TD-007 accepted for the
 /// Pilot, so that they follow the same rule from the same definition instead of
 /// each inventing its own alignment.
@@ -18,9 +29,29 @@
 ///
 /// .lines { @include numeric.cells; }
 /// ```
+///
+/// Mark the `<th>` as well as the `<td>`: a header left on the opposite edge from
+/// its own values is exactly the detachment §6 forbids.
 @mixin cells {
   th.vf-num,
   td.vf-num {
-    text-align: end;
+    text-align: start;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  // Content width, not an equal share of the table: an over-wide numeric column
+  // strands its values far from the header (§6, «العمود الرقميّ يأخذ عرض محتواه»).
+  // 1% is the shrink-to-fit idiom for an auto-layout table — the browser floors it
+  // at the widest cell's own width and gives the slack to the text columns.
+  // Column width is a *table* idea, so it stops where the table does: below the
+  // compact tier these rows are stacked cards (§5, «لا جداول: بطاقات»), where a
+  // 1% cell would collapse the stacked label/value row. The alignment and the
+  // fixed-width figures above still apply there — only the width is a table's.
+  @media (width >= 769px) {
+    th.vf-num,
+    td.vf-num {
+      inline-size: 1%;
+    }
   }
 }
