@@ -14,7 +14,7 @@
 | [ADR-0007](ADR-0007-localization-architecture.md) | Localization-ready architecture, Arabic-first MVP | Proposed | 2026-07-13 |
 | [ADR-0008](ADR-0008-docker.md) | Docker from the beginning | Proposed | 2026-07-13 |
 | [ADR-0009](ADR-0009-design-system-adaptive-ui.md) | Own design system + adaptive UI (scope expanded in review) | Proposed | 2026-07-13 |
-| [ADR-0010](ADR-0010-authentication-abstraction.md) | Provider-independent authentication architecture | Proposed | 2026-07-13 |
+| [ADR-0010](ADR-0010-authentication-abstraction.md) | Provider-independent authentication architecture | **Accepted** | 2026-07-13 · accepted 2026-08-06 |
 | [ADR-0011](ADR-0011-caching-architecture.md) | Caching is an Infrastructure-only concern | Proposed | 2026-07-13 |
 | [ADR-0012](ADR-0012-ui-kit-library-independence.md) | VetFlow UI Kit — UI library independence | Proposed | 2026-07-13 |
 | [ADR-0013](ADR-0013-angular-feature-architecture.md) | Angular feature-based architecture | Proposed | 2026-07-13 |
@@ -25,7 +25,7 @@
 | [ADR-0018](ADR-0018-business-failure-strategy.md) | Business failure strategy — exceptions + error catalog | Proposed | 2026-07-13 |
 | [ADR-0019](ADR-0019-database-platform.md) | Database platform — PostgreSQL | Proposed | 2026-07-13 |
 | [ADR-0020](ADR-0020-schema-evolution-safety.md) | Schema evolution safety — no destructive migrations once real data exists; Pilot start defined | Accepted | 2026-07-31 |
-| [ADR-0021](ADR-0021-deployment-platform.md) | Deployment platform — managed cloud (Neon + Render); ships before authentication, real data held until auth lands | Proposed | 2026-08-01 |
-| [ADR-0022](ADR-0022-organization-model-and-identity.md) | Organization model, multi-tenancy and identity foundation — shared database with a tenant discriminator; Tenant → Branch → Membership → User; phone + password login; scope-owned gapless numbering | Proposed | 2026-08-02 |
+| [ADR-0021](ADR-0021-deployment-platform.md) | Deployment platform — managed cloud (Neon + Render); ships before authentication, real data held until auth lands | **Accepted** | 2026-08-01 · accepted 2026-08-06 |
+| [ADR-0022](ADR-0022-organization-model-and-identity.md) | Organization model, multi-tenancy and identity foundation — shared database with a tenant discriminator; Tenant → Branch → Membership → User; phone + password login; scope-owned gapless numbering | **Accepted** | 2026-08-02 |
 
 Related studies (not decisions): [Database platform study — PostgreSQL vs SQL Server](../database-platform-study.md) (Draft; ruled by ADR-0019).

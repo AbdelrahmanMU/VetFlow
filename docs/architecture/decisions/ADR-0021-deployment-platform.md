@@ -1,7 +1,8 @@
 # ADR-0021: Deployment Platform — Managed Cloud (Neon + Render)
 
-- **Status:** Proposed <!-- owner decision recorded 2026-08-01; acceptance pending -->
-- **Date:** 2026-08-01
+- **Status:** **Accepted** <!-- owner ruling 2026-08-06 -->
+  *(Was: "Proposed — owner decision recorded 2026-08-01; acceptance pending".)*
+- **Date:** 2026-08-01 · **Accepted:** 2026-08-06
 - **Owner ruling:** 2026-08-01 — the owner chose to move the real pilot from the
   on-premise clinic machine to managed cloud hosting, **and to ship before
   authentication exists**, with authentication to follow "as soon as possible".
@@ -76,6 +77,24 @@ preserved rather than rewritten, per the amendment convention.
 with a tenant discriminator, so this ADR's one Render service + one Neon database
 remains correct, and `numInstances: 1` with start-up migrations stays valid.
 A database-per-clinic ruling would have invalidated all three; it was rejected.
+
+### Accepted 2026-08-06 — and why the acceptance is well-founded now
+
+This ADR sat `Proposed` for five days for one reason: **its central accepted risk
+was still live.** It recorded a decision to ship to a network-reachable host
+**before authentication existed**, and `main` was deliberately never
+fast-forwarded while that was true.
+
+**That risk no longer exists.** The 2026-08-02 amendment above moved Phase 2
+ahead of the Pilot, and Phase 2 has since **shipped**: authentication, the
+organization model and tenant isolation are implemented, gated and deployed
+(ADR-0022; `docs/modules/identity/`, `docs/modules/organization/`). The
+application is no longer reachable without a token, and **no real clinic data
+was entered while the gap was open** — the condition the amendment set.
+
+**So the ADR is accepted on a closed risk, not an open one.** The one operational
+item it leaves behind is unchanged and belongs to the runbook, not to this
+decision: **the cloud deployment has not yet been observed healthy end to end.**
 
 ## Consequences
 

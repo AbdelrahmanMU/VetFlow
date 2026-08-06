@@ -1,8 +1,12 @@
 # ADR-0010: Provider-Independent Authentication Architecture
 
-- **Status:** Proposed (decision approved by owner 2026-07-13, Topic 3
-  review; flips to Accepted once the owner reviews this write-up)
-- **Date:** 2026-07-13
+- **Status:** **Accepted** <!-- owner ruling 2026-08-06 -->
+  *(Was: "Proposed — decision approved by owner 2026-07-13, Topic 3 review;
+  flips to Accepted once the owner reviews this write-up." **That condition was
+  met on 2026-08-06**, when the owner reviewed and accepted this write-up. The
+  original wording is preserved rather than overwritten, per the amendment
+  convention.)*
+- **Date:** 2026-07-13 · **Accepted:** 2026-08-06
 
 ## Context
 
