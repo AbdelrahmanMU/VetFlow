@@ -133,6 +133,40 @@ export class SalesListStore {
     this.page.set(1);
   }
 
+  /**
+   * Seeds the filters from the URL on entry, so the dashboard can link straight to «drafts» or
+   * to today's committed sales (DEC-DSH-006, BR-DSH-018) instead of dropping the user on an
+   * unfiltered list to re-apply by hand.
+   *
+   * **Only values already inside BR-SAL-019's approved filter list are honoured** — status and
+   * a sale-date range. Anything else is ignored, so a hand-edited URL cannot widen a list the
+   * rule declares exhaustive.
+   *
+   * The dates arrive from the **server's** clinic date (the dashboard passes through what the
+   * API returned): the browser must not compute a business date of its own (clinic-date.md).
+   */
+  applyDeepLink(status: string | null, dateFrom: string | null, dateTo: string | null): void {
+    let touched = false;
+
+    if (status === 'draft' || status === 'committed') {
+      this.filters.update((filters) => ({ ...filters, status }));
+      touched = true;
+    }
+
+    if (isIsoDate(dateFrom) || isIsoDate(dateTo)) {
+      this.filters.update((filters) => ({
+        ...filters,
+        dateFrom: isIsoDate(dateFrom) ? dateFrom : filters.dateFrom,
+        dateTo: isIsoDate(dateTo) ? dateTo : filters.dateTo,
+      }));
+      touched = true;
+    }
+
+    if (touched) {
+      this.page.set(1);
+    }
+  }
+
   setSort(sort: SalesListSort): void {
     this.sort.set(sort);
     this.page.set(1);
@@ -145,4 +179,12 @@ export class SalesListStore {
   retry(): void {
     this.reloadCounter.update((count) => count + 1);
   }
+}
+
+/**
+ * A deep-linked date must look like `yyyy-mm-dd` before it reaches a filter. This rejects
+ * junk from a hand-edited URL at the boundary rather than sending it to the API to fail.
+ */
+function isIsoDate(value: string | null): value is string {
+  return value !== null && /^\d{4}-\d{2}-\d{2}$/.test(value);
 }

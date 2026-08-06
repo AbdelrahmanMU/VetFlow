@@ -61,6 +61,29 @@ in each module's `decisions.md`, which stays their single home.
 Definition of done for post-Pilot capabilities: defined per capability with
 the owner when scheduled — nothing is pre-committed here.
 
+### 2a · Commissioned after the Pilot began — **Dashboard (لوحة التشغيل)**
+
+**Amended by owner commission (2026-08-02).** The owner commissioned an
+**Operational Dashboard** as a new module and re-issued the commission after
+the collisions below were put to them — which is what makes this an owner
+ruling rather than an inference.
+
+| Item | State |
+|---|---|
+| **Module** | `docs/modules/dashboard/` — **Draft, docs 9/9**, awaiting owner approval |
+| **Implementation** | **None.** Discovery and PRS only; no code, no endpoint, no UI |
+| **What it supersedes** | **DEC-IDN-007** («no dashboard is built»; landing screen = product list) → superseded in place by **DEC-DSH-011**, original wording preserved verbatim |
+| **Scope character** | **Operational, not reporting.** It answers «what needs my attention right now?» — it is not the deferred **Reports** capability above, and does not un-defer it |
+| **Blocked sub-item** | **Low stock** — needs a per-product **Reorder Level** in Catalog, which **DEC-INV-004** explicitly refuses to invent. **OQ-DSH-1**; the other seven items are independent of it |
+
+**Two earlier exclusions this ruling touches, and their exact extent:** the
+Sprint 7 scope lock (**DEC-SAL-001**) listed «لوحات المعلومات» among the things
+not designed, and **DEC-IDN-007** relied on that lock. **The owner's commission
+lifts the dashboard exclusion and nothing else** — every other item in that
+lock (refunds · reservations · transfers · discounts · promotions · credit
+sales · customer accounts · payments · accounting · reports · notifications)
+**stands unchanged**, exactly as **DEC-SAL-010** lifted returns alone.
+
 ## 3 · Explicitly out of scope — the long-term product vision (unchanged)
 
 All future modules listed in `docs/shared/roadmap/ROADMAP.md` (medical

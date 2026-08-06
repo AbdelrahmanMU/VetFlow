@@ -336,3 +336,18 @@
 - **Reason:** قواعد التسمية وفهرس الـADRs وقوالب الوحدة.
 - **Source(s):** `.claude/rules/naming.md`, `docs/architecture/decisions/_INDEX.md`, `docs/modules/_TEMPLATE/`
 - **Related Module:** Process-wide
+
+### BD-DOC-008 — «تاريخ العيادة المحلّي» تعريف عابر للوحدات، بموطن واحد
+- **Status:** Approved (owner ruling 2026-08-03 — OQ-DSH-2)
+- **Decision:** موطن تعريف **تاريخ العيادة المحلّي** هو
+  `docs/architecture/cross-cutting/clinic-date.md`، **وتقرأ منه كلّ وحدة**.
+  **BR-INV-059 و BR-INV-060 تحتفظان بمعرّفيهما ونصّيهما** ومُحالتان إليه في موضعهما.
+- **Reason:** احتاجت لوحة التشغيل «اليوم» لحقلٍ **مبيعاتيّ** (REQ-DSH-007)، و**BR-INV-059
+  تحدّ نطاقها بنصّها بوحدة المخزون**. فكان البديلان إمّا **توسيعًا صامتًا لقاعدة معتمدة**
+  وإمّا **تعريفًا ثانيًا لليوم** — وهو ما وُجدت BR-INV-060 («مصدر واحد لا غير») لتمنعه.
+  **نقلٌ لا إعادة كتابة: لم يتغيّر معنى قاعدة ولا سلوك كود** — `IClinicClock` كان أصلًا
+  بنيةً عابرة للوحدات تصف نفسها بأنّها المرجع الوحيد لكل قرارات التواريخ.
+- **Source(s):** `docs/architecture/cross-cutting/clinic-date.md`,
+  `docs/modules/inventory/business-rules.md` (BR-INV-059/060),
+  `docs/modules/dashboard/decisions.md` (DEC-DSH-003، DEC-DSH-013)
+- **Related Module:** Inventory · Sales · Dashboard (cross-module)

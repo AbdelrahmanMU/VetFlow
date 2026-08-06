@@ -9,8 +9,10 @@ using VetFlow.Application.Catalog.Queries.UnitOptions;
 using VetFlow.Application.Categories.Queries.CategoryList;
 using VetFlow.Application.Common;
 using VetFlow.Application.Common.Behaviors;
+using VetFlow.Application.Dashboard.Queries.OperationalDashboard;
 using VetFlow.Application.Inventory.Queries.BatchViewer;
 using VetFlow.Application.Inventory.Queries.ExpiryMonitoring;
+using VetFlow.Application.Inventory.Queries.InventoryDashboardSummary;
 using VetFlow.Application.Inventory.Queries.InventoryHistory;
 using VetFlow.Application.Inventory.Queries.InventoryProjection;
 using VetFlow.Application.Inventory.Queries.ProductInventorySummary;
@@ -18,12 +20,15 @@ using VetFlow.Application.Purchasing.Queries.PurchaseDetails;
 using VetFlow.Application.Purchasing.Queries.PurchaseLineItems;
 using VetFlow.Application.Purchasing.Queries.PurchaseList;
 using VetFlow.Application.Purchasing.Queries.PurchaseReturnableLines;
+using VetFlow.Application.Purchasing.Queries.PurchasingDashboardSummary;
+using VetFlow.Application.Sales.Queries.SalesDashboardSummary;
 using VetFlow.Application.Sales.Queries.SalesDetails;
 using VetFlow.Application.Sales.Queries.SalesLineItems;
 using VetFlow.Application.Sales.Queries.SalesList;
 using VetFlow.Application.Sales.Queries.SalesReturnableLines;
 using VetFlow.Infrastructure.Catalog;
 using VetFlow.Infrastructure.Categories;
+using VetFlow.Infrastructure.Dashboard;
 using VetFlow.Infrastructure.Inventory;
 using VetFlow.Infrastructure.Purchasing;
 using VetFlow.Infrastructure.Sales;
@@ -59,6 +64,13 @@ public static class QueryPipeline
         services.AddQueryHandler<SalesDetailsQuery, SalesDetailsDto?, SalesDetailsQueryHandler>();
         services.AddQueryHandler<SalesLineItemsQuery, IReadOnlyList<SalesLineItemDto>?, SalesLineItemsQueryHandler>();
         services.AddQueryHandler<SalesReturnableLinesQuery, IReadOnlyList<SalesReturnableLineDto>?, SalesReturnableLinesQueryHandler>();
+
+        // The dashboard's three owning reads, then the composition over them. Registered in
+        // that order for readability only — the composer resolves them through the container.
+        services.AddQueryHandler<InventoryDashboardSummaryQuery, InventoryDashboardSummaryDto, InventoryDashboardSummaryQueryHandler>();
+        services.AddQueryHandler<SalesDashboardSummaryQuery, SalesDashboardSummaryDto, SalesDashboardSummaryQueryHandler>();
+        services.AddQueryHandler<PurchasingDashboardSummaryQuery, PurchasingDashboardSummaryDto, PurchasingDashboardSummaryQueryHandler>();
+        services.AddQueryHandler<OperationalDashboardQuery, OperationalDashboardDto, OperationalDashboardQueryHandler>();
         return services;
     }
 

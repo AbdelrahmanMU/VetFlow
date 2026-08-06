@@ -1,7 +1,7 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs/operators';
 
 import { FormatService } from '../../../core/i18n/format.service';
@@ -237,6 +237,15 @@ export class InventoryListPageComponent {
   protected readonly t = inject(TranslationService);
   protected readonly format = inject(FormatService);
   protected readonly store = inject(InventoryListStore);
+
+  constructor() {
+    // Read once, from the entry snapshot (DEC-DSH-006).
+    const params = inject(ActivatedRoute).snapshot.queryParamMap;
+    this.store.applyDeepLink({
+      outOfStock: params.get('outOfStock'),
+      expiringSoon: params.get('expiringSoon'),
+    });
+  }
   private readonly breakpoints = inject(BreakpointObserver);
   private readonly router = inject(Router);
 

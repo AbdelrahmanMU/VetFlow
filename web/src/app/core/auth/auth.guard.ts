@@ -29,5 +29,7 @@ export const anonymousOnlyGuard: CanMatchFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
-  return auth.isAuthenticated() ? router.createUrlTree(['/catalog/products']) : true;
+  // Same destination as a fresh sign-in (REQ-DSH-001, DEC-DSH-011) — the two must agree, or
+  // a refresh would land somewhere a sign-in does not.
+  return auth.isAuthenticated() ? router.createUrlTree(['/dashboard']) : true;
 };

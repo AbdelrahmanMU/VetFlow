@@ -284,6 +284,15 @@ public sealed class ConventionTests
         // Inventory now stores a sale-line id (REQ-INV-008): it must stay a plain Guid, never a
         // Sales type.
         AssertModuleIsIsolated("Sales");
+
+        // The Dashboard is the module most likely to break this rule, so it is held to it
+        // hardest. It composes reads that Inventory, Sales and Purchasing own (REQ-INV-013,
+        // REQ-SAL-006, REQ-PUR-007) — but that composition lives in Infrastructure, the
+        // sanctioned cross-module read path (ADR-0014 §2). VetFlow.Application.Dashboard is a
+        // parameterless query and a primitive DTO, and this assertion is what keeps it that
+        // way: the moment someone imports an Inventory type to "just reuse the enum", the
+        // build fails. That is BR-DSH-001 / DEC-DSH-001 made structural rather than advisory.
+        AssertModuleIsIsolated("Dashboard");
     }
 
     /// <summary>
@@ -293,7 +302,7 @@ public sealed class ConventionTests
     /// </summary>
     private static void AssertModuleIsIsolated(string module)
     {
-        string[] modules = ["Catalog", "Categories", "Purchasing", "Inventory", "Sales"];
+        string[] modules = ["Catalog", "Categories", "Purchasing", "Inventory", "Sales", "Dashboard"];
 
         var forbidden = modules
             .Where(other => !string.Equals(other, module, StringComparison.Ordinal))

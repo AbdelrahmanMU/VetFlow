@@ -1,6 +1,7 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs/operators';
 
 import { FormatService } from '../../../core/i18n/format.service';
@@ -230,6 +231,15 @@ export class ExpiryMonitoringPageComponent {
   protected readonly t = inject(TranslationService);
   protected readonly format = inject(FormatService);
   protected readonly store = inject(ExpiryMonitoringStore);
+
+  constructor() {
+    // Read once, from the entry snapshot (DEC-DSH-006).
+    const params = inject(ActivatedRoute).snapshot.queryParamMap;
+    this.store.applyDeepLink({
+      expired: params.get('expired'),
+      expiringSoon: params.get('expiringSoon'),
+    });
+  }
   private readonly breakpoints = inject(BreakpointObserver);
 
   protected readonly pageSize = ExpiryMonitoringStore.PageSize;

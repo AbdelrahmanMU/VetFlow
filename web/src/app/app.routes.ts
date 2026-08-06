@@ -7,9 +7,14 @@ import { ShellComponent } from './core/layout/shell.component';
  * Two branches: the login screen, which stands alone because there is no navigation to offer
  * someone who is not signed in — and everything else, inside the shell and behind the guard.
  *
- * <b>The landing route is unchanged</b>: `/` still goes to the product list (DEC-IDN-007 — «lands
- * in the app» means the screen that already exists; no dashboard is built). It is simply preceded
- * by a sign-in now (REQ-IDN-006, BR-IDN-005).
+ * <b>The landing route is the operational dashboard</b> (REQ-DSH-001, DEC-DSH-011, owner ruling
+ * 2026-08-03). It supersedes DEC-IDN-007 («the first screen is the product list, and no dashboard
+ * is built»), whose own stated basis — the inventory scope-lock — the owner lifted when they
+ * commissioned the board. The identifier is preserved, not reused; the supersession is recorded in
+ * `docs/modules/identity/decisions.md`.
+ *
+ * Nothing else about sign-in changed: the dashboard sits behind the same guard as every other
+ * business screen (REQ-IDN-006, BR-IDN-005).
  */
 export const routes: Routes = [
   {
@@ -23,7 +28,11 @@ export const routes: Routes = [
     component: ShellComponent,
     canMatch: [authGuard],
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'catalog/products' },
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+      {
+        path: 'dashboard',
+        loadChildren: () => import('./features/dashboard/dashboard.routes').then((m) => m.DASHBOARD_ROUTES),
+      },
       {
         path: 'catalog',
         loadChildren: () => import('./features/catalog/catalog.routes').then((m) => m.CATALOG_ROUTES),
@@ -49,7 +58,7 @@ export const routes: Routes = [
         path: 'inventory',
         loadChildren: () => import('./features/inventory/inventory.routes').then((m) => m.INVENTORY_ROUTES),
       },
-      { path: '**', redirectTo: 'catalog/products' },
+      { path: '**', redirectTo: 'dashboard' },
     ],
   },
   // Last, so it can never swallow `/login`: an unknown path visited without a session falls past

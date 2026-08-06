@@ -1,7 +1,7 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs/operators';
 
 import { FormatService } from '../../../core/i18n/format.service';
@@ -242,6 +242,12 @@ export class PurchaseListPageComponent {
   protected readonly t = inject(TranslationService);
   protected readonly format = inject(FormatService);
   protected readonly store = inject(PurchaseListStore);
+
+  constructor() {
+    // Read once, from the entry snapshot: a deep link seeds the filters, it does not keep
+    // overriding what the user does next (DEC-DSH-006).
+    this.store.applyDeepLink(inject(ActivatedRoute).snapshot.queryParamMap.get('status'));
+  }
   private readonly breakpoints = inject(BreakpointObserver);
   private readonly router = inject(Router);
 

@@ -133,6 +133,26 @@ export class ExpiryMonitoringStore {
     this.page.set(1);
   }
 
+  /**
+   * Seeds the filters from the URL on entry, so the dashboard's two expiry tiles land on
+   * exactly the batches they counted (DEC-DSH-006, BR-DSH-018).
+   *
+   * **Only the toggles already inside BR-INV-035's whitelist are honoured**, and the two are
+   * mutually exclusive by definition (BR-INV-036) — so a URL asking for both is treated as
+   * asking for «expired», the more urgent of the pair, rather than producing a filter
+   * combination the rule never defined.
+   */
+  applyDeepLink(params: { readonly expired: string | null; readonly expiringSoon: string | null }): void {
+    const expired = params.expired === 'true';
+    const expiringSoon = !expired && params.expiringSoon === 'true';
+    if (!expired && !expiringSoon) {
+      return;
+    }
+
+    this.filters.update((filters) => ({ ...filters, expired, expiringSoon }));
+    this.page.set(1);
+  }
+
   setPage(page: number): void {
     this.page.set(page);
   }

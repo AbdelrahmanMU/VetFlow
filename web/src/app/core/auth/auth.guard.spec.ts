@@ -57,7 +57,7 @@ describe('auth guards', () => {
 
     const result = run(anonymousOnlyGuard);
 
-    expect(String(result)).toBe('/catalog/products');
+    expect(String(result)).toBe('/dashboard');
   });
 
   it('lets a signed-out visitor reach the login screen', () => {

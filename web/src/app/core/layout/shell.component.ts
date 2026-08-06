@@ -97,6 +97,22 @@ import { VfLogoComponent } from '../../shared/ui-kit/logo/vf-logo.component';
           }
         </div>
         <ul class="nav-list">
+          <!--
+            The daily starting point, so it sits first and above the module groups — it belongs
+            to no module. Exact matching: the dashboard is a leaf, and a prefix match would keep
+            it highlighted while the user is anywhere else in the app.
+          -->
+          <li>
+            <a
+              class="nav-link"
+              routerLink="/dashboard"
+              routerLinkActive="nav-link--active"
+              [routerLinkActiveOptions]="{ exact: true }"
+            >
+              <i class="pi pi-th-large nav-icon" aria-hidden="true"></i>
+              {{ t.t('nav.dashboard') }}
+            </a>
+          </li>
           <li class="nav-module">{{ t.t('nav.catalog') }}</li>
           <li>
             <a

@@ -10,6 +10,7 @@ using VetFlow.Api;
 using VetFlow.Api.Composition;
 using VetFlow.Api.Endpoints.Catalog;
 using VetFlow.Api.Endpoints.Categories;
+using VetFlow.Api.Endpoints.Dashboard;
 using VetFlow.Api.Endpoints.Identity;
 using VetFlow.Api.Endpoints.Inventory;
 using VetFlow.Api.Endpoints.Purchasing;
@@ -175,6 +176,7 @@ app.MapPurchaseReturnEndpoints();
 app.MapInventoryEndpoints();
 app.MapSalesInvoiceEndpoints();
 app.MapSalesReturnEndpoints();
+app.MapDashboardEndpoints();
 
 // The client-side routes (/login, /catalog/products, …) all resolve to the one index document.
 // Unmatched /api/* paths still return the canonical ProblemDetails 404 — the SPA fallback

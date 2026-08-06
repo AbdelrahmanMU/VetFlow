@@ -1,7 +1,7 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs/operators';
 
 import { FormatService } from '../../../core/i18n/format.service';
@@ -243,6 +243,13 @@ export class SalesListPageComponent {
   protected readonly t = inject(TranslationService);
   protected readonly format = inject(FormatService);
   protected readonly store = inject(SalesListStore);
+
+  constructor() {
+    // Read once, from the entry snapshot (DEC-DSH-006). The dates come from the dashboard,
+    // which passes through the server's clinic date — the browser computes none.
+    const params = inject(ActivatedRoute).snapshot.queryParamMap;
+    this.store.applyDeepLink(params.get('status'), params.get('dateFrom'), params.get('dateTo'));
+  }
   private readonly breakpoints = inject(BreakpointObserver);
   private readonly router = inject(Router);
 

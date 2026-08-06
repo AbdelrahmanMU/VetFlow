@@ -10,7 +10,8 @@ import { LoginPageComponent } from './login-page.component';
  * The login screen against the approved standard (identity/ui.md S1, AC-IDN-010): the three
  * validation moments, a focusable banner that clears on the next edit, a submit button that is
  * never disabled for invalidity, one message for every failure cause (BR-IDN-003), and the ruled
- * landing screen (DEC-IDN-007 — the product list, not a dashboard).
+ * landing screen (REQ-DSH-001 / DEC-DSH-011 — the operational dashboard, which supersedes
+ * DEC-IDN-007's «no dashboard is built»).
  */
 describe('LoginPageComponent', () => {
   let fixture: ComponentFixture<LoginPageComponent>;
@@ -164,7 +165,7 @@ describe('LoginPageComponent', () => {
     });
     await settle();
 
-    expect(navigate).toHaveBeenCalledWith(['/catalog/products']);
+    expect(navigate).toHaveBeenCalledWith(['/dashboard']);
     expect(TestBed.inject(AuthService).isAuthenticated()).toBe(true);
   });
 });

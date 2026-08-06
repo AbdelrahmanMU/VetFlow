@@ -7,6 +7,7 @@ using VetFlow.Application.Inventory;
 using VetFlow.Infrastructure.Catalog;
 using VetFlow.Infrastructure.Categories;
 using VetFlow.Infrastructure.Common;
+using VetFlow.Infrastructure.Dashboard;
 using VetFlow.Infrastructure.Identity;
 using VetFlow.Infrastructure.Inventory;
 using VetFlow.Infrastructure.Organization;
@@ -137,6 +138,14 @@ public static class DependencyInjection
         services.AddScoped<AddSalesReturnLineCommandHandler>();
         services.AddScoped<RemoveSalesReturnLineCommandHandler>();
         services.AddScoped<CommitSalesReturnCommandHandler>();
+
+        // The three module-owned dashboard reads (REQ-INV-013 / REQ-SAL-006 / REQ-PUR-007) and
+        // the composition over them (REQ-DSH-010). The composer depends on the *decorated*
+        // query handlers, so each owning read still passes through validation and logging.
+        services.AddScoped<InventoryDashboardSummaryQueryHandler>();
+        services.AddScoped<SalesDashboardSummaryQueryHandler>();
+        services.AddScoped<PurchasingDashboardSummaryQueryHandler>();
+        services.AddScoped<OperationalDashboardQueryHandler>();
 
         // Inventory write kernel (write-kernel.md, DEC-INV-001) — the public write contract
         // Purchase Receiving depends on; internals owned by Inventory (DEC-PUR-008).

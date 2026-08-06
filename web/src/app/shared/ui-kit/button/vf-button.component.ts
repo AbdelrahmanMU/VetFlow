@@ -55,6 +55,18 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
       min-block-size: 2.75rem;
     }
 
+    /* On the touch tiers every button clears 44 px, not only the full-width one
+       (design language §14: «أهداف لمس مريحة على اللوحي والجوال»). The padding above
+       leaves an ordinary button at ~39 px, which is comfortable with a mouse and short
+       with a thumb — and the browser run caught exactly that on the dashboard's primary
+       action. Desktop is deliberately untouched: the same breakpoint the shell uses for
+       its compact tier (768 px). */
+    @media (width <= 768px) {
+      .vf-button {
+        min-block-size: 2.75rem;
+      }
+    }
+
     .vf-button--primary {
       background: var(--vf-primary);
       color: #fff;

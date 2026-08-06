@@ -133,6 +133,22 @@ export class PurchaseListStore {
     this.page.set(1);
   }
 
+  /**
+   * Seeds the filters from the URL on entry, so the dashboard can link straight to «drafts»
+   * (DEC-DSH-006, BR-DSH-018) instead of dropping the user on an unfiltered list to re-apply
+   * by hand — which would move navigation rather than reduce it.
+   *
+   * **Only values already inside BR-PUR-004's approved filter list are honoured**; anything
+   * else is ignored rather than passed through, so a hand-edited URL can never widen a list
+   * the rule declares exhaustive.
+   */
+  applyDeepLink(status: string | null): void {
+    if (status === 'draft' || status === 'received' || status === 'cancelled') {
+      this.filters.update((filters) => ({ ...filters, status }));
+      this.page.set(1);
+    }
+  }
+
   setSort(sort: PurchaseSort): void {
     this.sort.set(sort);
     this.page.set(1);

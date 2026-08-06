@@ -908,6 +908,39 @@ export const AR = {
   'login.error.system': 'تعذّر تسجيل الدخول الآن. أعد المحاولة.',
   'session.expired': 'انتهت جلستك. سجّل الدخول من جديد.',
   'nav.logout': 'تسجيل الخروج',
+
+  // لوحة التشغيل (REQ-DSH-001). The nineteen strings the owner approved on 2026-08-03
+  // (OQ-DSH-3, DEC-DSH-013), used verbatim — plus the two accessible/empty-state labels the
+  // screen needs, marked below. No twentieth wording was invented.
+  'nav.dashboard': 'لوحة التشغيل',
+  'dashboard.title': 'لوحة التشغيل',
+  'dashboard.attention.title': 'ما يحتاج انتباهك',
+  'dashboard.attention.allClear': 'لا شيء يحتاج انتباهك الآن',
+  'dashboard.expiredBatches': 'دفعات منتهية الصلاحية',
+  'dashboard.expiringSoon': 'دفعات تقارب انتهاء الصلاحية',
+  'dashboard.outOfStock': 'منتجات نفد مخزونها',
+  // «غير مستلَمة» rather than «مسودة»: the owner thinks in goods, not in system states. The
+  // stored state itself is untouched — BR-PUR-003 still says «مسودة» (ui.md §7).
+  'dashboard.draftPurchases': 'فواتير شراء غير مستلَمة',
+  'dashboard.draftSales': 'فواتير بيع غير مثبَّتة',
+  'dashboard.todaySales.title': 'مبيعات اليوم',
+  'dashboard.todaySales.invoices': 'فاتورة',
+  'dashboard.todaySales.total': 'الإجمالي',
+  'dashboard.recentMovements.title': 'آخر الحركات',
+  'dashboard.recentMovements.viewAll': 'عرض السجلّ كاملًا',
+  'dashboard.quickActions.newSale': 'بيع جديد',
+  'dashboard.quickActions.newPurchase': 'فاتورة شراء جديدة',
+  'dashboard.quickActions.newProduct': 'منتج جديد',
+  'dashboard.section.error': 'تعذّر جلب هذا القسم',
+  'dashboard.section.retry': 'إعادة المحاولة',
+  'dashboard.refresh': 'تحديث',
+
+  // Two strings the original nineteen did not cover — the per-tile action label §12 requires
+  // («الأيقونة وحدها لا تكفي») and the empty state §6 makes mandatory. Raised as OQ-DSH-5 and
+  // **owner-approved 2026-08-06 in these exact wordings**; the proposals were «عرض» and
+  // «لا توجد حركات بعد», and the owner ruled otherwise. Twenty-one approved strings in total.
+  'dashboard.tile.open': 'فتح',
+  'dashboard.recentMovements.empty': 'لا توجد حركات مسجلة حتى الآن.',
 } as const;
 
 export type MessageKey = keyof typeof AR;

@@ -98,6 +98,18 @@
 | Tenant context | سياق المنشأة | The current tenant, branch and user, resolved **only** from authenticated claims — never from configuration, header, route or body (BR-IDN-004). |
 | Document number counter | عدّاد أرقام المستندات | The per-`(tenant, branch, series)` counter that replaces the global database sequences; allocated inside the document's transaction, so numbering is gapless (ADR-0022 §6). |
 
+## Dashboard — لوحة التشغيل
+
+> Added 2026-08-02 with the Dashboard commission. **Arabic forms APPROVED by
+> the owner 2026-08-03 (OQ-DSH-3) — «لوحة التشغيل» is the ruled name.**
+
+| English | العربية | Definition |
+|---|---|---|
+| Operational Dashboard | لوحة التشغيل | The first screen after sign-in. Answers one question — «what needs my attention right now?» — and **every element on it navigates to work** (BR-DSH-002). **Deliberately not** a reporting, analytics or executive dashboard. **Owner-ruled term (2026-08-03): «لوحة التشغيل», not «لوحة المعلومات»** — the latter names the very thing the commission excludes. `design-language.md` §17 uses «لوحة المعلومات» to describe a **kind of screen**, not this module. |
+| Clinic local date | تاريخ العيادة المحلّي | The one reference date for every business date decision, resolved from the **tenant's** time zone. UTC, server time and device time are prohibited sources. Home: `docs/architecture/cross-cutting/clinic-date.md` (owner ruling OQ-DSH-2, 2026-08-03); originally BR-INV-059/060, whose identifiers are preserved. |
+| Attention item | بند انتباه | One counted condition on the dashboard that is worth acting on this morning, shown with its count and a link to the destination **filtered on that same condition** (BR-DSH-018). |
+| All clear | حالة الاطمئنان | What the dashboard shows when every attention item is zero: **one explicit reassurance, not five zero tiles and not an empty state** — because zero here is good news, not absent data (BR-DSH-013). |
+
 ## TODO — أسئلة للمالك
 
 1. اعتماد الصيغ العربية أعلاه (خاصة: منتج/صنف، الكاشير/أمين الصندوق، دفعة/تشغيلة).

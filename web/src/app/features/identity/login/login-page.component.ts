@@ -216,8 +216,9 @@ export class LoginPageComponent {
     this.auth.signIn(phoneNumber.trim(), password).subscribe({
       next: () => {
         this.submitting.set(false);
-        // The landing screen is the product list that already exists (DEC-IDN-007).
-        void this.router.navigate(['/catalog/products']);
+        // The landing screen is the operational dashboard (REQ-DSH-001, DEC-DSH-011, which
+        // supersedes DEC-IDN-007's «no dashboard is built»).
+        void this.router.navigate(['/dashboard']);
       },
       error: (error: unknown) => {
         this.submitting.set(false);

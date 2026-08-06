@@ -137,6 +137,29 @@ export class InventoryListStore {
     this.page.set(1);
   }
 
+  /**
+   * Seeds the filters from the URL on entry, so the dashboard's «نفد مخزونها» tile lands on
+   * exactly the rows it counted (DEC-DSH-006, BR-DSH-018) rather than on the whole list.
+   *
+   * **Only the toggles already inside BR-INV-014's «حصرًا» list are honoured.** That rule is
+   * why the dashboard has no low-stock tile at all (DEC-INV-004, DEC-DSH-005) — and nothing
+   * here may quietly add one through a URL.
+   */
+  applyDeepLink(params: { readonly outOfStock: string | null; readonly expiringSoon: string | null }): void {
+    const outOfStock = params.outOfStock === 'true';
+    const expiringSoon = params.expiringSoon === 'true';
+    if (!outOfStock && !expiringSoon) {
+      return;
+    }
+
+    this.filters.update((filters) => ({
+      ...filters,
+      outOfStock: outOfStock || filters.outOfStock,
+      expiringSoon: expiringSoon || filters.expiringSoon,
+    }));
+    this.page.set(1);
+  }
+
   setSort(sort: InventorySort): void {
     this.sort.set(sort);
     this.page.set(1);
